@@ -568,6 +568,82 @@
       overflow: visible;
     }
 
+    /* ── CUSTOMER TABLE ── */
+    .cust-table-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .cust-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .cust-table thead th {
+      position: sticky;
+      top: 0;
+      background: var(--surface);
+      padding: 8px 6px;
+      text-align: left;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-dim);
+      border-bottom: 2px solid var(--border);
+      white-space: nowrap;
+    }
+    .cust-table tbody td {
+      padding: 7px 6px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+    .cust-table tbody tr:hover {
+      background: var(--surface-hover);
+    }
+    .cust-table .col-cust {
+      min-width: 140px;
+      max-width: 220px;
+      white-space: normal;
+      word-break: break-word;
+    }
+    .cust-name-cell {
+      font-weight: 600;
+      font-size: 12px;
+      line-height: 1.3;
+    }
+    .sco-cell {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .cust-table .num {
+      text-align: right;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+    }
+    .gmap-btn-sm {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      background: rgba(16, 185, 129, 0.12);
+      color: var(--green);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      border-radius: 6px;
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+    .gmap-btn-sm:hover {
+      background: var(--green);
+      color: #fff;
+    }
+    .gmap-btn-sm svg {
+      width: 14px;
+      height: 14px;
+      fill: currentColor;
+    }
+
     /* ── TAB 2: CHART & DAILY STATS ── */
     .chart-card {
       background: var(--surface);
@@ -914,14 +990,14 @@
         </div>
 
         <div class="kpi-card purple">
-          <div class="kpi-label">Avg Bulan Lalu (Aug)</div>
-          <div class="kpi-val" id="kpiAvgAug">-</div>
+          <div class="kpi-label" id="kpiM2Label">Avg Bulan Lalu (Aug)</div>
+          <div class="kpi-val" id="kpiAvgM2">-</div>
           <div class="kpi-sub">Total hit / hari</div>
         </div>
 
         <div class="kpi-card green">
-          <div class="kpi-label">Avg Bulan Ini (Sep)</div>
-          <div class="kpi-val" id="kpiAvgSep">-</div>
+          <div class="kpi-label" id="kpiM3Label">Avg Bulan Ini (Sep)</div>
+          <div class="kpi-val" id="kpiAvgM3">-</div>
           <div class="kpi-sub">Total hit / hari</div>
         </div>
 
@@ -987,13 +1063,13 @@
           </div>
           <div class="chart-legend-pills">
             <div class="legend-tag">
-              <span class="legend-dot jul"></span> Juli
+              <span class="legend-dot jul"></span><span id="legendM1"> Juli</span>
             </div>
             <div class="legend-tag">
-              <span class="legend-dot aug"></span> Agustus
+              <span class="legend-dot aug"></span><span id="legendM2"> Agustus</span>
             </div>
             <div class="legend-tag">
-              <span class="legend-dot sep"></span> September
+              <span class="legend-dot sep"></span><span id="legendM3"> September</span>
             </div>
           </div>
         </div>
@@ -1008,13 +1084,13 @@
       <!-- Summary KPI Card Harian -->
       <div class="kpi-grid">
         <div class="kpi-card green">
-          <div class="kpi-label">Total Trx September</div>
+          <div class="kpi-label" id="kpiDailyM3Label">Total Trx September</div>
           <div class="kpi-val" id="kpiDailySepTotal">-</div>
           <div class="kpi-sub" id="kpiDailySepSub">s/d tgl terakhir</div>
         </div>
 
         <div class="kpi-card purple">
-          <div class="kpi-label">Total Trx Agustus</div>
+          <div class="kpi-label" id="kpiDailyM2Label">Total Trx Agustus</div>
           <div class="kpi-val" id="kpiDailyAugTotal">-</div>
           <div class="kpi-sub">1 Bulan penuh</div>
         </div>
@@ -1026,7 +1102,7 @@
         </div>
 
         <div class="kpi-card amber">
-          <div class="kpi-label">Avg Trx / Hari (Sep)</div>
+          <div class="kpi-label" id="kpiDailyAvgLabel">Avg Trx / Hari (Sep)</div>
           <div class="kpi-val" id="kpiDailySepAvg">-</div>
           <div class="kpi-sub">Run-rate harian</div>
         </div>
@@ -1042,9 +1118,9 @@
             <thead>
               <tr>
                 <th>Tgl</th>
-                <th style="text-align:right; color:var(--jul-color);">Juli</th>
-                <th style="text-align:right; color:var(--aug-color);">Agustus</th>
-                <th style="text-align:right; color:var(--sep-color);">September</th>
+                <th id="thM1" style="text-align:right; color:var(--jul-color);">Juli</th>
+                <th id="thM2" style="text-align:right; color:var(--aug-color);">Agustus</th>
+                <th id="thM3" style="text-align:right; color:var(--sep-color);">September</th>
                 <th style="text-align:right;">Growth MoM</th>
               </tr>
             </thead>
@@ -1087,6 +1163,18 @@
   <!-- JAVASCRIPT LOGIC -->
   <!-- ═════════════════════════════════════════════════════════ -->
   <script>
+    // Month abbreviation → full Indonesian name
+    const MONTH_FULL = {
+      'JAN': 'Januari', 'FEB': 'Februari', 'MAR': 'Maret', 'APR': 'April',
+      'MAY': 'Mei', 'JUN': 'Juni', 'JUL': 'Juli', 'AUG': 'Agustus',
+      'SEP': 'September', 'OCT': 'Oktober', 'NOV': 'November', 'DEC': 'Desember'
+    };
+    const KNOWN_MONTHS = Object.keys(MONTH_FULL);
+
+    function monthFull(abbr) {
+      return MONTH_FULL[(abbr || '').toUpperCase()] || abbr || '-';
+    }
+
     // App State
     const state = {
       salesList: ['ALL', 'Abdul Harris', 'Febri Kurniawan', 'Hupron', 'Khoirul Anan', 'Mas Komarjaya'],
@@ -1097,7 +1185,9 @@
       rawTrenAgen: [],
       rawTrenHarian: [],
       filteredCustomers: [],
-      chartInstance: null
+      chartInstance: null,
+      // Dynamic month names detected from Excel headers
+      monthNames: { m1: 'JUL', m2: 'AUG', m3: 'SEP' }
     };
 
     // DOM Elements
@@ -1375,9 +1465,26 @@
       const idxCust = headers.findIndex(h => h.toUpperCase().includes('CUSTOMER'));
       const idxLoc = headers.findIndex(h => h.toUpperCase().includes('LOCATION'));
       const idxJadwal = headers.findIndex(h => h.toUpperCase().includes('JADWAL'));
-      const idxJul = headers.findIndex(h => h.toUpperCase() === 'JUL');
-      const idxAug = headers.findIndex(h => h.toUpperCase() === 'AUG');
-      const idxSep = headers.findIndex(h => h.toUpperCase() === 'SEP');
+
+      // Dynamically detect month columns (any 3-letter month abbreviation)
+      const monthCols = [];
+      headers.forEach((h, idx) => {
+        if (KNOWN_MONTHS.includes(h.toUpperCase())) {
+          monthCols.push({ idx, name: h.toUpperCase() });
+        }
+      });
+
+      // Take the last 3 month columns found
+      const mc = monthCols.slice(-3);
+      if (mc.length === 3) {
+        state.monthNames = { m1: mc[0].name, m2: mc[1].name, m3: mc[2].name };
+      } else if (mc.length === 2) {
+        state.monthNames = { m1: '', m2: mc[0].name, m3: mc[1].name };
+      }
+
+      const idxM1 = mc.length >= 3 ? mc[0].idx : -1;
+      const idxM2 = mc.length >= 2 ? mc[mc.length - 2].idx : -1;
+      const idxM3 = mc.length >= 1 ? mc[mc.length - 1].idx : -1;
 
       const data = [];
       for (let i = headerIdx + 1; i < rows.length; i++) {
@@ -1391,16 +1498,16 @@
         const loc = idxLoc >= 0 ? String(r[idxLoc] || '').trim() : '';
         const jadwal = idxJadwal >= 0 ? String(r[idxJadwal] || '').trim() : 'Lainnya';
         
-        const jul = parseFloat(r[idxJul]) || 0;
-        const aug = parseFloat(r[idxAug]) || 0;
-        const sep = parseFloat(r[idxSep]) || 0;
+        const m1 = idxM1 >= 0 ? (parseFloat(r[idxM1]) || 0) : 0;
+        const m2 = idxM2 >= 0 ? (parseFloat(r[idxM2]) || 0) : 0;
+        const m3 = idxM3 >= 0 ? (parseFloat(r[idxM3]) || 0) : 0;
 
-        // Growth: Sep vs Aug
+        // Growth: m3 vs m2 (decimal)
         let growth = 0;
-        if (aug > 0) {
-          growth = ((sep - aug) / aug) * 100;
-        } else if (sep > 0) {
-          growth = 100;
+        if (m2 > 0) {
+          growth = (m3 - m2) / m2;
+        } else if (m3 > 0) {
+          growth = 1;
         }
 
         data.push({
@@ -1409,10 +1516,10 @@
           location: loc,
           mapsUrl: parseDmsToMaps(loc),
           jadwal: jadwal || 'Lainnya',
-          jul: Math.round(jul * 100) / 100,
-          aug: Math.round(aug * 100) / 100,
-          sep: Math.round(sep * 100) / 100,
-          growth: Math.round(growth * 10) / 10
+          m1: Math.round(m1 * 100) / 100,
+          m2: Math.round(m2 * 100) / 100,
+          m3: Math.round(m3 * 100) / 100,
+          growth: Math.round(growth * 100) / 100
         });
       }
 
@@ -1484,11 +1591,59 @@
 
     // ── UPDATE ALL VIEWS ──
     function updateAllViews() {
+      updateMonthLabels();
       renderTab1KPI();
       updateJadwalPillCounts();
       filterAndRenderCustomers();
       renderTab2Summary();
       renderDailyChart();
+    }
+
+    // ── UPDATE ALL MONTH LABELS IN HTML ──
+    function updateMonthLabels() {
+      const mn = state.monthNames;
+      const m1Full = monthFull(mn.m1);
+      const m2Full = monthFull(mn.m2);
+      const m3Full = monthFull(mn.m3);
+
+      // Tab 1 KPI cards
+      const kpiM2Label = document.getElementById('kpiM2Label');
+      if (kpiM2Label) kpiM2Label.textContent = `Avg Bulan Lalu (${mn.m2})`;
+      const kpiM3Label = document.getElementById('kpiM3Label');
+      if (kpiM3Label) kpiM3Label.textContent = `Avg Bulan Ini (${mn.m3})`;
+      const kpiGrowthSub = document.getElementById('kpiGrowthBadgeWrap');
+      if (kpiGrowthSub) kpiGrowthSub.dataset.defaultText = `Performa vs ${mn.m2}`;
+
+      // Sort dropdown
+      const sortSelect = document.getElementById('sortSelect');
+      if (sortSelect) {
+        sortSelect.options[2].text = `Avg ${mn.m3} Tertinggi`;
+        sortSelect.options[3].text = `Avg ${mn.m2} Tertinggi`;
+      }
+
+      // Tab 2 chart legend
+      const legendM1 = document.getElementById('legendM1');
+      if (legendM1) legendM1.textContent = ` ${m1Full}`;
+      const legendM2 = document.getElementById('legendM2');
+      if (legendM2) legendM2.textContent = ` ${m2Full}`;
+      const legendM3 = document.getElementById('legendM3');
+      if (legendM3) legendM3.textContent = ` ${m3Full}`;
+
+      // Tab 2 KPI cards
+      const kpiDailyM3Label = document.getElementById('kpiDailyM3Label');
+      if (kpiDailyM3Label) kpiDailyM3Label.textContent = `Total Trx ${m3Full}`;
+      const kpiDailyM2Label = document.getElementById('kpiDailyM2Label');
+      if (kpiDailyM2Label) kpiDailyM2Label.textContent = `Total Trx ${m2Full}`;
+      const kpiDailyAvgLabel = document.getElementById('kpiDailyAvgLabel');
+      if (kpiDailyAvgLabel) kpiDailyAvgLabel.textContent = `Avg Trx / Hari (${mn.m3})`;
+
+      // Tab 2 daily table headers
+      const thM1 = document.getElementById('thM1');
+      if (thM1) thM1.textContent = m1Full;
+      const thM2 = document.getElementById('thM2');
+      if (thM2) thM2.textContent = m2Full;
+      const thM3 = document.getElementById('thM3');
+      if (thM3) thM3.textContent = m3Full;
     }
 
     // ── TAB 1: RENDER KPI ──
@@ -1498,19 +1653,19 @@
         : state.rawTrenAgen.filter(x => x.sco === state.selectedSales);
 
       const totalCust = activeData.length;
-      const sumAug = activeData.reduce((acc, curr) => acc + curr.aug, 0);
-      const sumSep = activeData.reduce((acc, curr) => acc + curr.sep, 0);
+      const sumM2 = activeData.reduce((acc, curr) => acc + curr.m2, 0);
+      const sumM3 = activeData.reduce((acc, curr) => acc + curr.m3, 0);
       
       let growth = 0;
-      if (sumAug > 0) {
-        growth = (sumSep - sumAug) / sumAug;
-      } else if (sumSep > 0) {
+      if (sumM2 > 0) {
+        growth = (sumM3 - sumM2) / sumM2;
+      } else if (sumM3 > 0) {
         growth = 1;
       }
 
       document.getElementById('kpiTotalCust').textContent = totalCust.toLocaleString('id-ID');
-      document.getElementById('kpiAvgAug').textContent = sumAug.toLocaleString('id-ID', { maximumFractionDigits: 1 });
-      document.getElementById('kpiAvgSep').textContent = sumSep.toLocaleString('id-ID', { maximumFractionDigits: 1 });
+      document.getElementById('kpiAvgM2').textContent = sumM2.toLocaleString('id-ID', { maximumFractionDigits: 1 });
+      document.getElementById('kpiAvgM3').textContent = sumM3.toLocaleString('id-ID', { maximumFractionDigits: 1 });
       
       const growthSign = growth > 0 ? '+' : '';
       const growthFormatted = `${growthSign}${growth.toFixed(2)}`;
@@ -1581,8 +1736,8 @@
       list.sort((a, b) => {
         if (state.sortField === 'growth_desc') return b.growth - a.growth;
         if (state.sortField === 'growth_asc') return a.growth - b.growth;
-        if (state.sortField === 'sep_desc') return b.sep - a.sep;
-        if (state.sortField === 'aug_desc') return b.aug - a.aug;
+        if (state.sortField === 'sep_desc') return b.m3 - a.m3;
+        if (state.sortField === 'aug_desc') return b.m2 - a.m2;
         if (state.sortField === 'name_asc') return a.customer.localeCompare(b.customer);
         return 0;
       });
@@ -1591,7 +1746,7 @@
       renderCustomerListHtml(list);
     }
 
-    // ── RENDER CUSTOMER HTML CARDS ──
+    // ── RENDER CUSTOMER TABLE ──
     function renderCustomerListHtml(list) {
       if (!list || list.length === 0) {
         customerList.innerHTML = `
@@ -1603,59 +1758,58 @@
         return;
       }
 
-      const html = list.map(c => {
+      const mn = state.monthNames;
+      const showSCO = state.selectedSales === 'ALL';
+
+      let html = `
+        <div class="cust-table-wrap">
+        <table class="cust-table">
+          <thead>
+            <tr>
+              <th>No</th>
+              <th class="col-cust">Customer</th>
+              <th>Jadwal</th>
+              ${showSCO ? '<th>SCO</th>' : ''}
+              <th class="num" style="color:var(--jul-color);">${mn.m1}</th>
+              <th class="num" style="color:var(--aug-color);">${mn.m2} (Lalu)</th>
+              <th class="num" style="color:var(--sep-color);">${mn.m3} (Ini)</th>
+              <th class="num">Growth</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>`;
+
+      list.forEach((c, i) => {
         const growthSign = c.growth > 0 ? '+' : '';
         const growthClass = c.growth > 0 ? 'positive' : (c.growth < 0 ? 'negative' : 'neutral');
-        const sparklineSvg = generateSparklineSvg(c.jul, c.aug, c.sep);
+        const growthText = `${growthSign}${c.growth.toFixed(2)}`;
 
         const mapsBtnHtml = c.mapsUrl 
-          ? `<a href="${c.mapsUrl}" target="_blank" rel="noopener" class="gmap-btn" title="Buka di Google Maps">
+          ? `<a href="${c.mapsUrl}" target="_blank" rel="noopener" class="gmap-btn-sm" title="Maps">
                <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>
-               Maps
              </a>`
           : '';
 
-        return `
-          <div class="customer-card">
-            <div class="cust-header">
-              <div class="cust-info">
-                <div class="cust-name">${escapeHtml(c.customer)}</div>
-                <div class="cust-meta">
-                  <span class="jadwal-tag">${escapeHtml(c.jadwal)}</span>
-                  ${state.selectedSales === 'ALL' ? `<span class="sco-tag">• ${escapeHtml(c.sco)}</span>` : ''}
-                </div>
-              </div>
-              ${mapsBtnHtml}
-            </div>
+        html += `
+            <tr>
+              <td>${i + 1}</td>
+              <td class="col-cust">
+                <div class="cust-name-cell">${escapeHtml(c.customer)}</div>
+              </td>
+              <td><span class="jadwal-tag">${escapeHtml(c.jadwal)}</span></td>
+              ${showSCO ? `<td class="sco-cell">${escapeHtml(c.sco)}</td>` : ''}
+              <td class="num" style="color:var(--jul-color);">${c.m1}</td>
+              <td class="num" style="color:var(--aug-color);">${c.m2}</td>
+              <td class="num" style="color:var(--sep-color); font-weight:700;">${c.m3}</td>
+              <td class="num"><span class="growth-badge ${growthClass}">${growthText}</span></td>
+              <td>${mapsBtnHtml}</td>
+            </tr>`;
+      });
 
-            <div class="cust-stats-row">
-              <div class="stat-col left">
-                <div class="stat-title">Jul</div>
-                <div class="stat-num" style="color:var(--jul-color);">${c.jul}</div>
-              </div>
-              <div class="stat-col">
-                <div class="stat-title">Aug (Lalu)</div>
-                <div class="stat-num" style="color:var(--aug-color);">${c.aug}</div>
-              </div>
-              <div class="stat-col">
-                <div class="stat-title">Sep (Ini)</div>
-                <div class="stat-num" style="color:var(--sep-color);">${c.sep}</div>
-              </div>
-              <div class="stat-col" style="text-align:right;">
-                <div class="stat-title">Trend</div>
-                <div class="sparkline-box">
-                  ${sparklineSvg}
-                </div>
-              </div>
-            </div>
-
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; font-size:11px; padding:0 2px;">
-              <span style="color:var(--text-dim);">Pertumbuhan vs Bulan Lalu</span>
-              <span class="growth-badge ${growthClass}">${growthSign}${c.growth}%</span>
-            </div>
-          </div>
-        `;
-      }).join('');
+      html += `
+          </tbody>
+        </table>
+        </div>`;
 
       customerList.innerHTML = html;
     }
@@ -1693,36 +1847,37 @@
         ? state.rawTrenHarian
         : state.rawTrenHarian.filter(x => x.sco === state.selectedSales);
 
-      const sepData = activeData.filter(x => x.bulan.toLowerCase() === 'sep');
-      const augData = activeData.filter(x => x.bulan.toLowerCase() === 'aug');
+      const mn = state.monthNames;
+      const m3Data = activeData.filter(x => x.bulan.toUpperCase() === mn.m3);
+      const m2Data = activeData.filter(x => x.bulan.toUpperCase() === mn.m2);
 
-      const sumSep = sepData.reduce((acc, curr) => acc + curr.trx, 0);
-      const sumAug = augData.reduce((acc, curr) => acc + curr.trx, 0);
+      const sumM3 = m3Data.reduce((acc, curr) => acc + curr.trx, 0);
+      const sumM2 = m2Data.reduce((acc, curr) => acc + curr.trx, 0);
 
-      // Peak Day September
+      // Peak Day current month
       let peakDay = '-';
       let peakVal = 0;
-      const sepByDay = {};
-      sepData.forEach(d => {
-        sepByDay[d.dayOfMonth] = (sepByDay[d.dayOfMonth] || 0) + d.trx;
+      const m3ByDay = {};
+      m3Data.forEach(d => {
+        m3ByDay[d.dayOfMonth] = (m3ByDay[d.dayOfMonth] || 0) + d.trx;
       });
 
-      for (const [day, val] of Object.entries(sepByDay)) {
+      for (const [day, val] of Object.entries(m3ByDay)) {
         if (val > peakVal) {
           peakVal = val;
           peakDay = `Tgl ${day}`;
         }
       }
 
-      const countDaysSep = Object.keys(sepByDay).length || 1;
-      const avgDailySep = Math.round(sumSep / countDaysSep);
+      const countDaysM3 = Object.keys(m3ByDay).length || 1;
+      const avgDailyM3 = Math.round(sumM3 / countDaysM3);
 
-      document.getElementById('kpiDailySepTotal').textContent = sumSep.toLocaleString('id-ID');
-      document.getElementById('kpiDailySepSub').textContent = `Periode 1 - ${countDaysSep} September`;
-      document.getElementById('kpiDailyAugTotal').textContent = sumAug.toLocaleString('id-ID');
+      document.getElementById('kpiDailySepTotal').textContent = sumM3.toLocaleString('id-ID');
+      document.getElementById('kpiDailySepSub').textContent = `Periode 1 - ${countDaysM3} ${monthFull(mn.m3)}`;
+      document.getElementById('kpiDailyAugTotal').textContent = sumM2.toLocaleString('id-ID');
       document.getElementById('kpiDailyPeak').textContent = peakVal > 0 ? peakVal.toLocaleString('id-ID') : '-';
       document.getElementById('kpiDailyPeakSub').textContent = peakDay !== '-' ? `Rekor pada ${peakDay}` : '-';
-      document.getElementById('kpiDailySepAvg').textContent = avgDailySep.toLocaleString('id-ID');
+      document.getElementById('kpiDailySepAvg').textContent = avgDailyM3.toLocaleString('id-ID');
 
       renderDailyTableRows(activeData);
     }
@@ -1732,41 +1887,43 @@
       const tbody = document.getElementById('dailyTableBody');
       if (!tbody) return;
 
-      const julByDay = {};
-      const augByDay = {};
-      const sepByDay = {};
+      const mn = state.monthNames;
+      const m1ByDay = {};
+      const m2ByDay = {};
+      const m3ByDay = {};
 
       activeData.forEach(d => {
-        if (d.bulan.toLowerCase() === 'jul') julByDay[d.dayOfMonth] = (julByDay[d.dayOfMonth] || 0) + d.trx;
-        if (d.bulan.toLowerCase() === 'aug') augByDay[d.dayOfMonth] = (augByDay[d.dayOfMonth] || 0) + d.trx;
-        if (d.bulan.toLowerCase() === 'sep') sepByDay[d.dayOfMonth] = (sepByDay[d.dayOfMonth] || 0) + d.trx;
+        const b = d.bulan.toUpperCase();
+        if (b === mn.m1) m1ByDay[d.dayOfMonth] = (m1ByDay[d.dayOfMonth] || 0) + d.trx;
+        if (b === mn.m2) m2ByDay[d.dayOfMonth] = (m2ByDay[d.dayOfMonth] || 0) + d.trx;
+        if (b === mn.m3) m3ByDay[d.dayOfMonth] = (m3ByDay[d.dayOfMonth] || 0) + d.trx;
       });
 
       let html = '';
       for (let day = 1; day <= 31; day++) {
-        const julVal = julByDay[day] !== undefined ? julByDay[day] : '-';
-        const augVal = augByDay[day] !== undefined ? augByDay[day] : '-';
-        const sepVal = sepByDay[day] !== undefined ? sepByDay[day] : '-';
+        const v1 = m1ByDay[day] !== undefined ? m1ByDay[day] : '-';
+        const v2 = m2ByDay[day] !== undefined ? m2ByDay[day] : '-';
+        const v3 = m3ByDay[day] !== undefined ? m3ByDay[day] : '-';
 
         let growthText = '-';
         let growthClass = '';
-        if (typeof augVal === 'number' && typeof sepVal === 'number') {
-          if (augVal > 0) {
-            const g = ((sepVal - augVal) / augVal) * 100;
+        if (typeof v2 === 'number' && typeof v3 === 'number') {
+          if (v2 > 0) {
+            const g = (v3 - v2) / v2;
             const sign = g > 0 ? '+' : '';
-            growthText = `${sign}${g.toFixed(1)}%`;
+            growthText = `${sign}${g.toFixed(2)}`;
             growthClass = g >= 0 ? 'positive' : 'negative';
           }
         }
 
         // Only show rows that have data in at least one month
-        if (julVal !== '-' || augVal !== '-' || sepVal !== '-') {
+        if (v1 !== '-' || v2 !== '-' || v3 !== '-') {
           html += `
             <tr>
               <td><strong>Tgl ${day}</strong></td>
-              <td class="num">${typeof julVal === 'number' ? julVal.toLocaleString('id-ID') : '-'}</td>
-              <td class="num">${typeof augVal === 'number' ? augVal.toLocaleString('id-ID') : '-'}</td>
-              <td class="num" style="font-weight:700;">${typeof sepVal === 'number' ? sepVal.toLocaleString('id-ID') : '-'}</td>
+              <td class="num">${typeof v1 === 'number' ? v1.toLocaleString('id-ID') : '-'}</td>
+              <td class="num">${typeof v2 === 'number' ? v2.toLocaleString('id-ID') : '-'}</td>
+              <td class="num" style="font-weight:700;">${typeof v3 === 'number' ? v3.toLocaleString('id-ID') : '-'}</td>
               <td class="num">
                 ${growthText !== '-' ? `<span class="growth-badge ${growthClass}">${growthText}</span>` : '-'}
               </td>
@@ -1790,16 +1947,18 @@
       // Prepare 1 to 31 labels
       const labels = Array.from({ length: 31 }, (_, i) => String(i + 1));
 
-      const julData = new Array(31).fill(null);
-      const augData = new Array(31).fill(null);
-      const sepData = new Array(31).fill(null);
+      const mn = state.monthNames;
+      const m1Data = new Array(31).fill(null);
+      const m2Data = new Array(31).fill(null);
+      const m3Data = new Array(31).fill(null);
 
       activeData.forEach(d => {
         const dayIdx = d.dayOfMonth - 1;
         if (dayIdx >= 0 && dayIdx < 31) {
-          if (d.bulan.toLowerCase() === 'jul') julData[dayIdx] = (julData[dayIdx] || 0) + d.trx;
-          if (d.bulan.toLowerCase() === 'aug') augData[dayIdx] = (augData[dayIdx] || 0) + d.trx;
-          if (d.bulan.toLowerCase() === 'sep') sepData[dayIdx] = (sepData[dayIdx] || 0) + d.trx;
+          const b = d.bulan.toUpperCase();
+          if (b === mn.m1) m1Data[dayIdx] = (m1Data[dayIdx] || 0) + d.trx;
+          if (b === mn.m2) m2Data[dayIdx] = (m2Data[dayIdx] || 0) + d.trx;
+          if (b === mn.m3) m3Data[dayIdx] = (m3Data[dayIdx] || 0) + d.trx;
         }
       });
 
@@ -1817,8 +1976,8 @@
           labels: labels,
           datasets: [
             {
-              label: 'September',
-              data: sepData,
+              label: monthFull(mn.m3),
+              data: m3Data,
               borderColor: '#10b981', // emerald green
               backgroundColor: 'rgba(16,185,129,0.2)',
               borderWidth: 2,
@@ -1827,8 +1986,8 @@
               pointRadius: 3
             },
             {
-              label: 'Agustus',
-              data: augData,
+              label: monthFull(mn.m2),
+              data: m2Data,
               borderColor: '#a855f7', // purple
               backgroundColor: 'rgba(168,85,247,0.2)',
               borderWidth: 2,
@@ -1837,8 +1996,8 @@
               pointRadius: 3
             },
             {
-              label: 'Juli',
-              data: julData,
+              label: monthFull(mn.m1),
+              data: m1Data,
               borderColor: '#38bdf8', // sky blue
               backgroundColor: 'rgba(56,189,248,0.2)',
               borderWidth: 2,
