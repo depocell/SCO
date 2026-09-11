@@ -1398,9 +1398,9 @@
         // Growth: Sep vs Aug
         let growth = 0;
         if (aug > 0) {
-          growth = (sep - aug) / aug;
+          growth = ((sep - aug) / aug) * 100;
         } else if (sep > 0) {
-          growth = 1;
+          growth = 100;
         }
 
         data.push({
@@ -1412,7 +1412,7 @@
           jul: Math.round(jul * 100) / 100,
           aug: Math.round(aug * 100) / 100,
           sep: Math.round(sep * 100) / 100,
-          growth: Math.round(growth * 100) / 100
+          growth: Math.round(growth * 10) / 10
         });
       }
 
@@ -1503,9 +1503,9 @@
       
       let growth = 0;
       if (sumAug > 0) {
-        growth = (sumSep - sumAug) ;
+        growth = ((sumSep - sumAug) / sumAug) * 100;
       } else if (sumSep > 0) {
-        growth = sumSep;
+        growth = 100;
       }
 
       document.getElementById('kpiTotalCust').textContent = totalCust.toLocaleString('id-ID');
@@ -1513,7 +1513,7 @@
       document.getElementById('kpiAvgSep').textContent = sumSep.toLocaleString('id-ID', { maximumFractionDigits: 1 });
       
       const growthSign = growth > 0 ? '+' : '';
-      const growthFormatted = `${growthSign}${growth.toFixed(1)}`;
+      const growthFormatted = `${growthSign}${growth.toFixed(1)}%`;
       const kpiGrowthEl = document.getElementById('kpiGrowth');
       kpiGrowthEl.textContent = growthFormatted;
 
@@ -1651,7 +1651,7 @@
 
             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; font-size:11px; padding:0 2px;">
               <span style="color:var(--text-dim);">Pertumbuhan vs Bulan Lalu</span>
-              <span class="growth-badge ${growthClass}">${growthSign}${c.growth}</span>
+              <span class="growth-badge ${growthClass}">${growthSign}${c.growth}%</span>
             </div>
           </div>
         `;
@@ -1751,14 +1751,12 @@
         let growthText = '-';
         let growthClass = '';
         if (typeof augVal === 'number' && typeof sepVal === 'number') {
-          const diff = sepVal - augVal;
-          const sign = diff > 0 ? '+' : (diff < 0 ? '-' : '');
-          const formattedDiff = Math.abs(diff).toLocaleString('id-ID', {
-            minimumFractionDigits: Number.isInteger(diff) ? 0 : 1,
-            maximumFractionDigits: 1
-          });
-          growthText = diff === 0 ? '0' : `${sign}${formattedDiff}`;
-          growthClass = diff > 0 ? 'positive' : (diff < 0 ? 'negative' : 'neutral');
+          if (augVal > 0) {
+            const g = ((sepVal - augVal) / augVal) * 100;
+            const sign = g > 0 ? '+' : '';
+            growthText = `${sign}${g.toFixed(1)}%`;
+            growthClass = g >= 0 ? 'positive' : 'negative';
+          }
         }
 
         // Only show rows that have data in at least one month
@@ -1814,46 +1812,52 @@
       }
 
       state.chartInstance = new Chart(ctx, {
-        type: 'line',
+        type: 'bar',
         data: {
           labels: labels,
           datasets: [
             {
               label: 'September',
               data: sepData,
-              borderColor: '#10b981', // emerald green
-              backgroundColor: 'rgba(16,185,129,0.2)',
-              borderWidth: 2,
-              tension: 0.4,
-              fill: false,
-              pointRadius: 3
+              backgroundColor: '#10b981', // emerald green
+              borderColor: '#059669',
+              borderWidth: 1,
+              borderRadius: 4,
+              barPercentage: 0.85,
+              categoryPercentage: 0.8
             },
             {
               label: 'Agustus',
               data: augData,
-              borderColor: '#a855f7', // purple
-              backgroundColor: 'rgba(168,85,247,0.2)',
-              borderWidth: 2,
-              tension: 0.4,
-              fill: false,
-              pointRadius: 3
+              backgroundColor: '#a855f7', // purple
+              borderColor: '#7c3aed',
+              borderWidth: 1,
+              borderRadius: 4,
+              barPercentage: 0.85,
+              categoryPercentage: 0.8
             },
             {
               label: 'Juli',
               data: julData,
-              borderColor: '#38bdf8', // sky blue
-              backgroundColor: 'rgba(56,189,248,0.2)',
-              borderWidth: 2,
-              tension: 0.4,
-              fill: false,
-              pointRadius: 3
+              backgroundColor: '#38bdf8', // sky blue
+              borderColor: '#0284c7',
+              borderWidth: 1,
+              borderRadius: 4,
+              barPercentage: 0.85,
+              categoryPercentage: 0.8
             }
           ]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          interaction: {
+            mode: 'index',
+            intersect: false
+          },
           plugins: {
+            legend: {
+              display: false // already custom HTML legend
             },
             tooltip: {
               backgroundColor: isLight ? '#ffffff' : '#1e293b',
