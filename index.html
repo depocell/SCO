@@ -1,0 +1,1909 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
+  <meta name="theme-color" content="#0b0f19"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <title>SCO Daily Report Mobile</title>
+  
+  <!-- SheetJS & Chart.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --surface: #131b2e;
+      --surface2: #1a243d;
+      --surface-hover: #222f4f;
+      --border: rgba(255, 255, 255, 0.08);
+      --border-accent: rgba(59, 130, 246, 0.3);
+      
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      
+      --primary: #3b82f6;
+      --primary-dim: rgba(59, 130, 246, 0.15);
+      --primary-glow: rgba(59, 130, 246, 0.25);
+      
+      --green: #10b981;
+      --green-dim: rgba(16, 185, 129, 0.15);
+      --red: #ef4444;
+      --red-dim: rgba(239, 68, 68, 0.15);
+      --amber: #f59e0b;
+      --amber-dim: rgba(245, 158, 11, 0.15);
+      
+      --jul-color: #38bdf8;
+      --aug-color: #a855f7;
+      --sep-color: #10b981;
+
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5);
+    }
+
+    html.light {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --surface2: #f1f5f9;
+      --surface-hover: #e2e8f0;
+      --border: rgba(0, 0, 0, 0.08);
+      --border-accent: rgba(59, 130, 246, 0.4);
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --text-dim: #94a3b8;
+      --primary-dim: rgba(59, 130, 246, 0.1);
+      --shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.06);
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      padding-bottom: 90px; /* space for bottom nav on mobile */
+    }
+
+    /* ── HEADER ── */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(19, 27, 46, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    html.light header {
+      background: rgba(255, 255, 255, 0.9);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: var(--radius-sm);
+      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 800;
+      font-size: 16px;
+      box-shadow: 0 2px 10px var(--primary-glow);
+    }
+    .brand-title {
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+    .brand-title span {
+      display: block;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    /* Sales Selector Pill in Header */
+    .sales-selector-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      padding: 6px 12px 6px 8px;
+      border-radius: 999px;
+      cursor: pointer;
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      max-width: 170px;
+    }
+    .sales-selector-btn:active {
+      transform: scale(0.97);
+    }
+    .sales-selector-btn:hover {
+      border-color: var(--primary);
+    }
+    .sales-avatar-badge {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .sales-selector-btn .name-label {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .sales-selector-btn svg {
+      width: 14px;
+      height: 14px;
+      fill: var(--text-muted);
+      flex-shrink: 0;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .icon-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .icon-btn:hover {
+      color: var(--text);
+      border-color: var(--primary);
+    }
+    .icon-btn svg {
+      width: 17px;
+      height: 17px;
+      fill: currentColor;
+    }
+
+    /* ── CONTAINER ── */
+    .container {
+      width: 100%;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 14px 16px;
+    }
+
+    /* ── LOADING & ERROR BANNER ── */
+    #statusBanner {
+      display: none;
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 12px;
+      font-size: 13px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    #statusBanner.info {
+      background: var(--primary-dim);
+      border: 1px solid var(--border-accent);
+      color: #60a5fa;
+      display: flex;
+    }
+    #statusBanner.error {
+      background: var(--red-dim);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #f87171;
+      display: flex;
+    }
+
+    /* ── TABS ── */
+    .tab-content {
+      display: none;
+      animation: fadeIn 0.25s ease;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── KPI CARDS ── */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    @media (min-width: 640px) {
+      .kpi-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+      }
+    }
+    .kpi-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px 14px 12px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: transparent;
+    }
+    .kpi-card.blue::before { background: var(--primary); }
+    .kpi-card.purple::before { background: var(--aug-color); }
+    .kpi-card.green::before { background: var(--green); }
+    .kpi-card.amber::before { background: var(--amber); }
+
+    .kpi-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .kpi-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.1;
+    }
+    .kpi-sub {
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .growth-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 999px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .growth-badge.positive {
+      background: var(--green-dim);
+      color: var(--green);
+    }
+    .growth-badge.negative {
+      background: var(--red-dim);
+      color: var(--red);
+    }
+    .growth-badge.neutral {
+      background: var(--surface2);
+      color: var(--text-muted);
+    }
+
+    /* ── FILTER & SEARCH SECTION ── */
+    .filter-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      margin-bottom: 14px;
+      box-shadow: var(--shadow);
+    }
+    .filter-pills {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 6px;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    .filter-pills::-webkit-scrollbar {
+      display: none;
+    }
+    .pill-btn {
+      flex-shrink: 0;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      padding: 7px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .pill-btn:hover {
+      border-color: var(--primary);
+      color: var(--text);
+    }
+    .pill-btn.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+      box-shadow: 0 2px 8px var(--primary-glow);
+    }
+    .pill-count {
+      font-size: 10px;
+      padding: 1px 5px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.2);
+    }
+    .pill-btn:not(.active) .pill-count {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-dim);
+    }
+
+    .search-row {
+      margin-top: 10px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .search-box {
+      flex: 1;
+      position: relative;
+    }
+    .search-box input {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 9px 12px 9px 34px;
+      font-size: 13px;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .search-box input:focus {
+      border-color: var(--primary);
+    }
+    .search-icon {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 16px;
+      height: 16px;
+      fill: var(--text-dim);
+      pointer-events: none;
+    }
+    .sort-select {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 9px 10px;
+      font-size: 12px;
+      color: var(--text);
+      outline: none;
+      cursor: pointer;
+    }
+
+    /* ── CUSTOMER LIST / CARDS ── */
+    .customer-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .customer-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      transition: all 0.2s ease;
+      box-shadow: var(--shadow);
+    }
+    .customer-card:hover {
+      border-color: var(--border-accent);
+      background: var(--surface-hover);
+    }
+    .cust-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .cust-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .cust-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.3;
+      margin-bottom: 4px;
+      word-break: break-word;
+    }
+    .cust-meta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+    }
+    .jadwal-tag {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: rgba(59, 130, 246, 0.12);
+      color: #60a5fa;
+      border: 1px solid rgba(59, 130, 246, 0.25);
+    }
+    .sco-tag {
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--text-dim);
+    }
+
+    /* Maps Action Button */
+    .gmap-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 6px 10px;
+      background: rgba(16, 185, 129, 0.12);
+      color: var(--green);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      border-radius: var(--radius-sm);
+      font-size: 11px;
+      font-weight: 600;
+      text-decoration: none;
+      flex-shrink: 0;
+      transition: all 0.15s ease;
+    }
+    .gmap-btn:active {
+      transform: scale(0.95);
+    }
+    .gmap-btn:hover {
+      background: var(--green);
+      color: #fff;
+    }
+    .gmap-btn svg {
+      width: 12px;
+      height: 12px;
+      fill: currentColor;
+    }
+
+    /* Monthly Trx Stats & Sparkline */
+    .cust-stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr) 60px;
+      align-items: center;
+      background: var(--surface2);
+      border-radius: var(--radius-sm);
+      padding: 8px 10px;
+      gap: 8px;
+    }
+    .stat-col {
+      text-align: center;
+    }
+    .stat-col.left {
+      text-align: left;
+    }
+    .stat-title {
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-dim);
+      margin-bottom: 2px;
+    }
+    .stat-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .sparkline-box {
+      width: 55px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .sparkline-box svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+
+    /* ── TAB 2: CHART & DAILY STATS ── */
+    .chart-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px 14px;
+      margin-bottom: 14px;
+      box-shadow: var(--shadow);
+    }
+    .chart-header {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .chart-title {
+      font-size: 14px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .chart-legend-pills {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .legend-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+    }
+    .legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+    .legend-dot.jul { background: var(--jul-color); }
+    .legend-dot.aug { background: var(--aug-color); }
+    .legend-dot.sep { background: var(--sep-color); }
+
+    .chart-scroll-wrapper {
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 6px;
+    }
+    .chart-wrapper {
+      position: relative;
+      min-width: 650px;
+      height: 280px;
+    }
+    @media (min-width: 768px) {
+      .chart-wrapper {
+        min-width: 100%;
+        height: 320px;
+      }
+    }
+
+    /* Daily Table */
+    .daily-table-container {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+    .table-header {
+      padding: 12px 14px;
+      font-size: 13px;
+      font-weight: 700;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .daily-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .daily-table th {
+      background: var(--surface2);
+      padding: 9px 12px;
+      text-align: left;
+      font-weight: 600;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      font-size: 11px;
+      text-transform: uppercase;
+    }
+    .daily-table td {
+      padding: 9px 12px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+    }
+    .daily-table tr:last-child td {
+      border-bottom: none;
+    }
+    .daily-table td.num {
+      text-align: right;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+    }
+
+    /* ── BOTTOM NAVIGATION ── */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(19, 27, 46, 0.95);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+      z-index: 90;
+    }
+    html.light .bottom-nav {
+      background: rgba(255, 255, 255, 0.95);
+    }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 6px 16px;
+      border-radius: var(--radius-sm);
+      transition: all 0.2s;
+    }
+    .nav-item svg {
+      width: 20px;
+      height: 20px;
+      fill: currentColor;
+    }
+    .nav-item.active {
+      color: var(--primary);
+    }
+
+    /* ── SALES SELECTION MODAL / BOTTOM SHEET ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      z-index: 200;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .modal-sheet {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      border-radius: 20px 20px 0 0;
+      width: 100%;
+      max-width: 500px;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 20px 18px calc(24px + env(safe-area-inset-bottom));
+      transform: translateY(100%);
+      transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .modal-overlay.open .modal-sheet {
+      transform: translateY(0);
+    }
+    .modal-drag-handle {
+      width: 38px;
+      height: 4px;
+      border-radius: 999px;
+      background: var(--border);
+      margin: 0 auto 16px;
+    }
+    .modal-title {
+      font-size: 17px;
+      font-weight: 800;
+      margin-bottom: 4px;
+      color: var(--text);
+    }
+    .modal-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+    .sales-option-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .sales-option-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px;
+      border-radius: var(--radius-md);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .sales-option-item:active {
+      transform: scale(0.98);
+    }
+    .sales-option-item.selected {
+      border-color: var(--primary);
+      background: var(--primary-dim);
+    }
+    .sales-opt-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .sales-opt-avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: var(--surface-hover);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 13px;
+      color: var(--text);
+    }
+    .sales-option-item.selected .sales-opt-avatar {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+    .sales-opt-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.2;
+    }
+    .sales-opt-count {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .check-icon {
+      width: 18px;
+      height: 18px;
+      fill: var(--primary);
+      display: none;
+    }
+    .sales-option-item.selected .check-icon {
+      display: block;
+    }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+    .empty-state svg {
+      width: 44px;
+      height: 44px;
+      fill: var(--text-dim);
+      margin-bottom: 10px;
+    }
+
+    /* Hidden file input */
+    #filePicker { display: none; }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="brand">
+      <div class="brand-icon">SCO</div>
+      <div class="brand-title">
+        Daily Report
+        <span id="headerSubText">Mobile Dashboard</span>
+      </div>
+    </div>
+
+    <!-- Selected Sales Trigger -->
+    <button class="sales-selector-btn" id="salesModalTrigger" title="Klik untuk ganti sales">
+      <div class="sales-avatar-badge" id="salesAvatarBadge">A</div>
+      <span class="name-label" id="salesNameBadge">Memuat...</span>
+      <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
+    </button>
+
+    <div class="header-actions">
+      <!-- Upload File Button -->
+      <button class="icon-btn" id="uploadBtn" title="Muat File Excel Baru">
+        <svg viewBox="0 0 24 24"><path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/></svg>
+      </button>
+      <input type="file" id="filePicker" accept=".xlsx, .xls"/>
+
+      <!-- Theme Toggle -->
+      <button class="icon-btn" id="themeBtn" title="Ganti Tema">
+        <svg id="themeIcon" viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-3.03 0-5.5-2.47-5.5-5.5 0-1.82.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT CONTAINER -->
+  <main class="container">
+    
+    <!-- Status / Notification Banner -->
+    <div id="statusBanner" class="info">
+      <span id="statusText">Sedang membaca data Excel...</span>
+    </div>
+
+    <!-- ═════════════════════════════════════════════════════════ -->
+    <!-- TAB 1: CUSTOMER SALES -->
+    <!-- ═════════════════════════════════════════════════════════ -->
+    <section id="tab1" class="tab-content active">
+      
+      <!-- KPI Cards: Bulan Lalu vs Bulan Ini & Growth -->
+      <div class="kpi-grid">
+        <div class="kpi-card blue">
+          <div class="kpi-label">Total Customer</div>
+          <div class="kpi-val" id="kpiTotalCust">-</div>
+          <div class="kpi-sub" id="kpiCustSub">Toko terdaftar</div>
+        </div>
+
+        <div class="kpi-card purple">
+          <div class="kpi-label">Avg Bulan Lalu (Aug)</div>
+          <div class="kpi-val" id="kpiAvgAug">-</div>
+          <div class="kpi-sub">Total hit / hari</div>
+        </div>
+
+        <div class="kpi-card green">
+          <div class="kpi-label">Avg Bulan Ini (Sep)</div>
+          <div class="kpi-val" id="kpiAvgSep">-</div>
+          <div class="kpi-sub">Total hit / hari</div>
+        </div>
+
+        <div class="kpi-card amber">
+          <div class="kpi-label">Growth MoM</div>
+          <div class="kpi-val" id="kpiGrowth">-</div>
+          <div class="kpi-sub" id="kpiGrowthBadgeWrap">Performa vs Aug</div>
+        </div>
+      </div>
+
+      <!-- Filter Jadwal & Search -->
+      <div class="filter-section">
+        <div class="filter-pills" id="jadwalPills">
+          <button class="pill-btn active" data-jadwal="ALL">
+            Semua <span class="pill-count" id="countAll">0</span>
+          </button>
+          <button class="pill-btn" data-jadwal="Senin,Kamis">
+            Senin, Kamis <span class="pill-count" id="countSK">0</span>
+          </button>
+          <button class="pill-btn" data-jadwal="Selasa,Jum'at">
+            Selasa, Jum'at <span class="pill-count" id="countSJ">0</span>
+          </button>
+          <button class="pill-btn" data-jadwal="Rabu,Sabtu">
+            Rabu, Sabtu <span class="pill-count" id="countRS">0</span>
+          </button>
+          <button class="pill-btn" data-jadwal="Lainnya">
+            Lainnya <span class="pill-count" id="countOther">0</span>
+          </button>
+        </div>
+
+        <div class="search-row">
+          <div class="search-box">
+            <svg class="search-icon" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 11.99 14 9.5 14z"/></svg>
+            <input type="text" id="searchInput" placeholder="Cari nama toko / ID customer..."/>
+          </div>
+          <select id="sortSelect" class="sort-select">
+            <option value="growth_desc">Growth Tertinggi</option>
+            <option value="growth_asc">Growth Terendah</option>
+            <option value="sep_desc">Avg Sep Tertinggi</option>
+            <option value="aug_desc">Avg Aug Tertinggi</option>
+            <option value="name_asc">Nama A - Z</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Customer Cards List -->
+      <div id="customerList" class="customer-list">
+        <!-- Rendered via JS -->
+      </div>
+    </section>
+
+    <!-- ═════════════════════════════════════════════════════════ -->
+    <!-- TAB 2: TREN HARIAN (DAILY TRX BY MONTH) -->
+    <!-- ═════════════════════════════════════════════════════════ -->
+    <section id="tab2" class="tab-content">
+      
+      <!-- Chart Card -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">
+            <span>Grafik Transaksi Harian (Tgl 1 - 31)</span>
+            <span style="font-size:11px; font-weight:500; color:var(--text-dim);">(Geser &larr; &rarr;)</span>
+          </div>
+          <div class="chart-legend-pills">
+            <div class="legend-tag">
+              <span class="legend-dot jul"></span> Juli
+            </div>
+            <div class="legend-tag">
+              <span class="legend-dot aug"></span> Agustus
+            </div>
+            <div class="legend-tag">
+              <span class="legend-dot sep"></span> September
+            </div>
+          </div>
+        </div>
+
+        <div class="chart-scroll-wrapper">
+          <div class="chart-wrapper">
+            <canvas id="dailyChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Summary KPI Card Harian -->
+      <div class="kpi-grid">
+        <div class="kpi-card green">
+          <div class="kpi-label">Total Trx September</div>
+          <div class="kpi-val" id="kpiDailySepTotal">-</div>
+          <div class="kpi-sub" id="kpiDailySepSub">s/d tgl terakhir</div>
+        </div>
+
+        <div class="kpi-card purple">
+          <div class="kpi-label">Total Trx Agustus</div>
+          <div class="kpi-val" id="kpiDailyAugTotal">-</div>
+          <div class="kpi-sub">1 Bulan penuh</div>
+        </div>
+
+        <div class="kpi-card blue">
+          <div class="kpi-label">Peak Day (Tertinggi)</div>
+          <div class="kpi-val" id="kpiDailyPeak">-</div>
+          <div class="kpi-sub" id="kpiDailyPeakSub">-</div>
+        </div>
+
+        <div class="kpi-card amber">
+          <div class="kpi-label">Avg Trx / Hari (Sep)</div>
+          <div class="kpi-val" id="kpiDailySepAvg">-</div>
+          <div class="kpi-sub">Run-rate harian</div>
+        </div>
+      </div>
+
+      <!-- Table Daily Breakdown (Tgl 1 - 31) -->
+      <div class="daily-table-container">
+        <div class="table-header">
+          <span>Rincian Transaksi Tanggal 1 s/d 31</span>
+        </div>
+        <div style="overflow-x: auto;">
+          <table class="daily-table">
+            <thead>
+              <tr>
+                <th>Tgl</th>
+                <th style="text-align:right; color:var(--jul-color);">Juli</th>
+                <th style="text-align:right; color:var(--aug-color);">Agustus</th>
+                <th style="text-align:right; color:var(--sep-color);">September</th>
+                <th style="text-align:right;">Growth MoM</th>
+              </tr>
+            </thead>
+            <tbody id="dailyTableBody">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ── BOTTOM NAVIGATION ── -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" data-tab="tab1">
+      <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+      <span>Customer</span>
+    </button>
+    <button class="nav-item" data-tab="tab2">
+      <svg viewBox="0 0 24 24"><path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/></svg>
+      <span>Tren Harian</span>
+    </button>
+  </nav>
+
+  <!-- ── SALES SELECTOR MODAL ── -->
+  <div class="modal-overlay" id="salesModal">
+    <div class="modal-sheet">
+      <div class="modal-drag-handle"></div>
+      <div class="modal-title">Pilih Sales (SCO)</div>
+      <div class="modal-desc">Pilih nama sales untuk menyaring data performa customer dan transaksi harian:</div>
+      
+      <div class="sales-option-list" id="salesOptionList">
+        <!-- Rendered via JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ═════════════════════════════════════════════════════════ -->
+  <!-- JAVASCRIPT LOGIC -->
+  <!-- ═════════════════════════════════════════════════════════ -->
+  <script>
+    // App State
+    const state = {
+      salesList: ['ALL', 'Abdul Harris', 'Febri Kurniawan', 'Hupron', 'Khoirul Anan', 'Mas Komarjaya'],
+      selectedSales: localStorage.getItem('sco_selected_sales') || 'ALL',
+      selectedJadwal: 'ALL',
+      searchQuery: '',
+      sortField: 'growth_desc',
+      rawTrenAgen: [],
+      rawTrenHarian: [],
+      filteredCustomers: [],
+      chartInstance: null
+    };
+
+    // DOM Elements
+    const statusBanner = document.getElementById('statusBanner');
+    const statusText = document.getElementById('statusText');
+    const salesModal = document.getElementById('salesModal');
+    const salesModalTrigger = document.getElementById('salesModalTrigger');
+    const salesNameBadge = document.getElementById('salesNameBadge');
+    const salesAvatarBadge = document.getElementById('salesAvatarBadge');
+    const salesOptionList = document.getElementById('salesOptionList');
+    const customerList = document.getElementById('customerList');
+    const searchInput = document.getElementById('searchInput');
+    const sortSelect = document.getElementById('sortSelect');
+    const filePicker = document.getElementById('filePicker');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const themeBtn = document.getElementById('themeBtn');
+
+    // ── COORDINATE PARSER (DMS to Google Maps URL) ──
+    function parseDmsToMaps(str) {
+      if (!str || typeof str !== 'string') return null;
+      const m = str.match(/(\d+)[^\d]+(\d+)[^\d]+([\d.]+)[^\d]*([NSns])\s*(\d+)[^\d]+(\d+)[^\d]+([\d.]+)[^\d]*([EWew])/);
+      if (m) {
+        let lat = parseFloat(m[1]) + parseFloat(m[2])/60 + parseFloat(m[3])/3600;
+        if (m[4].toUpperCase() === 'S') lat = -lat;
+        let lon = parseFloat(m[5]) + parseFloat(m[6])/60 + parseFloat(m[7])/3600;
+        if (m[8].toUpperCase() === 'W') lon = -lon;
+        return `https://www.google.com/maps?q=${lat.toFixed(6)},${lon.toFixed(6)}`;
+      }
+      return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(str.trim())}`;
+    }
+
+    // ── INITIAL LOAD ──
+    window.addEventListener('DOMContentLoaded', () => {
+      initNavigation();
+      initTheme();
+      initEventListeners();
+      updateSalesBadge();
+      loadExcelData();
+    });
+
+    // ── THEME TOGGLE ──
+    function initTheme() {
+      const savedTheme = localStorage.getItem('sco_theme') || 'dark';
+      if (savedTheme === 'light') {
+        document.documentElement.classList.add('light');
+      }
+    }
+    themeBtn.addEventListener('click', () => {
+      const isLight = document.documentElement.classList.toggle('light');
+      localStorage.setItem('sco_theme', isLight ? 'light' : 'dark');
+      if (state.chartInstance) {
+        renderDailyChart(); // re-render chart for theme contrast
+      }
+    });
+
+    // ── NAVIGATION (TABS) ──
+    function initNavigation() {
+      document.querySelectorAll('.nav-item').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+          document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+          
+          btn.classList.add('active');
+          const targetTab = btn.getAttribute('data-tab');
+          document.getElementById(targetTab).classList.add('active');
+
+          if (targetTab === 'tab2') {
+            setTimeout(renderDailyChart, 60);
+          }
+        });
+      });
+    }
+
+    // ── EVENT LISTENERS ──
+    function initEventListeners() {
+      // Open / Close Sales Modal
+      salesModalTrigger.addEventListener('click', openSalesModal);
+      salesModal.addEventListener('click', (e) => {
+        if (e.target === salesModal || e.target.classList.contains('modal-drag-handle')) {
+          closeSalesModal();
+        }
+      });
+
+      // Search input
+      searchInput.addEventListener('input', (e) => {
+        state.searchQuery = e.target.value.toLowerCase().trim();
+        filterAndRenderCustomers();
+      });
+
+      // Sort Select
+      sortSelect.addEventListener('change', (e) => {
+        state.sortField = e.target.value;
+        filterAndRenderCustomers();
+      });
+
+      // Jadwal Filter Pills
+      document.querySelectorAll('#jadwalPills .pill-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('#jadwalPills .pill-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          state.selectedJadwal = btn.getAttribute('data-jadwal');
+          filterAndRenderCustomers();
+        });
+      });
+
+      // File Picker Trigger
+      uploadBtn.addEventListener('click', () => filePicker.click());
+      filePicker.addEventListener('change', handleFileUpload);
+    }
+
+    // ── SALES MODAL LOGIC ──
+    function updateSalesBadge() {
+      if (state.selectedSales === 'ALL') {
+        salesNameBadge.textContent = 'ALL (Semua Sales)';
+        salesAvatarBadge.textContent = '🌐';
+      } else {
+        salesNameBadge.textContent = state.selectedSales;
+        const initials = state.selectedSales.split(' ').map(w => w[0]).join('').slice(0, 2);
+        salesAvatarBadge.textContent = initials;
+      }
+    }
+
+    function openSalesModal() {
+      renderSalesModalOptions();
+      salesModal.classList.add('open');
+    }
+
+    function closeSalesModal() {
+      salesModal.classList.remove('open');
+    }
+
+    function renderSalesModalOptions() {
+      salesOptionList.innerHTML = '';
+      state.salesList.forEach(name => {
+        const item = document.createElement('div');
+        item.className = `sales-option-item ${state.selectedSales === name ? 'selected' : ''}`;
+        
+        let countText = 'Seluruh data';
+        if (name !== 'ALL') {
+          const cCount = state.rawTrenAgen.filter(x => x.sco === name).length;
+          countText = `${cCount} customer binaan`;
+        }
+
+        const avatarText = name === 'ALL' ? '🌐' : name.split(' ').map(w => w[0]).join('').slice(0, 2);
+
+        item.innerHTML = `
+          <div class="sales-opt-left">
+            <div class="sales-opt-avatar">${avatarText}</div>
+            <div>
+              <div class="sales-opt-name">${name === 'ALL' ? 'ALL (Semua Sales)' : name}</div>
+              <div class="sales-opt-count">${countText}</div>
+            </div>
+          </div>
+          <svg class="check-icon" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+        `;
+
+        item.addEventListener('click', () => {
+          state.selectedSales = name;
+          localStorage.setItem('sco_selected_sales', name);
+          updateSalesBadge();
+          closeSalesModal();
+          updateAllViews();
+        });
+
+        salesOptionList.appendChild(item);
+      });
+    }
+
+    // ── DATA LOADING (EXCEL) ──
+    async function loadExcelData() {
+      if (window.location.protocol === 'file:') {
+        showStatus('Membuka file offline. Silakan gunakan START_SERVER.bat atau tap ikon upload untuk memilih file Excel.', 'info');
+      } else {
+        showStatus('Memuat data dari file lokal...', 'info');
+      }
+
+      // Try SCO/HARIAN SCO.xlsx with and without %20, fallback to DATA_HARIAN_OFFLINE.xlsx
+      const pathsToTry = [
+        './HARIAN%20SCO.xlsx',
+        './HARIAN SCO.xlsx',
+        'HARIAN%20SCO.xlsx',
+        'HARIAN SCO.xlsx',
+        '../SCO/HARIAN%20SCO.xlsx',
+        '../SCO/HARIAN SCO.xlsx'
+      ];
+      let loaded = false;
+
+      for (const path of pathsToTry) {
+        try {
+          const res = await fetch(path);
+          if (res.ok) {
+            const buf = await res.arrayBuffer();
+            parseWorkbookBuffer(buf, decodeURIComponent(path));
+            loaded = true;
+            break;
+          }
+        } catch (e) {
+          // continue to next path
+        }
+      }
+
+      if (!loaded && window.location.protocol !== 'file:') {
+        showStatus('Gagal membaca otomatis. Silakan tap ikon upload untuk memilih file Excel.', 'error');
+      }
+    }
+
+    function handleFileUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      showStatus(`Membaca file: ${file.name}...`, 'info');
+      
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        parseWorkbookBuffer(evt.target.result, file.name);
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function showStatus(msg, type = 'info') {
+      statusBanner.className = type;
+      statusText.textContent = msg;
+      statusBanner.style.display = 'flex';
+      if (type === 'info') {
+        setTimeout(() => {
+          statusBanner.style.display = 'none';
+        }, 4000);
+      }
+    }
+
+    // ── PARSE WORKBOOK ──
+    function parseWorkbookBuffer(buf, filename) {
+      try {
+        const wb = XLSX.read(buf, { type: 'array' });
+        
+        // 1. Parse TREN_AGEN sheet
+        let agenSheet = wb.Sheets['TREN_AGEN'] || wb.Sheets['Tab1'] || wb.Sheets[wb.SheetNames[0]];
+        if (wb.Sheets['TREN_AGEN']) {
+          agenSheet = wb.Sheets['TREN_AGEN'];
+        }
+
+        const agenJson = XLSX.utils.sheet_to_json(agenSheet, { header: 1 });
+        processTrenAgen(agenJson);
+
+        // 2. Parse Tren Harian_SCO sheet
+        let harianSheet = wb.Sheets['Tren Harian_SCO'] || wb.Sheets['DETIL_HARIAN_SCO'];
+        if (harianSheet) {
+          const harianJson = XLSX.utils.sheet_to_json(harianSheet, { header: 1 });
+          processTrenHarian(harianJson);
+        }
+
+        showStatus(`Data berhasil dimuat dari: ${filename}`, 'info');
+        updateAllViews();
+      } catch (err) {
+        console.error(err);
+        showStatus(`Error membaca file Excel: ${err.message}`, 'error');
+      }
+    }
+
+    // ── PROCESS TREN_AGEN ──
+    function processTrenAgen(rows) {
+      if (!rows || rows.length < 2) return;
+      
+      // Find header row (starts with 'NAMA SCO' or contains 'NAMA CUSTOMER')
+      let headerIdx = 0;
+      for (let i = 0; i < Math.min(10, rows.length); i++) {
+        const r = rows[i] || [];
+        if (r.some(c => String(c).includes('NAMA SCO') || String(c).includes('NAMA CUSTOMER'))) {
+          headerIdx = i;
+          break;
+        }
+      }
+
+      const headers = rows[headerIdx].map(h => String(h || '').trim());
+      const idxSCO = headers.findIndex(h => h.toUpperCase().includes('SCO'));
+      const idxCust = headers.findIndex(h => h.toUpperCase().includes('CUSTOMER'));
+      const idxLoc = headers.findIndex(h => h.toUpperCase().includes('LOCATION'));
+      const idxJadwal = headers.findIndex(h => h.toUpperCase().includes('JADWAL'));
+      const idxJul = headers.findIndex(h => h.toUpperCase() === 'JUL');
+      const idxAug = headers.findIndex(h => h.toUpperCase() === 'AUG');
+      const idxSep = headers.findIndex(h => h.toUpperCase() === 'SEP');
+
+      const data = [];
+      for (let i = headerIdx + 1; i < rows.length; i++) {
+        const r = rows[i];
+        if (!r || r.length === 0) continue;
+        
+        const sco = String(r[idxSCO] || '').trim();
+        const customer = String(r[idxCust] || '').trim();
+        if (!sco || !customer || customer.toLowerCase() === 'grand total') continue;
+
+        const loc = idxLoc >= 0 ? String(r[idxLoc] || '').trim() : '';
+        const jadwal = idxJadwal >= 0 ? String(r[idxJadwal] || '').trim() : 'Lainnya';
+        
+        const jul = parseFloat(r[idxJul]) || 0;
+        const aug = parseFloat(r[idxAug]) || 0;
+        const sep = parseFloat(r[idxSep]) || 0;
+
+        // Growth: Sep vs Aug
+        let growth = 0;
+        if (aug > 0) {
+          growth = (sep - aug) / aug;
+        } else if (sep > 0) {
+          growth = 1;
+        }
+
+        data.push({
+          sco,
+          customer,
+          location: loc,
+          mapsUrl: parseDmsToMaps(loc),
+          jadwal: jadwal || 'Lainnya',
+          jul: Math.round(jul * 100) / 100,
+          aug: Math.round(aug * 100) / 100,
+          sep: Math.round(sep * 100) / 100,
+          growth: Math.round(growth * 100) / 100
+        });
+      }
+
+      state.rawTrenAgen = data;
+
+      // Extract unique sales names if present
+      const uniqueSales = Array.from(new Set(data.map(d => d.sco))).filter(Boolean);
+      if (uniqueSales.length > 0) {
+        state.salesList = ['ALL', ...uniqueSales];
+      }
+    }
+
+    // ── PROCESS TREN HARIAN ──
+    function processTrenHarian(rows) {
+      if (!rows || rows.length < 2) return;
+
+      let headerIdx = 0;
+      for (let i = 0; i < Math.min(10, rows.length); i++) {
+        const r = rows[i] || [];
+        if (r.some(c => String(c).toUpperCase().includes('TRX') || String(c).toUpperCase().includes('BULAN'))) {
+          headerIdx = i;
+          break;
+        }
+      }
+
+      const headers = rows[headerIdx].map(h => String(h || '').trim());
+      const idxBulan = headers.findIndex(h => h.toUpperCase().includes('BULAN'));
+      const idxTgl = headers.findIndex(h => h.toUpperCase().includes('TANGGAL'));
+      const idxSCO = headers.findIndex(h => h.toUpperCase().includes('SCO'));
+      const idxTrx = headers.findIndex(h => h.toUpperCase().includes('TRX'));
+
+      const data = [];
+      for (let i = headerIdx + 1; i < rows.length; i++) {
+        const r = rows[i];
+        if (!r || r.length === 0) continue;
+
+        const bulan = String(r[idxBulan] || '').trim();
+        const rawDate = r[idxTgl];
+        const sco = String(r[idxSCO] || '').trim();
+        const trx = parseFloat(r[idxTrx]) || 0;
+
+        if (!sco) continue;
+
+        // Convert excel serial date
+        let dayOfMonth = 0;
+        let dateStr = '';
+        if (typeof rawDate === 'number') {
+          // Excel epoch
+          const dt = new Date(Math.round((rawDate - 25569) * 86400 * 1000));
+          dayOfMonth = dt.getDate();
+          dateStr = dt.toISOString().split('T')[0];
+        } else if (typeof rawDate === 'string') {
+          const match = rawDate.match(/(\d{1,2})/);
+          if (match) dayOfMonth = parseInt(match[1]);
+          dateStr = rawDate;
+        }
+
+        data.push({
+          bulan,
+          dateStr,
+          dayOfMonth,
+          sco,
+          trx: Math.round(trx)
+        });
+      }
+
+      state.rawTrenHarian = data;
+    }
+
+    // ── UPDATE ALL VIEWS ──
+    function updateAllViews() {
+      renderTab1KPI();
+      updateJadwalPillCounts();
+      filterAndRenderCustomers();
+      renderTab2Summary();
+      renderDailyChart();
+    }
+
+    // ── TAB 1: RENDER KPI ──
+    function renderTab1KPI() {
+      const activeData = state.selectedSales === 'ALL'
+        ? state.rawTrenAgen
+        : state.rawTrenAgen.filter(x => x.sco === state.selectedSales);
+
+      const totalCust = activeData.length;
+      const sumAug = activeData.reduce((acc, curr) => acc + curr.aug, 0);
+      const sumSep = activeData.reduce((acc, curr) => acc + curr.sep, 0);
+      
+      let growth = 0;
+      if (sumAug > 0) {
+        growth = (sumSep - sumAug) ;
+      } else if (sumSep > 0) {
+        growth = sumSep;
+      }
+
+      document.getElementById('kpiTotalCust').textContent = totalCust.toLocaleString('id-ID');
+      document.getElementById('kpiAvgAug').textContent = sumAug.toLocaleString('id-ID', { maximumFractionDigits: 1 });
+      document.getElementById('kpiAvgSep').textContent = sumSep.toLocaleString('id-ID', { maximumFractionDigits: 1 });
+      
+      const growthSign = growth > 0 ? '+' : '';
+      const growthFormatted = `${growthSign}${growth.toFixed(1)}`;
+      const kpiGrowthEl = document.getElementById('kpiGrowth');
+      kpiGrowthEl.textContent = growthFormatted;
+
+      const badgeWrap = document.getElementById('kpiGrowthBadgeWrap');
+      const badgeClass = growth > 0 ? 'positive' : (growth < 0 ? 'negative' : 'neutral');
+      badgeWrap.innerHTML = `<span class="growth-badge ${badgeClass}">${growthFormatted} MoM</span>`;
+    }
+
+    // ── UPDATE JADWAL PILL COUNTS ──
+    function updateJadwalPillCounts() {
+      const activeData = state.selectedSales === 'ALL'
+        ? state.rawTrenAgen
+        : state.rawTrenAgen.filter(x => x.sco === state.selectedSales);
+
+      const countAll = activeData.length;
+      const countSK = activeData.filter(x => x.jadwal.toLowerCase().includes('senin') || x.jadwal.toLowerCase().includes('kamis')).length;
+      const countSJ = activeData.filter(x => x.jadwal.toLowerCase().includes('selasa') || x.jadwal.toLowerCase().includes("jum'at") || x.jadwal.toLowerCase().includes('jumat')).length;
+      const countRS = activeData.filter(x => x.jadwal.toLowerCase().includes('rabu') || x.jadwal.toLowerCase().includes('sabtu')).length;
+      const countOther = countAll - (countSK + countSJ + countRS);
+
+      document.getElementById('countAll').textContent = countAll;
+      document.getElementById('countSK').textContent = countSK;
+      document.getElementById('countSJ').textContent = countSJ;
+      document.getElementById('countRS').textContent = countRS;
+      document.getElementById('countOther').textContent = Math.max(0, countOther);
+    }
+
+    // ── FILTER & RENDER CUSTOMERS ──
+    function filterAndRenderCustomers() {
+      let list = state.selectedSales === 'ALL'
+        ? [...state.rawTrenAgen]
+        : state.rawTrenAgen.filter(x => x.sco === state.selectedSales);
+
+      // Filter Jadwal
+      if (state.selectedJadwal !== 'ALL') {
+        if (state.selectedJadwal === 'Senin,Kamis') {
+          list = list.filter(x => x.jadwal.toLowerCase().includes('senin') || x.jadwal.toLowerCase().includes('kamis'));
+        } else if (state.selectedJadwal === "Selasa,Jum'at") {
+          list = list.filter(x => x.jadwal.toLowerCase().includes('selasa') || x.jadwal.toLowerCase().includes("jum'at") || x.jadwal.toLowerCase().includes('jumat'));
+        } else if (state.selectedJadwal === 'Rabu,Sabtu') {
+          list = list.filter(x => x.jadwal.toLowerCase().includes('rabu') || x.jadwal.toLowerCase().includes('sabtu'));
+        } else if (state.selectedJadwal === 'Lainnya') {
+          list = list.filter(x => 
+            !x.jadwal.toLowerCase().includes('senin') && 
+            !x.jadwal.toLowerCase().includes('kamis') && 
+            !x.jadwal.toLowerCase().includes('selasa') && 
+            !x.jadwal.toLowerCase().includes("jum'at") && 
+            !x.jadwal.toLowerCase().includes('jumat') && 
+            !x.jadwal.toLowerCase().includes('rabu') && 
+            !x.jadwal.toLowerCase().includes('sabtu')
+          );
+        }
+      }
+
+      // Search Query
+      if (state.searchQuery) {
+        list = list.filter(x => 
+          x.customer.toLowerCase().includes(state.searchQuery) ||
+          x.sco.toLowerCase().includes(state.searchQuery) ||
+          x.jadwal.toLowerCase().includes(state.searchQuery)
+        );
+      }
+
+      // Sort
+      list.sort((a, b) => {
+        if (state.sortField === 'growth_desc') return b.growth - a.growth;
+        if (state.sortField === 'growth_asc') return a.growth - b.growth;
+        if (state.sortField === 'sep_desc') return b.sep - a.sep;
+        if (state.sortField === 'aug_desc') return b.aug - a.aug;
+        if (state.sortField === 'name_asc') return a.customer.localeCompare(b.customer);
+        return 0;
+      });
+
+      state.filteredCustomers = list;
+      renderCustomerListHtml(list);
+    }
+
+    // ── RENDER CUSTOMER HTML CARDS ──
+    function renderCustomerListHtml(list) {
+      if (!list || list.length === 0) {
+        customerList.innerHTML = `
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+            <p>Tidak ada data customer yang sesuai filter.</p>
+          </div>
+        `;
+        return;
+      }
+
+      const html = list.map(c => {
+        const growthSign = c.growth > 0 ? '+' : '';
+        const growthClass = c.growth > 0 ? 'positive' : (c.growth < 0 ? 'negative' : 'neutral');
+        const sparklineSvg = generateSparklineSvg(c.jul, c.aug, c.sep);
+
+        const mapsBtnHtml = c.mapsUrl 
+          ? `<a href="${c.mapsUrl}" target="_blank" rel="noopener" class="gmap-btn" title="Buka di Google Maps">
+               <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>
+               Maps
+             </a>`
+          : '';
+
+        return `
+          <div class="customer-card">
+            <div class="cust-header">
+              <div class="cust-info">
+                <div class="cust-name">${escapeHtml(c.customer)}</div>
+                <div class="cust-meta">
+                  <span class="jadwal-tag">${escapeHtml(c.jadwal)}</span>
+                  ${state.selectedSales === 'ALL' ? `<span class="sco-tag">• ${escapeHtml(c.sco)}</span>` : ''}
+                </div>
+              </div>
+              ${mapsBtnHtml}
+            </div>
+
+            <div class="cust-stats-row">
+              <div class="stat-col left">
+                <div class="stat-title">Jul</div>
+                <div class="stat-num" style="color:var(--jul-color);">${c.jul}</div>
+              </div>
+              <div class="stat-col">
+                <div class="stat-title">Aug (Lalu)</div>
+                <div class="stat-num" style="color:var(--aug-color);">${c.aug}</div>
+              </div>
+              <div class="stat-col">
+                <div class="stat-title">Sep (Ini)</div>
+                <div class="stat-num" style="color:var(--sep-color);">${c.sep}</div>
+              </div>
+              <div class="stat-col" style="text-align:right;">
+                <div class="stat-title">Trend</div>
+                <div class="sparkline-box">
+                  ${sparklineSvg}
+                </div>
+              </div>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; font-size:11px; padding:0 2px;">
+              <span style="color:var(--text-dim);">Pertumbuhan vs Bulan Lalu</span>
+              <span class="growth-badge ${growthClass}">${growthSign}${c.growth}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      customerList.innerHTML = html;
+    }
+
+    // ── SPARKLINE GENERATOR (SVG) ──
+    function generateSparklineSvg(v1, v2, v3) {
+      const vals = [v1, v2, v3];
+      const max = Math.max(...vals, 1);
+      const min = Math.min(...vals, 0);
+      const range = max - min || 1;
+
+      // Coordinate mapping for 50x20 viewBox
+      const h = 18;
+      const w = 48;
+      const points = vals.map((v, i) => {
+        const x = (i / 2) * (w - 8) + 4;
+        const y = h - ((v - min) / range) * (h - 6) - 3;
+        return `${x.toFixed(1)},${y.toFixed(1)}`;
+      });
+
+      const isUp = v3 >= v2;
+      const strokeColor = isUp ? 'var(--green)' : 'var(--red)';
+
+      return `
+        <svg viewBox="0 0 ${w} ${h}">
+          <polyline fill="none" stroke="${strokeColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" points="${points.join(' ')}" />
+          ${points.map((pt, i) => `<circle cx="${pt.split(',')[0]}" cy="${pt.split(',')[1]}" r="2.2" fill="${i === 2 ? strokeColor : 'var(--text-dim)'}" />`).join('')}
+        </svg>
+      `;
+    }
+
+    // ── TAB 2: RENDER SUMMARY & DAILY CHART ──
+    function renderTab2Summary() {
+      const activeData = state.selectedSales === 'ALL'
+        ? state.rawTrenHarian
+        : state.rawTrenHarian.filter(x => x.sco === state.selectedSales);
+
+      const sepData = activeData.filter(x => x.bulan.toLowerCase() === 'sep');
+      const augData = activeData.filter(x => x.bulan.toLowerCase() === 'aug');
+
+      const sumSep = sepData.reduce((acc, curr) => acc + curr.trx, 0);
+      const sumAug = augData.reduce((acc, curr) => acc + curr.trx, 0);
+
+      // Peak Day September
+      let peakDay = '-';
+      let peakVal = 0;
+      const sepByDay = {};
+      sepData.forEach(d => {
+        sepByDay[d.dayOfMonth] = (sepByDay[d.dayOfMonth] || 0) + d.trx;
+      });
+
+      for (const [day, val] of Object.entries(sepByDay)) {
+        if (val > peakVal) {
+          peakVal = val;
+          peakDay = `Tgl ${day}`;
+        }
+      }
+
+      const countDaysSep = Object.keys(sepByDay).length || 1;
+      const avgDailySep = Math.round(sumSep / countDaysSep);
+
+      document.getElementById('kpiDailySepTotal').textContent = sumSep.toLocaleString('id-ID');
+      document.getElementById('kpiDailySepSub').textContent = `Periode 1 - ${countDaysSep} September`;
+      document.getElementById('kpiDailyAugTotal').textContent = sumAug.toLocaleString('id-ID');
+      document.getElementById('kpiDailyPeak').textContent = peakVal > 0 ? peakVal.toLocaleString('id-ID') : '-';
+      document.getElementById('kpiDailyPeakSub').textContent = peakDay !== '-' ? `Rekor pada ${peakDay}` : '-';
+      document.getElementById('kpiDailySepAvg').textContent = avgDailySep.toLocaleString('id-ID');
+
+      renderDailyTableRows(activeData);
+    }
+
+    // ── RENDER DAILY TABLE ROWS (Tgl 1 - 31) ──
+    function renderDailyTableRows(activeData) {
+      const tbody = document.getElementById('dailyTableBody');
+      if (!tbody) return;
+
+      const julByDay = {};
+      const augByDay = {};
+      const sepByDay = {};
+
+      activeData.forEach(d => {
+        if (d.bulan.toLowerCase() === 'jul') julByDay[d.dayOfMonth] = (julByDay[d.dayOfMonth] || 0) + d.trx;
+        if (d.bulan.toLowerCase() === 'aug') augByDay[d.dayOfMonth] = (augByDay[d.dayOfMonth] || 0) + d.trx;
+        if (d.bulan.toLowerCase() === 'sep') sepByDay[d.dayOfMonth] = (sepByDay[d.dayOfMonth] || 0) + d.trx;
+      });
+
+      let html = '';
+      for (let day = 1; day <= 31; day++) {
+        const julVal = julByDay[day] !== undefined ? julByDay[day] : '-';
+        const augVal = augByDay[day] !== undefined ? augByDay[day] : '-';
+        const sepVal = sepByDay[day] !== undefined ? sepByDay[day] : '-';
+
+        let growthText = '-';
+        let growthClass = '';
+        if (typeof augVal === 'number' && typeof sepVal === 'number') {
+          const diff = sepVal - augVal;
+          const sign = diff > 0 ? '+' : (diff < 0 ? '-' : '');
+          const formattedDiff = Math.abs(diff).toLocaleString('id-ID', {
+            minimumFractionDigits: Number.isInteger(diff) ? 0 : 1,
+            maximumFractionDigits: 1
+          });
+          growthText = diff === 0 ? '0' : `${sign}${formattedDiff}`;
+          growthClass = diff > 0 ? 'positive' : (diff < 0 ? 'negative' : 'neutral');
+        }
+
+        // Only show rows that have data in at least one month
+        if (julVal !== '-' || augVal !== '-' || sepVal !== '-') {
+          html += `
+            <tr>
+              <td><strong>Tgl ${day}</strong></td>
+              <td class="num">${typeof julVal === 'number' ? julVal.toLocaleString('id-ID') : '-'}</td>
+              <td class="num">${typeof augVal === 'number' ? augVal.toLocaleString('id-ID') : '-'}</td>
+              <td class="num" style="font-weight:700;">${typeof sepVal === 'number' ? sepVal.toLocaleString('id-ID') : '-'}</td>
+              <td class="num">
+                ${growthText !== '-' ? `<span class="growth-badge ${growthClass}">${growthText}</span>` : '-'}
+              </td>
+            </tr>
+          `;
+        }
+      }
+
+      tbody.innerHTML = html;
+    }
+
+    // ── RENDER DAILY CHART (Chart.js) ──
+    function renderDailyChart() {
+      const ctx = document.getElementById('dailyChart');
+      if (!ctx) return;
+
+      const activeData = state.selectedSales === 'ALL'
+        ? state.rawTrenHarian
+        : state.rawTrenHarian.filter(x => x.sco === state.selectedSales);
+
+      // Prepare 1 to 31 labels
+      const labels = Array.from({ length: 31 }, (_, i) => String(i + 1));
+
+      const julData = new Array(31).fill(null);
+      const augData = new Array(31).fill(null);
+      const sepData = new Array(31).fill(null);
+
+      activeData.forEach(d => {
+        const dayIdx = d.dayOfMonth - 1;
+        if (dayIdx >= 0 && dayIdx < 31) {
+          if (d.bulan.toLowerCase() === 'jul') julData[dayIdx] = (julData[dayIdx] || 0) + d.trx;
+          if (d.bulan.toLowerCase() === 'aug') augData[dayIdx] = (augData[dayIdx] || 0) + d.trx;
+          if (d.bulan.toLowerCase() === 'sep') sepData[dayIdx] = (sepData[dayIdx] || 0) + d.trx;
+        }
+      });
+
+      const isLight = document.documentElement.classList.contains('light');
+      const gridColor = isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)';
+      const textColor = isLight ? '#64748b' : '#94a3b8';
+
+      if (state.chartInstance) {
+        state.chartInstance.destroy();
+      }
+
+      state.chartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'September',
+              data: sepData,
+              borderColor: '#10b981', // emerald green
+              backgroundColor: 'rgba(16,185,129,0.2)',
+              borderWidth: 2,
+              tension: 0.4,
+              fill: false,
+              pointRadius: 3
+            },
+            {
+              label: 'Agustus',
+              data: augData,
+              borderColor: '#a855f7', // purple
+              backgroundColor: 'rgba(168,85,247,0.2)',
+              borderWidth: 2,
+              tension: 0.4,
+              fill: false,
+              pointRadius: 3
+            },
+            {
+              label: 'Juli',
+              data: julData,
+              borderColor: '#38bdf8', // sky blue
+              backgroundColor: 'rgba(56,189,248,0.2)',
+              borderWidth: 2,
+              tension: 0.4,
+              fill: false,
+              pointRadius: 3
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            },
+            tooltip: {
+              backgroundColor: isLight ? '#ffffff' : '#1e293b',
+              titleColor: isLight ? '#0f172a' : '#f8fafc',
+              bodyColor: isLight ? '#334155' : '#cbd5e1',
+              borderColor: isLight ? '#e2e8f0' : 'rgba(255,255,255,0.15)',
+              borderWidth: 1,
+              padding: 10,
+              boxPadding: 4,
+              usePointStyle: true,
+              callbacks: {
+                title: (items) => `Tanggal ${items[0].label}`,
+                label: (item) => ` ${item.dataset.label}: ${item.raw !== null ? item.raw.toLocaleString('id-ID') + ' Hit' : '-'}`
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: gridColor },
+              ticks: {
+                color: textColor,
+                font: { size: 10, family: 'Plus Jakarta Sans' },
+                maxRotation: 0,
+                autoSkip: true,
+                maxTicksLimit: 12
+              }
+            },
+            y: {
+              grid: { color: gridColor },
+              ticks: {
+                color: textColor,
+                font: { size: 10, family: 'JetBrains Mono' },
+                callback: (val) => val >= 1000 ? (val/1000).toFixed(1) + 'k' : val
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // Utility: Escape HTML
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+  </script>
+</body>
+</html>
