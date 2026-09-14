@@ -5,29 +5,51 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Dashboard Ringkasan SCO</title>
   
-  <!-- SheetJS & ChartJS -->
+  <!-- SheetJS & ChartJS & html2canvas -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+
   <style>
     :root {
-      --bg: #f4f7f6;
+      --bg: #f8fafc;
       --surface: #ffffff;
-      --text: #333333;
-      --text-dim: #666666;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --text-dim: #94a3b8;
       --primary: #3b82f6;
+      --primary-dim: rgba(59, 130, 246, 0.1);
       --border: #e2e8f0;
-      --radius: 8px;
+      --radius: 12px;
       --green: #10b981;
+      --green-dim: rgba(16, 185, 129, 0.12);
       --red: #ef4444;
+      --red-dim: rgba(239, 68, 68, 0.12);
+      --purple: #8b5cf6;
+      --purple-dim: rgba(139, 92, 246, 0.12);
+      --cyan: #06b6d4;
+      --cyan-dim: rgba(6, 182, 212, 0.12);
+      --shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+      --shadow-hover: 0 8px 20px rgba(0, 0, 0, 0.08);
+    }
+    
+    * {
+      box-sizing: border-box;
     }
     
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background-color: var(--bg);
       color: var(--text);
       margin: 0;
       padding: 16px;
+      -webkit-font-smoothing: antialiased;
     }
     
     .container {
@@ -35,116 +57,292 @@
       margin: 0 auto;
     }
     
-    h1 {
-      font-size: 22px;
-      margin-bottom: 20px;
+    .page-header {
       text-align: center;
+      margin-bottom: 24px;
+      padding: 4px 0;
+    }
+    
+    .page-title {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text);
+      margin: 0 0 4px 0;
+      letter-spacing: -0.02em;
+    }
+    
+    .page-subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin: 0;
     }
 
-    /* -- CARDS -- */
+    /* ── CARDS (BEAUTIFIED) ── */
     .kpi-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
+      gap: 14px;
       margin-bottom: 24px;
     }
     .kpi-card {
       background: var(--surface);
-      padding: 16px;
+      padding: 16px 18px;
       border-radius: var(--radius);
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      box-shadow: var(--shadow);
       border: 1px solid var(--border);
-      text-align: center;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
     }
+    .kpi-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-hover);
+    }
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 4px;
+    }
+    .card-sco::before { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+    .card-non-sco::before { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
+    .card-online::before { background: linear-gradient(90deg, #06b6d4, #22d3ee); }
+
+    .kpi-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .kpi-icon-wrap {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .icon-sco { background: var(--primary-dim); color: var(--primary); }
+    .icon-non-sco { background: var(--purple-dim); color: var(--purple); }
+    .icon-online { background: var(--cyan-dim); color: var(--cyan); }
+
     .kpi-title {
-      font-size: 13px;
-      color: var(--text-dim);
-      font-weight: 600;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
       text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
     .kpi-value {
-      font-size: 24px;
-      font-weight: bold;
-      margin-top: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 26px;
+      font-weight: 800;
+      line-height: 1.1;
+      margin: 4px 0 6px 0;
     }
     .kpi-value.positive { color: var(--green); }
     .kpi-value.negative { color: var(--red); }
-
-    /* -- CHART -- */
-    .chart-card {
-      background: var(--surface);
-      padding: 16px;
-      border-radius: var(--radius);
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-      border: 1px solid var(--border);
-      margin-bottom: 24px;
-    }
-    .chart-container {
-      position: relative;
-      height: 350px;
-      width: 100%;
+    
+    .kpi-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 4px;
     }
 
-    /* -- TABLE -- */
+    /* ── TABLE CARD (BEAUTIFIED) ── */
     .table-card {
       background: var(--surface);
       border-radius: var(--radius);
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      box-shadow: var(--shadow);
       border: 1px solid var(--border);
-      overflow-x: auto;
+      overflow: hidden;
       margin-bottom: 24px;
+    }
+    .table-card-header {
+      padding: 14px 18px;
+      background: #ffffff;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .table-header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .table-header-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: var(--primary-dim);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .table-header-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .table-header-subtitle {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .table-header-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      background: var(--primary-dim);
+      color: var(--primary);
+      border-radius: 999px;
+      border: 1px solid rgba(59, 130, 246, 0.2);
+    }
+    .table-responsive {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
     }
     table {
       width: 100%;
       border-collapse: collapse;
       font-size: 13px;
     }
-    th, td {
-      padding: 12px 16px;
-      text-align: left;
-      border-bottom: 1px solid var(--border);
-    }
-    th {
+    thead th {
       background: #f8fafc;
-      font-weight: 600;
-      color: var(--text-dim);
+      padding: 12px 14px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      border-bottom: 2px solid var(--border);
       white-space: nowrap;
+      text-align: left;
+    }
+    thead th.num {
+      text-align: right;
+    }
+    tbody td {
+      padding: 11px 14px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+      color: var(--text);
+    }
+    tbody tr:hover {
+      background: #f8fafc;
     }
     td.num {
       text-align: right;
-      font-family: monospace;
+      font-family: 'JetBrains Mono', monospace;
       font-weight: 600;
     }
+    td.num.negative,
+    .row-total td.num.negative {
+      color: var(--red) !important;
+    }
+    td.num.positive,
+    .row-total td.num.positive {
+      color: var(--green) !important;
+    }
     .row-total td {
-      font-weight: bold;
+      font-weight: 700;
       background: #f1f5f9;
+      border-top: 1px solid #cbd5e1;
+      border-bottom: 2px solid #cbd5e1;
     }
     
-    /* -- BUTTON -- */
+    /* Growth Badge inside table */
+    .growth-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .growth-badge.positive {
+      background: var(--green-dim);
+      color: var(--green);
+    }
+    .growth-badge.negative {
+      background: var(--red-dim);
+      color: var(--red);
+    }
+
+    /* ── CHART CARD ── */
+    .chart-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+    .chart-container {
+      position: relative;
+      height: 350px;
+      width: 100%;
+      padding: 16px;
+    }
+
+    /* ── BUTTONS ── */
     .btn-container {
-      text-align: center;
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
       margin-bottom: 40px;
     }
     .btn {
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       background-color: var(--primary);
       color: white;
-      padding: 14px 28px;
+      padding: 12px 22px;
       border-radius: 8px;
       text-decoration: none;
-      font-weight: bold;
-      font-size: 15px;
-      transition: background 0.2s;
-      box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);
+      font-weight: 700;
+      font-size: 14px;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 6px rgba(59, 130, 246, 0.25);
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
     }
     .btn:hover {
       background-color: #2563eb;
+      transform: translateY(-1px);
+    }
+    .btn-export {
+      background-color: #10b981;
+      box-shadow: 0 4px 6px rgba(16, 185, 129, 0.25);
+    }
+    .btn-export:hover {
+      background-color: #059669;
+    }
+    .btn-export:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
     }
     
     .status {
       text-align: center;
-      font-size: 14px;
-      color: var(--text-dim);
+      font-size: 13px;
+      color: var(--text-muted);
       margin-bottom: 16px;
     }
 
@@ -152,55 +350,124 @@
       .kpi-grid {
         grid-template-columns: 1fr;
       }
+      body {
+        padding: 12px;
+      }
     }
   </style>
 </head>
 <body>
 
   <div class="container">
-    <h1>Dashboard Ringkasan SCO</h1>
+    <div class="page-header">
+      <h1 class="page-title">Dashboard Ringkasan SCO</h1>
+      <p class="page-subtitle">Monitoring Performa Harian & Tren Penjualan</p>
+    </div>
+    
     <div id="status" class="status">Memuat data dari HARIAN SCO.xlsx...</div>
 
-    <!-- CARDS -->
+    <!-- CARDS (BEAUTIFIED) -->
     <div class="kpi-grid">
-      <div class="kpi-card">
-        <div class="kpi-title">Growth SCO</div>
+      <div class="kpi-card card-sco">
+        <div class="kpi-header">
+          <div class="kpi-icon-wrap icon-sco">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+              <path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+          </div>
+          <div class="kpi-title">Growth SCO</div>
+        </div>
         <div class="kpi-value" id="kpiGrowthSCO">-</div>
+        <div class="kpi-sub" id="kpiSubSCO">-</div>
       </div>
-      <div class="kpi-card">
-        <div class="kpi-title">Growth Non SCO</div>
+
+      <div class="kpi-card card-non-sco">
+        <div class="kpi-header">
+          <div class="kpi-icon-wrap icon-non-sco">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/>
+            </svg>
+          </div>
+          <div class="kpi-title">Growth Non SCO</div>
+        </div>
         <div class="kpi-value" id="kpiGrowthNonSCO">-</div>
+        <div class="kpi-sub" id="kpiSubNonSCO">-</div>
       </div>
-      <div class="kpi-card">
-        <div class="kpi-title">Growth Online</div>
+
+      <div class="kpi-card card-online">
+        <div class="kpi-header">
+          <div class="kpi-icon-wrap icon-online">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/>
+            </svg>
+          </div>
+          <div class="kpi-title">Growth Online</div>
+        </div>
         <div class="kpi-value" id="kpiGrowthOnline">-</div>
+        <div class="kpi-sub" id="kpiSubOnline">-</div>
       </div>
     </div>
 
-    <!-- CHART -->
+    <!-- TABLE CARD (BEAUTIFIED) -->
+    <div class="table-card">
+      <div class="table-card-header">
+        <div class="table-header-left">
+          <div class="table-header-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 3v18h18"/><rect width="12" height="4" x="7" y="5" rx="1"/><rect width="7" height="4" x="7" y="11" rx="1"/>
+            </svg>
+          </div>
+          <div>
+            <div class="table-header-title">Ringkasan Tren Penjualan</div>
+            <div class="table-header-subtitle">Data performa per SCO, Non SCO & Online</div>
+          </div>
+        </div>
+        <div class="table-header-badge" id="tableMonthBadge">MoM</div>
+      </div>
+      <div class="table-responsive">
+        <table id="dataTable">
+          <thead>
+            <tr id="tableHeadRow">
+              <!-- Headers render otomatis di sini -->
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+            <!-- Data render otomatis di sini -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- CHART CARD -->
     <div class="chart-card">
-      <h3 style="margin-top:0; font-size: 14px; color: var(--text-dim); text-align: center;">Perbandingan Performa per SCO</h3>
+      <div class="table-card-header">
+        <div class="table-header-left">
+          <div class="table-header-icon" style="background: var(--purple-dim); color: var(--purple);">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" x2="18" y1="20" y2="10"/><line x1="12" x2="12" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="14"/>
+            </svg>
+          </div>
+          <div>
+            <div class="table-header-title">Perbandingan Performa per SCO</div>
+            <div class="table-header-subtitle">Rata-rata transaksi harian per personil</div>
+          </div>
+        </div>
+      </div>
       <div class="chart-container">
         <canvas id="myChart"></canvas>
       </div>
     </div>
 
-    <!-- TABLE -->
-    <div class="table-card">
-      <table id="dataTable">
-        <thead>
-          <tr id="tableHeadRow">
-            <!-- Headers render otomatis di sini -->
-          </tr>
-        </thead>
-        <tbody id="tableBody">
-          <!-- Data render otomatis di sini -->
-        </tbody>
-      </table>
-    </div>
-
-    <!-- BUTTON -->
-    <div class="btn-container">
+    <!-- BUTTONS -->
+    <div class="btn-container" data-html2canvas-ignore="true">
+      <button type="button" id="btnExportJpg" class="btn btn-export" onclick="exportToJpg()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 6px;">
+          <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
+          <circle cx="9" cy="9" r="2"/>
+          <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+        </svg>Export JPG
+      </button>
       <a href="detil_sco.html" class="btn">Lihat Detil per SCO &rarr;</a>
     </div>
   </div>
@@ -231,7 +498,7 @@
         const rawData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
         
         if(rawData.length > 0) {
-            const keys = Object.keys(rawData[0]);
+            const keys = Object.keys(rawData[0]).filter(k => !String(k).includes('__EMPTY'));
             colM1 = keys[2]; 
             colM2 = keys[3]; 
         }
@@ -255,46 +522,69 @@
       return num.toLocaleString('id-ID', { maximumFractionDigits: 1 });
     }
 
-    function renderGrowthCard(elementId, rowData) {
-      const el = document.getElementById(elementId);
-      if (!rowData) {
-        el.textContent = '-';
+    // ── 1. RENDER CARDS (FORMAT PERCENT %) ──
+    function renderGrowthCard(valElId, subElId, rowData) {
+      const valEl = document.getElementById(valElId);
+      const subEl = document.getElementById(subElId);
+      if (!rowData || !colM1 || !colM2) {
+        if (valEl) valEl.textContent = '-';
+        if (subEl) subEl.textContent = '-';
         return;
       }
       
-      let growth = rowData['Growth'];
-      if (typeof growth === 'number') {
-          const sign = growth > 0 ? '+' : '';
-          const gText = `${sign}${growth.toFixed(2)}`;
-          el.textContent = gText;
-          el.className = 'kpi-value ' + (growth > 0 ? 'positive' : 'negative');
-      } else {
-          el.textContent = '-';
+      const v1 = parseFloat(rowData[colM1]) || 0;
+      const v2 = parseFloat(rowData[colM2]) || 0;
+      
+      // Calculate true growth percentage
+      let pct = 0;
+      if (v1 > 0) {
+        pct = ((v2 - v1) / v1) * 100;
+      }
+      
+      const diff = v2 - v1;
+      const sign = pct > 0 ? '+' : '';
+      const pctText = `${sign}${pct.toFixed(1)}%`;
+      
+      valEl.textContent = pctText;
+      valEl.className = 'kpi-value ' + (pct > 0 ? 'positive' : (pct < 0 ? 'negative' : ''));
+      
+      const diffSign = diff > 0 ? '+' : '';
+      const diffText = `${diffSign}${diff.toFixed(1)} hit`;
+      if (subEl) {
+        subEl.textContent = `${diffText} vs ${colM1}`;
       }
     }
 
-    // -- 1. RENDER CARDS --
     function renderCards() {
       if (excelData.length === 0) return;
       
-      // Temukan baris berdasarkan nama SCO
       const rowSCO = excelData.find(r => String(r['SCO']).toLowerCase() === 'total sco');
       const rowNonSCO = excelData.find(r => String(r['SCO']).toLowerCase() === 'total non sco');
       const rowOnline = excelData.find(r => String(r['SCO']).toLowerCase() === 'online');
 
-      renderGrowthCard('kpiGrowthSCO', rowSCO);
-      renderGrowthCard('kpiGrowthNonSCO', rowNonSCO);
-      renderGrowthCard('kpiGrowthOnline', rowOnline);
+      renderGrowthCard('kpiGrowthSCO', 'kpiSubSCO', rowSCO);
+      renderGrowthCard('kpiGrowthNonSCO', 'kpiSubNonSCO', rowNonSCO);
+      renderGrowthCard('kpiGrowthOnline', 'kpiSubOnline', rowOnline);
     }
 
-    // -- 2. RENDER TABLE --
+    // ── 2. RENDER TABLE (GROWTH 1 DESIMAL & GROWTH %) ──
     function renderTable() {
       if (excelData.length === 0) return;
 
-      const keys = Object.keys(excelData[0]);
-      
       const thead = document.getElementById('tableHeadRow');
-      thead.innerHTML = keys.map(key => `<th>${key}</th>`).join('');
+      thead.innerHTML = `
+        <th>SCO</th>
+        <th>CABANG</th>
+        <th class="num">${colM1 ? colM1.toUpperCase() : 'AUG'}</th>
+        <th class="num">${colM2 ? colM2.toUpperCase() : 'SEP'}</th>
+        <th class="num">Growth</th>
+        <th class="num" style="text-align:center;">Growth (%)</th>
+      `;
+
+      const monthBadge = document.getElementById('tableMonthBadge');
+      if (monthBadge && colM1 && colM2) {
+        monthBadge.textContent = `${colM1} vs ${colM2}`;
+      }
 
       const tbody = document.getElementById('tableBody');
       const html = excelData.map(row => {
@@ -302,28 +592,48 @@
         const isTotalRow = scoName.includes('total') || scoName.includes('grand');
         const trClass = isTotalRow ? 'class="row-total"' : '';
         
-        return `<tr ${trClass}>${keys.map((k, idx) => {
-          let val = row[k];
-          let cellClass = '';
-          if (idx >= 2) {
-              cellClass = 'class="num"';
-              if (typeof val === 'number') {
-                  val = formatNumber(val);
-                  if (k === 'Growth' && row[k] > 0) val = '+' + val;
-              }
-          }
-          return `<td ${cellClass}>${val !== "" ? val : '-'}</td>`;
-        }).join('')}</tr>`;
+        const v1 = parseFloat(row[colM1]) || 0;
+        const v2 = parseFloat(row[colM2]) || 0;
+        
+        // 1) Growth (Delta 1 desimal)
+        const diff = (row['Growth'] !== undefined && row['Growth'] !== '') 
+          ? parseFloat(row['Growth']) 
+          : (v2 - v1);
+        const isDiffNeg = !isNaN(diff) && diff < 0;
+        const diffSign = diff > 0 ? '+' : '';
+        const diffFormatted = !isNaN(diff) ? `${diffSign}${diff.toFixed(1)}` : '-';
+        const diffClass = isDiffNeg ? 'num negative' : 'num';
+
+        // 2) Growth (% dalam badge)
+        let growthPct = 0;
+        if (row['%'] !== undefined && row['%'] !== '') {
+          growthPct = parseFloat(row['%']) * 100;
+        } else if (v1 > 0) {
+          growthPct = ((v2 - v1) / v1) * 100;
+        }
+        const isPctNeg = growthPct < 0;
+        const isPctPos = growthPct > 0;
+        const badgeClass = isPctNeg ? 'negative' : (isPctPos ? 'positive' : '');
+        const pctSign = isPctPos ? '+' : '';
+        const pctBadge = `<span class="growth-badge ${badgeClass}">${pctSign}${growthPct.toFixed(1)}%</span>`;
+
+        return `<tr ${trClass}>
+          <td>${row['SCO'] || '-'}</td>
+          <td>${row['CABANG'] || '-'}</td>
+          <td class="num">${formatNumber(v1)}</td>
+          <td class="num">${formatNumber(v2)}</td>
+          <td class="${diffClass}">${diffFormatted}</td>
+          <td class="num" style="text-align:center;">${pctBadge}</td>
+        </tr>`;
       }).join('');
       
       tbody.innerHTML = html;
     }
 
-    // -- 3. RENDER CHART --
+    // ── 3. RENDER CHART (DATA LABELS 1 DESIMAL) ──
     function renderChart() {
       if (excelData.length === 0) return;
 
-      // Filter: HANYA SCO saja. Berarti bukan TOTAL, bukan NON SCO, bukan ONLINE, bukan Grand Total
       const chartData = excelData.filter(row => {
           const sco = String(row['SCO']).toLowerCase();
           return !sco.includes('total') && 
@@ -342,39 +652,150 @@
 
       chartInstance = new Chart(ctx, {
         type: 'bar', 
+        plugins: [ChartDataLabels],
         data: {
           labels: labels,
           datasets: [
             {
               label: colM1,
               data: dataM1,
-              backgroundColor: 'rgba(168, 85, 247, 0.7)',
-              borderColor: 'rgba(168, 85, 247, 1)',
+              backgroundColor: 'rgba(139, 92, 246, 0.75)',
+              borderColor: 'rgba(139, 92, 246, 1)',
               borderWidth: 1,
-              borderRadius: 4
+              borderRadius: 6
             },
             {
               label: colM2,
               data: dataM2,
-              backgroundColor: 'rgba(16, 185, 129, 0.7)',
+              backgroundColor: 'rgba(16, 185, 129, 0.75)',
               borderColor: 'rgba(16, 185, 129, 1)',
               borderWidth: 1,
-              borderRadius: 4
+              borderRadius: 6
             }
           ]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          layout: {
+            padding: {
+              top: 25
+            }
+          },
           interaction: {
             mode: 'index',
             intersect: false
           },
           plugins: {
-            legend: { position: 'bottom' }
+            legend: { 
+              position: 'bottom',
+              labels: {
+                font: { family: 'Plus Jakarta Sans', weight: '600', size: 12 },
+                boxWidth: 14,
+                boxHeight: 14,
+                borderRadius: 3,
+                useBorderRadius: true
+              }
+            },
+            datalabels: {
+              anchor: 'end',
+              align: 'top',
+              offset: 2,
+              color: '#334155',
+              font: {
+                family: 'JetBrains Mono',
+                weight: '700',
+                size: 11
+              },
+              formatter: function(value) {
+                if (typeof value === 'number') {
+                  return value.toFixed(1);
+                }
+                return value;
+              }
+            },
+            tooltip: {
+              backgroundColor: '#0f172a',
+              titleFont: { family: 'Plus Jakarta Sans', size: 12, weight: '700' },
+              bodyFont: { family: 'JetBrains Mono', size: 12 },
+              padding: 10,
+              cornerRadius: 8,
+              callbacks: {
+                label: function(context) {
+                  const val = context.raw;
+                  const formatted = typeof val === 'number' ? val.toFixed(1) : val;
+                  return ` ${context.dataset.label}: ${formatted}`;
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              grace: '15%',
+              beginAtZero: true,
+              grid: {
+                color: 'rgba(0, 0, 0, 0.05)'
+              },
+              ticks: {
+                font: { family: 'JetBrains Mono', size: 10 }
+              }
+            },
+            x: {
+              grid: {
+                display: false
+              },
+              ticks: {
+                font: { family: 'Plus Jakarta Sans', weight: '600', size: 11 }
+              }
+            }
           }
         }
       });
+    }
+
+    // ── EXPORT DASHBOARD KE JPG ──
+    async function exportToJpg() {
+      const btn = document.getElementById('btnExportJpg');
+      const originalHtml = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = 'Sedang Menyimpan...';
+
+      try {
+        const target = document.querySelector('.container');
+        
+        const canvas = await html2canvas(target, {
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          backgroundColor: '#f8fafc',
+          ignoreElements: (element) => element.getAttribute('data-html2canvas-ignore') === 'true',
+          onclone: (clonedDoc) => {
+            const tableResp = clonedDoc.querySelector('.table-responsive');
+            if (tableResp) {
+              tableResp.style.overflow = 'visible';
+            }
+          }
+        });
+
+        const image = canvas.toDataURL('image/jpeg', 0.95);
+        
+        const now = new Date();
+        const dateStr = now.toISOString().slice(0, 10);
+        const filename = `Dashboard_Ringkasan_SCO_${dateStr}.jpg`;
+
+        const link = document.createElement('a');
+        link.href = image;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } catch (err) {
+        alert('Gagal mengekspor JPG: ' + err.message);
+        console.error(err);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalHtml;
+      }
     }
 
     // Eksekusi
