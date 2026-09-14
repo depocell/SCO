@@ -499,8 +499,18 @@
         
         if(rawData.length > 0) {
             const keys = Object.keys(rawData[0]).filter(k => !String(k).includes('__EMPTY'));
-            colM1 = keys[2]; 
-            colM2 = keys[3]; 
+            // Deteksi otomatis kolom bulan (selain SCO, CABANG, Growth, %)
+            const monthKeys = keys.filter(k => {
+              const lower = String(k).toLowerCase().trim();
+              return lower !== 'sco' && lower !== 'cabang' && !lower.includes('growth') && lower !== '%';
+            });
+            if (monthKeys.length >= 2) {
+              colM1 = monthKeys[monthKeys.length - 2]; // Bulan Lalu (misal Aug atau Sep)
+              colM2 = monthKeys[monthKeys.length - 1]; // Bulan Ini (misal Sep atau Oct)
+            } else {
+              colM1 = keys[2] || 'AUG'; 
+              colM2 = keys[3] || 'SEP'; 
+            }
         }
 
         excelData = rawData;

@@ -1502,13 +1502,8 @@
         const m2 = idxM2 >= 0 ? (parseFloat(r[idxM2]) || 0) : 0;
         const m3 = idxM3 >= 0 ? (parseFloat(r[idxM3]) || 0) : 0;
 
-        // Growth: m3 vs m2 (decimal)
-        let growth = 0;
-        if (m2 > 0) {
-          growth = (m3 - m2) / m2;
-        } else if (m3 > 0) {
-          growth = 1;
-        }
+        // Growth: m3 - m2 (selisih hit)
+        const growth = m3 - m2;
 
         data.push({
           sco,
@@ -1516,10 +1511,10 @@
           location: loc,
           mapsUrl: parseDmsToMaps(loc),
           jadwal: jadwal || 'Lainnya',
-          m1: Math.round(m1 * 100) / 100,
-          m2: Math.round(m2 * 100) / 100,
-          m3: Math.round(m3 * 100) / 100,
-          growth: Math.round(growth * 100) / 100
+          m1: Math.round(m1 * 10) / 10,
+          m2: Math.round(m2 * 10) / 10,
+          m3: Math.round(m3 * 10) / 10,
+          growth: Math.round(growth * 10) / 10
         });
       }
 
@@ -1659,8 +1654,8 @@
       const growth = sumM3 - sumM2;
 
       document.getElementById('kpiTotalCust').textContent = totalCust.toLocaleString('id-ID');
-      document.getElementById('kpiAvgM2').textContent = sumM2.toLocaleString('id-ID', { maximumFractionDigits: 1 });
-      document.getElementById('kpiAvgM3').textContent = sumM3.toLocaleString('id-ID', { maximumFractionDigits: 1 });
+      document.getElementById('kpiAvgM2').textContent = sumM2.toLocaleString('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+      document.getElementById('kpiAvgM3').textContent = sumM3.toLocaleString('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
       
       const growthSign = growth > 0 ? '+' : '';
       const growthFormatted = `${growthSign}${growth.toLocaleString('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}`;
@@ -1774,10 +1769,14 @@
           </thead>
           <tbody>`;
 
+      const fmt1 = (v) => typeof v === 'number' 
+        ? v.toLocaleString('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) 
+        : '-';
+
       list.forEach((c, i) => {
         const growthSign = c.growth > 0 ? '+' : '';
         const growthClass = c.growth > 0 ? 'positive' : (c.growth < 0 ? 'negative' : 'neutral');
-        const growthText = `${growthSign}${c.growth.toFixed(2)}`;
+        const growthText = `${growthSign}${c.growth.toFixed(1)}`;
 
         const mapsBtnHtml = c.mapsUrl 
           ? `<a href="${c.mapsUrl}" target="_blank" rel="noopener" class="gmap-btn-sm" title="Maps">
@@ -1793,9 +1792,9 @@
               </td>
               <td><span class="jadwal-tag">${escapeHtml(c.jadwal)}</span></td>
               ${showSCO ? `<td class="sco-cell">${escapeHtml(c.sco)}</td>` : ''}
-              <td class="num" style="color:var(--jul-color);">${c.m1}</td>
-              <td class="num" style="color:var(--aug-color);">${c.m2}</td>
-              <td class="num" style="color:var(--sep-color); font-weight:700;">${c.m3}</td>
+              <td class="num" style="color:var(--jul-color);">${fmt1(c.m1)}</td>
+              <td class="num" style="color:var(--aug-color);">${fmt1(c.m2)}</td>
+              <td class="num" style="color:var(--sep-color); font-weight:700;">${fmt1(c.m3)}</td>
               <td class="num"><span class="growth-badge ${growthClass}">${growthText}</span></td>
               <td>${mapsBtnHtml}</td>
             </tr>`;
@@ -1903,12 +1902,10 @@
         let growthText = '-';
         let growthClass = '';
         if (typeof v2 === 'number' && typeof v3 === 'number') {
-          if (v2 > 0) {
-            const g = (v3 - v2) / v2;
-            const sign = g > 0 ? '+' : '';
-            growthText = `${sign}${g.toFixed(2)}`;
-            growthClass = g >= 0 ? 'positive' : 'negative';
-          }
+          const g = v3 - v2;
+          const sign = g > 0 ? '+' : '';
+          growthText = `${sign}${g.toFixed(1)}`;
+          growthClass = g > 0 ? 'positive' : (g < 0 ? 'negative' : 'neutral');
         }
 
         // Only show rows that have data in at least one month
