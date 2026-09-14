@@ -1656,19 +1656,14 @@
       const sumM2 = activeData.reduce((acc, curr) => acc + curr.m2, 0);
       const sumM3 = activeData.reduce((acc, curr) => acc + curr.m3, 0);
       
-      let growth = 0;
-      if (sumM2 > 0) {
-        growth = (sumM3 - sumM2) / sumM2;
-      } else if (sumM3 > 0) {
-        growth = 1;
-      }
+      const growth = sumM3 - sumM2;
 
       document.getElementById('kpiTotalCust').textContent = totalCust.toLocaleString('id-ID');
       document.getElementById('kpiAvgM2').textContent = sumM2.toLocaleString('id-ID', { maximumFractionDigits: 1 });
       document.getElementById('kpiAvgM3').textContent = sumM3.toLocaleString('id-ID', { maximumFractionDigits: 1 });
       
       const growthSign = growth > 0 ? '+' : '';
-      const growthFormatted = `${growthSign}${growth.toFixed(2)}`;
+      const growthFormatted = `${growthSign}${growth.toLocaleString('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}`;
       const kpiGrowthEl = document.getElementById('kpiGrowth');
       kpiGrowthEl.textContent = growthFormatted;
 
