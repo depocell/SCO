@@ -1177,7 +1177,7 @@
 
     // App State
     const state = {
-      salesList: ['ALL', 'Abdul Harris', 'Febri Kurniawan', 'Hupron', 'Khoirul Anan', 'Mas Komarjaya'],
+      salesList: ['ALL', 'Abdul Harris', 'Febri Kurniawan', 'Hupron', 'Khoirul Anan', 'Mas Komarjaya', 'ONLINE'],
       selectedSales: localStorage.getItem('sco_selected_sales') || 'ALL',
       selectedJadwal: 'ALL',
       searchQuery: '',
@@ -1377,7 +1377,8 @@
 
       for (const path of pathsToTry) {
         try {
-          const res = await fetch(path);
+          const fetchUrl = path.includes('?') ? path : `${path}?t=${Date.now()}`;
+          const res = await fetch(fetchUrl, { cache: 'no-store' });
           if (res.ok) {
             const buf = await res.arrayBuffer();
             parseWorkbookBuffer(buf, decodeURIComponent(path));

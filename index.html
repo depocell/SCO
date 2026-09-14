@@ -480,7 +480,7 @@
 
     async function loadData() {
       try {
-        const response = await fetch('HARIAN SCO.xlsx');
+        const response = await fetch(`HARIAN SCO.xlsx?t=${Date.now()}`, { cache: 'no-store' });
         if (!response.ok) throw new Error("Gagal memuat file HARIAN SCO.xlsx");
         
         const arrayBuffer = await response.arrayBuffer();
