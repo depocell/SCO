@@ -1356,8 +1356,33 @@
       });
     }
 
-    // ── DATA LOADING (EXCEL) ──
+    // ── DATA LOADING (JSON OR EXCEL) ──
     async function loadExcelData() {
+      // 1. Try high-speed data_sco.json first!
+      try {
+        const jsonPaths = [
+          './data_sco.json',
+          'data_sco.json',
+          '../SCO/data_sco.json'
+        ];
+        for (const jp of jsonPaths) {
+          try {
+            const res = await fetch(`${jp}?t=${Date.now()}`, { cache: 'no-store' });
+            if (res.ok) {
+              const jsonData = await res.json();
+              if (jsonData && jsonData.tren_agen && jsonData.months) {
+                parseJsonData(jsonData);
+                return;
+              }
+            }
+          } catch (err) {
+            // try next
+          }
+        }
+      } catch (e) {
+        console.warn('JSON loader error, falling back to Excel:', e);
+      }
+
       if (window.location.protocol === 'file:') {
         showStatus('Membuka file offline. Silakan gunakan START_SERVER.bat atau tap ikon upload untuk memilih file Excel.', 'info');
       } else {
@@ -1368,6 +1393,8 @@
       const pathsToTry = [
         './HARIAN%20SCO.xlsx',
         './HARIAN SCO.xlsx',
+        './HARIAN%20SCO_AUTO.xlsx',
+        './HARIAN SCO_AUTO.xlsx',
         'HARIAN%20SCO.xlsx',
         'HARIAN SCO.xlsx',
         '../SCO/HARIAN%20SCO.xlsx',
@@ -1392,6 +1419,64 @@
 
       if (!loaded && window.location.protocol !== 'file:') {
         showStatus('Gagal membaca otomatis. Silakan tap ikon upload untuk memilih file Excel.', 'error');
+      }
+    }
+
+    // ── PARSE JSON DATA ──
+    function parseJsonData(json) {
+      try {
+        const prevM = String(json.months.prev || 'AUG').toUpperCase();
+        const currM = String(json.months.curr || 'SEP').toUpperCase();
+        state.monthNames = { m1: '', m2: prevM, m3: currM };
+
+        // 1. Process Tren Agen
+        const rawAgen = (json.tren_agen || []).map(d => {
+          const m2 = d[json.months.prev] || 0;
+          const m3 = d[json.months.curr] || 0;
+          const growth = d.Growth !== undefined ? d.Growth : (m3 - m2);
+          const loc = d.LOCATION || '';
+          return {
+            sco: d['NAMA SCO'],
+            customer: d['NAMA CUSTOMER'],
+            location: loc,
+            mapsUrl: parseDmsToMaps(loc),
+            jadwal: d['JADWAL'] || 'Lainnya',
+            m1: 0,
+            m2: Math.round(m2 * 10) / 10,
+            m3: Math.round(m3 * 10) / 10,
+            growth: Math.round(growth * 10) / 10
+          };
+        });
+        state.rawTrenAgen = rawAgen;
+
+        const uniqueSales = Array.from(new Set(rawAgen.map(d => d.sco))).filter(Boolean);
+        if (uniqueSales.length > 0) {
+          state.salesList = ['ALL', ...uniqueSales];
+        }
+
+        // 2. Process Tren Harian
+        const rawHarian = (json.tren_harian || []).map(h => {
+          const parts = String(h.tanggal || '').split('-');
+          let dayOfMonth = 1;
+          if (parts.length >= 3) {
+            dayOfMonth = parseInt(parts[2]) || 1;
+          }
+          return {
+            bulan: h.bulan,
+            dateStr: h.tanggal,
+            dayOfMonth: dayOfMonth,
+            sco: h.nama_sco,
+            trx: Math.round(parseFloat(h.trx) || 0)
+          };
+        });
+        state.rawTrenHarian = rawHarian;
+
+        const cutoffBadge = json.cutoff_date ? ` (Cutoff: ${json.cutoff_date})` : '';
+        showStatus(`Data terbaru berhasil dimuat dari data_sco.json${cutoffBadge}`, 'info');
+        updateAllViews();
+      } catch (err) {
+        console.error('Error parsing JSON:', err);
+        showStatus(`Error mengurai JSON: ${err.message}`, 'error');
       }
     }
 

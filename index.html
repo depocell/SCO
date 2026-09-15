@@ -479,9 +479,33 @@
     let colM2 = '';
 
     async function loadData() {
+      // 1. Coba baca data_sco.json (Super Cepat)
       try {
-        const response = await fetch(`HARIAN SCO.xlsx?t=${Date.now()}`, { cache: 'no-store' });
-        if (!response.ok) throw new Error("Gagal memuat file HARIAN SCO.xlsx");
+        const jsonRes = await fetch(`data_sco.json?t=${Date.now()}`, { cache: 'no-store' });
+        if (jsonRes.ok) {
+          const jsonData = await jsonRes.json();
+          if (jsonData && jsonData.index && jsonData.months) {
+            colM1 = jsonData.months.prev;
+            colM2 = jsonData.months.curr;
+            excelData = jsonData.index;
+            document.getElementById('status').style.display = 'none';
+            renderCards();
+            renderTable();
+            renderChart();
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn("Gagal membaca JSON, mencoba Excel...", err);
+      }
+
+      // 2. Fallback baca Excel
+      try {
+        let response = await fetch(`HARIAN SCO.xlsx?t=${Date.now()}`, { cache: 'no-store' });
+        if (!response.ok) {
+          response = await fetch(`HARIAN SCO_AUTO.xlsx?t=${Date.now()}`, { cache: 'no-store' });
+        }
+        if (!response.ok) throw new Error("Gagal memuat file Excel HARIAN SCO.xlsx");
         
         const arrayBuffer = await response.arrayBuffer();
         const workbook = XLSX.read(arrayBuffer, { type: 'array' });
@@ -522,7 +546,7 @@
         renderChart();
         
       } catch (error) {
-        document.getElementById('status').innerHTML = `<span style="color:red">Error: ${error.message}. Pastikan file HARIAN SCO.xlsx ada di folder yang sama.</span>`;
+        document.getElementById('status').innerHTML = `<span style="color:red">Error: ${error.message}. Pastikan file data_sco.json atau HARIAN SCO.xlsx ada di folder yang sama.</span>`;
         console.error(error);
       }
     }
