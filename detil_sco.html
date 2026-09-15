@@ -1063,9 +1063,6 @@
           </div>
           <div class="chart-legend-pills">
             <div class="legend-tag">
-              <span class="legend-dot jul"></span><span id="legendM1"> Juli</span>
-            </div>
-            <div class="legend-tag">
               <span class="legend-dot aug"></span><span id="legendM2"> Agustus</span>
             </div>
             <div class="legend-tag">
@@ -1118,7 +1115,6 @@
             <thead>
               <tr>
                 <th>Tgl</th>
-                <th id="thM1" style="text-align:right; color:var(--jul-color);">Juli</th>
                 <th id="thM2" style="text-align:right; color:var(--aug-color);">Agustus</th>
                 <th id="thM3" style="text-align:right; color:var(--sep-color);">September</th>
                 <th style="text-align:right;">Growth MoM</th>
@@ -1187,7 +1183,7 @@
       filteredCustomers: [],
       chartInstance: null,
       // Dynamic month names detected from Excel headers
-      monthNames: { m1: 'JUL', m2: 'AUG', m3: 'SEP' }
+      monthNames: { m2: 'AUG', m3: 'SEP' }
     };
 
     // DOM Elements
@@ -1427,7 +1423,7 @@
       try {
         const prevM = String(json.months.prev || 'AUG').toUpperCase();
         const currM = String(json.months.curr || 'SEP').toUpperCase();
-        state.monthNames = { m1: '', m2: prevM, m3: currM };
+        state.monthNames = { m2: prevM, m3: currM };
 
         // 1. Process Tren Agen
         const rawAgen = (json.tren_agen || []).map(d => {
@@ -1441,7 +1437,6 @@
             location: loc,
             mapsUrl: parseDmsToMaps(loc),
             jadwal: d['JADWAL'] || 'Lainnya',
-            m1: 0,
             m2: Math.round(m2 * 10) / 10,
             m3: Math.round(m3 * 10) / 10,
             growth: Math.round(growth * 10) / 10
@@ -1560,15 +1555,14 @@
         }
       });
 
-      // Take the last 3 month columns found
-      const mc = monthCols.slice(-3);
-      if (mc.length === 3) {
-        state.monthNames = { m1: mc[0].name, m2: mc[1].name, m3: mc[2].name };
-      } else if (mc.length === 2) {
-        state.monthNames = { m1: '', m2: mc[0].name, m3: mc[1].name };
+      // Take the last 2 month columns found
+      const mc = monthCols.slice(-2);
+      if (mc.length >= 2) {
+        state.monthNames = { m2: mc[mc.length - 2].name, m3: mc[mc.length - 1].name };
+      } else if (mc.length === 1) {
+        state.monthNames = { m2: mc[0].name, m3: mc[0].name };
       }
 
-      const idxM1 = mc.length >= 3 ? mc[0].idx : -1;
       const idxM2 = mc.length >= 2 ? mc[mc.length - 2].idx : -1;
       const idxM3 = mc.length >= 1 ? mc[mc.length - 1].idx : -1;
 
@@ -1584,7 +1578,6 @@
         const loc = idxLoc >= 0 ? String(r[idxLoc] || '').trim() : '';
         const jadwal = idxJadwal >= 0 ? String(r[idxJadwal] || '').trim() : 'Lainnya';
         
-        const m1 = idxM1 >= 0 ? (parseFloat(r[idxM1]) || 0) : 0;
         const m2 = idxM2 >= 0 ? (parseFloat(r[idxM2]) || 0) : 0;
         const m3 = idxM3 >= 0 ? (parseFloat(r[idxM3]) || 0) : 0;
 
@@ -1597,7 +1590,6 @@
           location: loc,
           mapsUrl: parseDmsToMaps(loc),
           jadwal: jadwal || 'Lainnya',
-          m1: Math.round(m1 * 10) / 10,
           m2: Math.round(m2 * 10) / 10,
           m3: Math.round(m3 * 10) / 10,
           growth: Math.round(growth * 10) / 10
@@ -1683,7 +1675,6 @@
     // ── UPDATE ALL MONTH LABELS IN HTML ──
     function updateMonthLabels() {
       const mn = state.monthNames;
-      const m1Full = monthFull(mn.m1);
       const m2Full = monthFull(mn.m2);
       const m3Full = monthFull(mn.m3);
 
@@ -1703,8 +1694,6 @@
       }
 
       // Tab 2 chart legend
-      const legendM1 = document.getElementById('legendM1');
-      if (legendM1) legendM1.textContent = ` ${m1Full}`;
       const legendM2 = document.getElementById('legendM2');
       if (legendM2) legendM2.textContent = ` ${m2Full}`;
       const legendM3 = document.getElementById('legendM3');
@@ -1719,8 +1708,6 @@
       if (kpiDailyAvgLabel) kpiDailyAvgLabel.textContent = `Avg Trx / Hari (${mn.m3})`;
 
       // Tab 2 daily table headers
-      const thM1 = document.getElementById('thM1');
-      if (thM1) thM1.textContent = m1Full;
       const thM2 = document.getElementById('thM2');
       if (thM2) thM2.textContent = m2Full;
       const thM3 = document.getElementById('thM3');
@@ -1846,9 +1833,8 @@
               <th class="col-cust">Customer</th>
               <th>Jadwal</th>
               ${showSCO ? '<th>SCO</th>' : ''}
-              <th class="num" style="color:var(--jul-color);">${mn.m1}</th>
               <th class="num" style="color:var(--aug-color);">${mn.m2} (Lalu)</th>
-              <th class="num" style="color:var(--sep-color);">${mn.m3} (Ini)</th>
+              <th class="num" style="color:var(--sep-color); font-weight:700;">${mn.m3} (Ini)</th>
               <th class="num">Growth</th>
               <th></th>
             </tr>
@@ -1878,7 +1864,6 @@
               </td>
               <td><span class="jadwal-tag">${escapeHtml(c.jadwal)}</span></td>
               ${showSCO ? `<td class="sco-cell">${escapeHtml(c.sco)}</td>` : ''}
-              <td class="num" style="color:var(--jul-color);">${fmt1(c.m1)}</td>
               <td class="num" style="color:var(--aug-color);">${fmt1(c.m2)}</td>
               <td class="num" style="color:var(--sep-color); font-weight:700;">${fmt1(c.m3)}</td>
               <td class="num"><span class="growth-badge ${growthClass}">${growthText}</span></td>
@@ -1968,20 +1953,17 @@
       if (!tbody) return;
 
       const mn = state.monthNames;
-      const m1ByDay = {};
       const m2ByDay = {};
       const m3ByDay = {};
 
       activeData.forEach(d => {
         const b = d.bulan.toUpperCase();
-        if (b === mn.m1) m1ByDay[d.dayOfMonth] = (m1ByDay[d.dayOfMonth] || 0) + d.trx;
         if (b === mn.m2) m2ByDay[d.dayOfMonth] = (m2ByDay[d.dayOfMonth] || 0) + d.trx;
         if (b === mn.m3) m3ByDay[d.dayOfMonth] = (m3ByDay[d.dayOfMonth] || 0) + d.trx;
       });
 
       let html = '';
       for (let day = 1; day <= 31; day++) {
-        const v1 = m1ByDay[day] !== undefined ? m1ByDay[day] : '-';
         const v2 = m2ByDay[day] !== undefined ? m2ByDay[day] : '-';
         const v3 = m3ByDay[day] !== undefined ? m3ByDay[day] : '-';
 
@@ -1995,11 +1977,10 @@
         }
 
         // Only show rows that have data in at least one month
-        if (v1 !== '-' || v2 !== '-' || v3 !== '-') {
+        if (v2 !== '-' || v3 !== '-') {
           html += `
             <tr>
               <td><strong>Tgl ${day}</strong></td>
-              <td class="num">${typeof v1 === 'number' ? v1.toLocaleString('id-ID') : '-'}</td>
               <td class="num">${typeof v2 === 'number' ? v2.toLocaleString('id-ID') : '-'}</td>
               <td class="num" style="font-weight:700;">${typeof v3 === 'number' ? v3.toLocaleString('id-ID') : '-'}</td>
               <td class="num">
@@ -2026,7 +2007,6 @@
       const labels = Array.from({ length: 31 }, (_, i) => String(i + 1));
 
       const mn = state.monthNames;
-      const m1Data = new Array(31).fill(null);
       const m2Data = new Array(31).fill(null);
       const m3Data = new Array(31).fill(null);
 
@@ -2034,7 +2014,6 @@
         const dayIdx = d.dayOfMonth - 1;
         if (dayIdx >= 0 && dayIdx < 31) {
           const b = d.bulan.toUpperCase();
-          if (b === mn.m1) m1Data[dayIdx] = (m1Data[dayIdx] || 0) + d.trx;
           if (b === mn.m2) m2Data[dayIdx] = (m2Data[dayIdx] || 0) + d.trx;
           if (b === mn.m3) m3Data[dayIdx] = (m3Data[dayIdx] || 0) + d.trx;
         }
@@ -2068,16 +2047,6 @@
               data: m2Data,
               borderColor: '#a855f7', // purple
               backgroundColor: 'rgba(168,85,247,0.2)',
-              borderWidth: 2,
-              tension: 0.4,
-              fill: false,
-              pointRadius: 3
-            },
-            {
-              label: monthFull(mn.m1),
-              data: m1Data,
-              borderColor: '#38bdf8', // sky blue
-              backgroundColor: 'rgba(56,189,248,0.2)',
               borderWidth: 2,
               tension: 0.4,
               fill: false,
