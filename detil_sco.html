@@ -1180,6 +1180,7 @@
       sortField: 'growth_desc',
       rawTrenAgen: [],
       rawTrenHarian: [],
+      indexRows: [],
       filteredCustomers: [],
       chartInstance: null,
       // Dynamic month names detected from Excel headers
@@ -1427,9 +1428,9 @@
 
         // 1. Process Tren Agen
         const rawAgen = (json.tren_agen || []).map(d => {
-          const m2 = d[json.months.prev] || 0;
-          const m3 = d[json.months.curr] || 0;
-          const growth = d.Growth !== undefined ? d.Growth : (m3 - m2);
+          const m2 = parseFloat(d[json.months.prev]) || 0;
+          const m3 = parseFloat(d[json.months.curr]) || 0;
+          const growth = d.Growth !== undefined ? parseFloat(d.Growth) : (m3 - m2);
           const loc = d.LOCATION || '';
           return {
             sco: d['NAMA SCO'],
@@ -1437,12 +1438,13 @@
             location: loc,
             mapsUrl: parseDmsToMaps(loc),
             jadwal: d['JADWAL'] || 'Lainnya',
-            m2: Math.round(m2 * 10) / 10,
-            m3: Math.round(m3 * 10) / 10,
-            growth: Math.round(growth * 10) / 10
+            m2: m2,
+            m3: m3,
+            growth: growth
           };
         });
         state.rawTrenAgen = rawAgen;
+        state.indexRows = json.index || [];
 
         const uniqueSales = Array.from(new Set(rawAgen.map(d => d.sco))).filter(Boolean);
         if (uniqueSales.length > 0) {
@@ -1503,6 +1505,11 @@
       try {
         const wb = XLSX.read(buf, { type: 'array' });
         
+        // 0. Parse Index sheet if available
+        if (wb.Sheets['Index']) {
+          state.indexRows = XLSX.utils.sheet_to_json(wb.Sheets['Index'], { defval: "" });
+        }
+
         // 1. Parse TREN_AGEN sheet
         let agenSheet = wb.Sheets['TREN_AGEN'] || wb.Sheets['Tab1'] || wb.Sheets[wb.SheetNames[0]];
         if (wb.Sheets['TREN_AGEN']) {
@@ -1590,9 +1597,9 @@
           location: loc,
           mapsUrl: parseDmsToMaps(loc),
           jadwal: jadwal || 'Lainnya',
-          m2: Math.round(m2 * 10) / 10,
-          m3: Math.round(m3 * 10) / 10,
-          growth: Math.round(growth * 10) / 10
+          m2: m2,
+          m3: m3,
+          growth: growth
         });
       }
 
@@ -1721,17 +1728,57 @@
         : state.rawTrenAgen.filter(x => x.sco === state.selectedSales);
 
       const totalCust = activeData.length;
-      const sumM2 = activeData.reduce((acc, curr) => acc + curr.m2, 0);
-      const sumM3 = activeData.reduce((acc, curr) => acc + curr.m3, 0);
+      let sumM2 = 0;
+      let sumM3 = 0;
+
+      const mn = state.monthNames;
+      if (state.selectedSales === 'ALL' && state.indexRows && state.indexRows.length > 0) {
+        const gt = state.indexRows.find(r => {
+          const s = String(r['SCO'] || '').trim().toLowerCase();
+          return s === 'grand total' || s === 'total';
+        });
+        if (gt) {
+          const k2 = Object.keys(gt).find(k => k.toUpperCase() === mn.m2.toUpperCase()) || mn.m2;
+          const k3 = Object.keys(gt).find(k => k.toUpperCase() === mn.m3.toUpperCase()) || mn.m3;
+          sumM2 = parseFloat(gt[k2]) || 0;
+          sumM3 = parseFloat(gt[k3]) || 0;
+        }
+      } else if (state.selectedSales !== 'ALL' && state.indexRows && state.indexRows.length > 0) {
+        const row = state.indexRows.find(r => {
+          const s = String(r['SCO'] || '').trim().toLowerCase();
+          return s === state.selectedSales.trim().toLowerCase();
+        });
+        if (row) {
+          const k2 = Object.keys(row).find(k => k.toUpperCase() === mn.m2.toUpperCase()) || mn.m2;
+          const k3 = Object.keys(row).find(k => k.toUpperCase() === mn.m3.toUpperCase()) || mn.m3;
+          sumM2 = parseFloat(row[k2]) || 0;
+          sumM3 = parseFloat(row[k3]) || 0;
+        }
+      }
+
+      // Fallback if indexRows is not available
+      if (sumM3 === 0 && activeData.length > 0) {
+        sumM2 = activeData.reduce((acc, curr) => acc + curr.m2, 0);
+        sumM3 = activeData.reduce((acc, curr) => acc + curr.m3, 0);
+      }
       
       const growth = sumM3 - sumM2;
 
       document.getElementById('kpiTotalCust').textContent = totalCust.toLocaleString('id-ID');
-      document.getElementById('kpiAvgM2').textContent = sumM2.toLocaleString('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-      document.getElementById('kpiAvgM3').textContent = sumM3.toLocaleString('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+      
+      // When ALL is selected, show integer matching other reports (e.g. 6.910), or 1 decimal if filtered
+      const fmtKpi = (val) => {
+        if (state.selectedSales === 'ALL') {
+          return Math.round(val).toLocaleString('id-ID');
+        }
+        return val.toLocaleString('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+      };
+
+      document.getElementById('kpiAvgM2').textContent = fmtKpi(sumM2);
+      document.getElementById('kpiAvgM3').textContent = fmtKpi(sumM3);
       
       const growthSign = growth > 0 ? '+' : '';
-      const growthFormatted = `${growthSign}${growth.toLocaleString('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}`;
+      const growthFormatted = `${growthSign}${fmtKpi(growth)}`;
       const kpiGrowthEl = document.getElementById('kpiGrowth');
       kpiGrowthEl.textContent = growthFormatted;
 
