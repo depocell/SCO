@@ -11,9 +11,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   
-  <!-- SheetJS & ChartJS -->
+  <!-- SheetJS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 
   <style>
     :root {
@@ -120,17 +119,11 @@
       gap: 12px;
     }
 
-    .brand-icon-box {
-      width: 42px;
-      height: 42px;
-      border-radius: var(--radius-md);
-      background: var(--brand-gradient);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #fff;
-      font-size: 18px;
-      box-shadow: 0 4px 14px var(--brand-glow);
+    .brand-logo-img {
+      height: 38px;
+      max-width: 125px;
+      object-fit: contain;
+      filter: drop-shadow(0 2px 6px rgba(0,0,0,0.3));
       flex-shrink: 0;
     }
 
@@ -546,207 +539,6 @@
       color: var(--text-muted);
     }
 
-    /* ── METRIC CARDS GRID ── */
-    .metric-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
-      margin-bottom: 24px;
-    }
-
-    .metric-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-lg);
-      padding: 18px 20px;
-      box-shadow: var(--shadow-sm);
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      position: relative;
-      overflow: hidden;
-      transition: var(--transition);
-    }
-
-    .metric-card:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-md);
-      border-color: var(--brand-primary);
-    }
-
-    .metric-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background: var(--card-accent, var(--brand-primary));
-    }
-
-    .metric-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 10px;
-    }
-
-    .metric-title {
-      font-size: 11.5px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: var(--text-muted);
-    }
-
-    .metric-icon-box {
-      width: 36px;
-      height: 36px;
-      border-radius: var(--radius-sm);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 15px;
-      background: var(--icon-bg, var(--brand-subtle));
-      color: var(--icon-color, var(--brand-primary));
-    }
-
-    .metric-value {
-      font-size: 24px;
-      font-weight: 800;
-      letter-spacing: -0.5px;
-      color: var(--text-main);
-      margin-bottom: 4px;
-      font-family: var(--font);
-    }
-
-    .metric-sub {
-      font-size: 11.5px;
-      color: var(--text-muted);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    /* ── PODIUM SECTION ── */
-    .podium-section {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-lg);
-      padding: 22px 24px;
-      box-shadow: var(--shadow-sm);
-      margin-bottom: 24px;
-    }
-
-    .section-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 18px;
-    }
-
-    .section-title {
-      font-size: 15px;
-      font-weight: 800;
-      letter-spacing: -0.3px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .podium-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 16px;
-    }
-
-    .podium-card {
-      background: var(--bg-card-subtle);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-md);
-      padding: 16px 14px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      position: relative;
-      transition: var(--transition);
-    }
-
-    .podium-card:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-md);
-    }
-
-    .podium-rank-badge {
-      position: absolute;
-      top: -12px;
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      font-weight: 800;
-      color: #fff;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    }
-    .rank-1 .podium-rank-badge { background: linear-gradient(135deg, #f59e0b, #d97706); }
-    .rank-2 .podium-rank-badge { background: linear-gradient(135deg, #94a3b8, #64748b); }
-    .rank-3 .podium-rank-badge { background: linear-gradient(135deg, #b45309, #78350f); }
-    
-    .podium-avatar {
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      background: var(--brand-glow);
-      color: var(--brand-primary);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      font-weight: 800;
-      margin-top: 6px;
-      margin-bottom: 8px;
-      border: 2px solid var(--border-color);
-    }
-
-    .podium-name {
-      font-size: 14px;
-      font-weight: 800;
-      margin-bottom: 4px;
-      color: var(--text-main);
-    }
-
-    .podium-stats-row {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 6px;
-      width: 100%;
-      padding-top: 10px;
-      border-top: 1px solid var(--border-color);
-      font-size: 11px;
-      margin-top: 8px;
-    }
-
-    .podium-stat-item {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .podium-stat-label {
-      color: var(--text-muted);
-      font-size: 9.5px;
-      text-transform: uppercase;
-      font-weight: 700;
-    }
-
-    .podium-stat-val {
-      font-weight: 700;
-      margin-top: 2px;
-    }
-
     /* ── TABLE PANEL ── */
     .table-panel {
       background: var(--bg-card);
@@ -784,7 +576,7 @@
       overflow-x: auto;
       border: 1px solid var(--border-color);
       border-radius: var(--radius-md);
-      max-height: 640px;
+      max-height: 680px;
     }
 
     table.kpi-table {
@@ -830,10 +622,12 @@
     .num {
       text-align: right;
       font-variant-numeric: tabular-nums;
+      font-family: var(--font-mono);
     }
 
     .name-col {
       font-weight: 700;
+      color: var(--text-main);
     }
 
     .tag-month {
@@ -857,6 +651,7 @@
       font-size: 11px;
       font-weight: 700;
       line-height: 1.2;
+      font-family: var(--font-mono);
     }
     .badge-green {
       background: var(--success-bg);
@@ -880,7 +675,8 @@
 
     .growth-pill {
       font-weight: 700;
-      font-size: 11px;
+      font-size: 11.5px;
+      font-family: var(--font-mono);
     }
     .growth-pill.positive { color: #10b981; }
     .growth-pill.negative { color: #ef4444; }
@@ -900,11 +696,6 @@
     }
 
     /* ── RESPONSIVE MEDIA QUERIES ── */
-    @media (max-width: 1024px) {
-      .metric-grid { grid-template-columns: repeat(2, 1fr); }
-      .podium-grid { grid-template-columns: 1fr; }
-    }
-
     @media (max-width: 992px) {
       .app-sidebar {
         transform: translateX(-100%);
@@ -942,10 +733,6 @@
         padding: 0 10px;
         height: 34px;
       }
-      .metric-grid {
-        grid-template-columns: 1fr;
-        gap: 12px;
-      }
       .filter-panel {
         flex-direction: column;
         align-items: stretch;
@@ -980,9 +767,7 @@
   <!-- ── SIDEBAR NAVIGATION ── -->
   <aside class="app-sidebar" id="sidebar">
     <div class="sidebar-header">
-      <div class="brand-icon-box">
-        <i class="fa-solid fa-chart-line"></i>
-      </div>
+      <img src="./logo_myastaga.png" alt="MyAstaga" class="brand-logo-img">
       <div class="brand-name-box">
         <span class="brand-title">SCO SUITE</span>
         <span class="brand-subtitle">Executive Daily</span>
@@ -1015,7 +800,7 @@
         <div class="status-dot" id="statusDot"></div>
         <span id="sidebarStatusText">Memuat data...</span>
       </div>
-      <div style="font-size: 10px; color: #64748b;" id="sidebarCutoffText">Periode otomatis</div>
+      <div style="font-size: 10px; color: #64748b;" id="sidebarCutoffText">Dokumentasi KPI</div>
     </div>
   </aside>
 
@@ -1033,7 +818,7 @@
         <div class="page-title-box">
           <h1>
             <span>KPI & Insentif SCO</span>
-            <span class="brand-tag-chip" id="kpiUpdatedBadge"><i class="fa-solid fa-bullseye"></i> Evaluasi Performa</span>
+            <span class="brand-tag-chip" id="kpiUpdatedBadge"><i class="fa-solid fa-bullseye"></i> Dokumentasi Sheet</span>
           </h1>
         </div>
       </div>
@@ -1057,7 +842,7 @@
       </div>
     </header>
 
-    <!-- App Content -->
+    <!-- App Content (Polos: Filter & Tabel Saja) -->
     <div class="app-content">
 
       <!-- Alert Banner for Fallback -->
@@ -1113,76 +898,15 @@
         </div>
       </div>
 
-      <!-- Metric Cards Grid -->
-      <div class="metric-grid" id="metricCardsGrid">
-        <div class="metric-card" style="--card-accent: #0284c7;">
-          <div class="metric-header">
-            <span class="metric-title">Total Personil SCO</span>
-            <div class="metric-icon-box" style="--icon-bg: #e0f2fe; --icon-color: #0284c7;">
-              <i class="fa-solid fa-users"></i>
-            </div>
-          </div>
-          <div class="metric-value" id="kpiTotalSco">0</div>
-          <div class="metric-sub" id="kpiTotalScoSub">Personil terdaftar</div>
-        </div>
-
-        <div class="metric-card" style="--card-accent: #8b5cf6;">
-          <div class="metric-header">
-            <span class="metric-title">Rata-rata Skor KPI</span>
-            <div class="metric-icon-box" style="--icon-bg: #ede9fe; --icon-color: #8b5cf6;">
-              <i class="fa-solid fa-award"></i>
-            </div>
-          </div>
-          <div class="metric-value" id="kpiAvgScore">0%</div>
-          <div class="metric-sub" id="kpiAvgScoreSub">Index pencapaian tim</div>
-        </div>
-
-        <div class="metric-card" style="--card-accent: #10b981;">
-          <div class="metric-header">
-            <span class="metric-title">Rata-rata % Trx</span>
-            <div class="metric-icon-box" style="--icon-bg: #d1fae5; --icon-color: #10b981;">
-              <i class="fa-solid fa-cart-shopping"></i>
-            </div>
-          </div>
-          <div class="metric-value" id="kpiAvgTrx">0%</div>
-          <div class="metric-sub" id="kpiAvgTrxSub">Bobot 35% pada formula</div>
-        </div>
-
-        <div class="metric-card" style="--card-accent: #f59e0b;">
-          <div class="metric-header">
-            <span class="metric-title">Total Estimasi Insentif</span>
-            <div class="metric-icon-box" style="--icon-bg: #fef3c7; --icon-color: #f59e0b;">
-              <i class="fa-solid fa-sack-dollar"></i>
-            </div>
-          </div>
-          <div class="metric-value" id="kpiTotalInsentif">Rp 0</div>
-          <div class="metric-sub" id="kpiTotalInsentifSub">Akumulasi insentif periode ini</div>
-        </div>
-      </div>
-
-      <!-- Podium Top 3 Performers -->
-      <section class="podium-section" id="podiumSection">
-        <div class="section-header">
-          <div class="section-title">
-            <i class="fa-solid fa-trophy" style="color: #f59e0b;"></i>
-            <span>Top 3 Performers SCO</span>
-          </div>
-          <span style="font-size:12px; color:var(--text-muted);" id="podiumMonthLabel">Berdasarkan KPI Score tertinggi</span>
-        </div>
-        <div class="podium-grid" id="podiumGrid">
-          <!-- Populated by JS -->
-        </div>
-      </section>
-
-      <!-- Detail Table Panel -->
+      <!-- Detail Table Panel (1:1 Sesuai Sheet KPI_SCO) -->
       <section class="table-panel">
         <div class="table-header-wrap">
           <div class="chart-title-box">
             <h3><i class="fa-solid fa-table-list" style="color:var(--brand-primary)"></i> Tabel Evaluasi KPI & Insentif SCO</h3>
-            <p id="tableSummaryText">Menampilkan data performa detail</p>
+            <p id="tableSummaryText">Dokumentasi data 1:1 sesuai Sheet KPI_SCO</p>
           </div>
           <div style="font-size:12px; color:var(--text-muted);">
-            <i class="fa-solid fa-arrow-down-a-z"></i> Klik header kolom untuk mengurutkan data
+            <i class="fa-solid fa-arrow-down-a-z"></i> Klik judul kolom untuk mengurutkan data
           </div>
         </div>
 
@@ -1194,12 +918,17 @@
                 <th onclick="sortTable('bulan')">Bulan <i class="fa-solid fa-sort"></i></th>
                 <th onclick="sortTable('nama')">Nama SCO <i class="fa-solid fa-sort"></i></th>
                 <th class="num" onclick="sortTable('pjp')">#PJP <i class="fa-solid fa-sort"></i></th>
-                <th class="num" onclick="sortTable('achVisit')">Ach Visit <i class="fa-solid fa-sort"></i></th>
-                <th class="num" onclick="sortTable('pctVisit')">% Visit <i class="fa-solid fa-sort"></i></th>
-                <th class="num" onclick="sortTable('achColl')">Ach Coll <i class="fa-solid fa-sort"></i></th>
-                <th class="num" onclick="sortTable('pctColl')">% Coll <i class="fa-solid fa-sort"></i></th>
-                <th class="num" onclick="sortTable('achTrx')">Ach Trx <i class="fa-solid fa-sort"></i></th>
-                <th class="num" onclick="sortTable('pctTrx')">% Trx <i class="fa-solid fa-sort"></i></th>
+                <th class="num" onclick="sortTable('tgt_visit')">Tgt Visit <i class="fa-solid fa-sort"></i></th>
+                <th class="num" onclick="sortTable('ach_visit')">Ach Visit <i class="fa-solid fa-sort"></i></th>
+                <th class="num" onclick="sortTable('pct_visit')">% Visit <i class="fa-solid fa-sort"></i></th>
+                <th class="num" onclick="sortTable('tgt_coll')">Tgt Coll <i class="fa-solid fa-sort"></i></th>
+                <th class="num" onclick="sortTable('ach_coll')">Ach Coll <i class="fa-solid fa-sort"></i></th>
+                <th class="num" onclick="sortTable('pct_coll')">% Coll <i class="fa-solid fa-sort"></i></th>
+                <th class="num" onclick="sortTable('tgt_trx')">Tgt Trx <i class="fa-solid fa-sort"></i></th>
+                <th class="num" onclick="sortTable('ach_trx')">Ach Trx <i class="fa-solid fa-sort"></i></th>
+                <th class="num" onclick="sortTable('pct_trx')">% Trx <i class="fa-solid fa-sort"></i></th>
+                <th class="num" onclick="sortTable('trx_lalu')">Trx Lalu <i class="fa-solid fa-sort"></i></th>
+                <th class="num" onclick="sortTable('trx_ini')">Trx Ini <i class="fa-solid fa-sort"></i></th>
                 <th class="num" onclick="sortTable('growth')">% Growth <i class="fa-solid fa-sort"></i></th>
                 <th class="num" onclick="sortTable('score')">KPI Score <i class="fa-solid fa-sort"></i></th>
                 <th class="num" onclick="sortTable('insentif')">Insentif (Rp) <i class="fa-solid fa-sort"></i></th>
@@ -1215,7 +944,7 @@
       <!-- Footer -->
       <footer class="report-footer">
         <div>
-          <strong>SCO SUITE</strong> • Executive Daily & Performance Intelligence
+          <strong>SCO SUITE</strong> • Dokumentasi KPI Sheet
         </div>
         <div id="footerStatusText">
           Data source: HARIAN SCO.xlsx (Sheet: KPI_SCO)
@@ -1241,15 +970,14 @@
     const DATA_URLS = [
       './HARIAN%20SCO.xlsx',
       './HARIAN SCO.xlsx',
-      'HARIAN SCO.xlsx',
-      './DATA_DASHBOARD.xlsx'
+      'HARIAN SCO.xlsx'
     ];
 
     // ── State ────────────────────────────────────────────────────────
-    let allData      = [];
-    let shownData    = [];
-    let sortCol      = 'bulan';
-    let sortAsc      = false;
+    let allData   = [];
+    let shownData = [];
+    let sortCol   = 'bulan';
+    let sortAsc   = false;
 
     // ── Map bulan pendek → nama lengkap Indonesia ────────────────────
     const MONTH_MAP = {
@@ -1263,11 +991,32 @@
       'juli':'07','agustus':'08','september':'09','oktober':'10','november':'11','desember':'12'
     };
 
-    function parseBulanStr(raw) {
+    function parseBulan(raw) {
       if (!raw) return { label: '', key: '' };
+      
+      // Jika angka serial Excel (misal: 46023)
+      if (typeof raw === 'number' && raw > 30000 && window.XLSX && XLSX.SSF) {
+        try {
+          const dc = XLSX.SSF.parse_date_code(raw);
+          if (dc && dc.y) {
+            const names = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+            const mo = dc.m - 1;
+            return { label: names[mo] + ' ' + dc.y, key: `${dc.y}-${String(dc.m).padStart(2,'0')}` };
+          }
+        } catch(e) {}
+      }
+
       const s = String(raw).trim();
 
-      // Format "Mon-YY" atau "Mon-YYYY"
+      // Format ISO "2026-01-01" atau "2026-01"
+      const iso = s.match(/^(\d{4})-(\d{2})/);
+      if (iso) {
+        const yr = parseInt(iso[1]), mo = parseInt(iso[2]) - 1;
+        const names = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+        return { label: `${names[mo]} ${yr}`, key: `${yr}-${String(mo+1).padStart(2,'0')}` };
+      }
+
+      // Format "Jan-26" atau "Mon-YYYY"
       const m = s.match(/^([A-Za-z]+)[-\s](\d{2,4})$/);
       if (m) {
         const prefix = m[1].toLowerCase().slice(0, 3);
@@ -1278,120 +1027,97 @@
         return { label: `${fullName} ${yr}`, key: `${yr}-${numStr}` };
       }
 
-      // Format "2026-01" atau "2026-01-01"
-      const iso = s.match(/^(\d{4})-(\d{2})/);
-      if (iso) {
-        const yr = parseInt(iso[1]), mo = parseInt(iso[2]) - 1;
-        const names = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-        const label = `${names[mo]} ${yr}`;
-        return { label, key: `${yr}-${String(mo+1).padStart(2,'0')}` };
-      }
-
-      // Sudah bentuk "Januari 2026"
-      const parts = s.split(/\s+/);
-      if (parts.length === 2) {
-        const lc = parts[0].toLowerCase();
-        const numStr = MONTH_NUM[lc] || '00';
-        return { label: s, key: `${parts[1]}-${numStr}` };
-      }
-
       return { label: s, key: s };
     }
 
+    // Number parser yang aman dari kesalahan pemisah ribuan/koma
     const toNum = v => {
       if (v === null || v === undefined || v === '') return 0;
       if (typeof v === 'number') return isNaN(v) ? 0 : v;
-      const n = parseFloat(String(v).replace(/[^0-9.,-]/g, '').replace(',', '.'));
+      let s = String(v).trim();
+      if (s.includes(',') && s.includes('.')) {
+        s = s.indexOf(',') < s.indexOf('.') ? s.replace(/,/g, '') : s.replace(/\./g, '').replace(',', '.');
+      } else if (s.includes(',')) {
+        const parts = s.split(',');
+        s = (parts.length > 1 && parts[parts.length - 1].length === 3) ? s.replace(/,/g, '') : s.replace(',', '.');
+      }
+      const n = parseFloat(s.replace(/[^0-9.-]/g, ''));
       return isNaN(n) ? 0 : n;
     };
-    const toPct  = v => { const n = toNum(v); return (n !== 0 && Math.abs(n) <= 2) ? n * 100 : n; };
 
-    const fmtNum = (n, d=1) => new Intl.NumberFormat('id-ID',{maximumFractionDigits:d,minimumFractionDigits:d}).format(n||0);
-    const fmtRp  = n => 'Rp ' + Math.round(n||0).toLocaleString('id-ID');
-    const esc    = x => String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const toPct = v => {
+      const n = toNum(v);
+      return (n !== 0 && Math.abs(n) <= 2) ? n * 100 : n;
+    };
+
+    const fmtNum = (n, d=0) => new Intl.NumberFormat('id-ID', { maximumFractionDigits: d, minimumFractionDigits: d }).format(n || 0);
+    const fmtRp  = n => 'Rp ' + Math.round(n || 0).toLocaleString('id-ID');
+    const esc    = x => String(x ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
     function badge(pct) {
       const cls = pct >= 90 ? 'badge-green' : pct >= 70 ? 'badge-yellow' : 'badge-red';
-      return `<span class="badge ${cls}">${fmtNum(pct)}%</span>`;
+      return `<span class="badge ${cls}">${fmtNum(pct, 1)}%</span>`;
     }
 
-    /* ── Parse Sheet ───────────────────────────────────────────────── */
+    /* ── Parse Sheet Excel (Fallback jika JSON tidak ada) ──────────── */
     function parseSheet(sheet) {
-      const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '', raw: false });
+      const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '', raw: true });
       if (rows.length < 2) return [];
-
-      const hdr = rows[0].map(c => String(c||'').replace(/[\r\n\s]+/g,' ').trim().toUpperCase());
-      const col = (keywords, fallback) => {
-        const i = hdr.findIndex(h => keywords.every(k => h.includes(k)));
-        return i >= 0 ? i : fallback;
-      };
-
-      const C = {
-        bulan    : col(['BULAN'], 0),
-        nama     : col(['NAMA'], 1),
-        pjp      : col(['PJP'], 2),
-        tgtVisit : col(['TGT','VISIT'], 3),
-        achVisit : col(['ACH','VISIT'], 4),
-        pctVisit : 5,
-        tgtColl  : col(['TGT','COLL'], 6),
-        achColl  : col(['ACH','COLL'], 7),
-        pctColl  : 8,
-        tgtTrx   : col(['TGT','TRX'], 9),
-        achTrx   : col(['ACH','TRX'], 10),
-        pctTrx   : 11,
-        trxLalu  : col(['LALU'], 12),
-        trxIni   : col(['INI'], 13),
-        growth   : col(['GROWTH'], 14),
-        score    : col(['SCORE'], 15),
-        insentif : col(['INSENTIF'], 16),
-      };
 
       const result = [];
       for (let i = 1; i < rows.length; i++) {
         const r = rows[i];
-        if (!r[C.nama] || !r[C.bulan]) continue;
-
-        const nama = String(r[C.nama]).trim();
+        const nama = String(r[1] || '').trim();
         if (!nama || ['nama','total',''].includes(nama.toLowerCase())) continue;
 
-        const bulanRaw = String(r[C.bulan]).trim();
-        const { label: bulanLabel, key: bulanKey } = parseBulanStr(bulanRaw);
+        const { label: bulanLabel, key: bulanKey } = parseBulan(r[0]);
         if (!bulanLabel) continue;
 
-        const tgtVisit = toNum(r[C.tgtVisit]);
-        const achVisit = toNum(r[C.achVisit]);
-        const tgtColl  = toNum(r[C.tgtColl]);
-        const achColl  = toNum(r[C.achColl]);
-        const tgtTrx   = toNum(r[C.tgtTrx]);
-        const achTrx   = toNum(r[C.achTrx]);
-        const trxLalu  = toNum(r[C.trxLalu]);
-        const trxIni   = toNum(r[C.trxIni]);
+        const pjp      = Math.round(toNum(r[2]));
+        const tgtVisit = Math.round(toNum(r[3]));
+        const achVisit = Math.round(toNum(r[4]));
+        let pctVisit   = toPct(r[5]);
+        if (pctVisit === 0 && tgtVisit > 0) pctVisit = (achVisit / tgtVisit) * 100;
 
-        let pctVisit = toPct(r[C.pctVisit]);
-        if (pctVisit === 0 && tgtVisit > 0) pctVisit = achVisit / tgtVisit * 100;
+        const tgtColl  = Math.round(toNum(r[6]));
+        const achColl  = Math.round(toNum(r[7]));
+        let pctColl    = toPct(r[8]);
+        if (pctColl === 0 && tgtColl > 0) pctColl = (achColl / tgtColl) * 100;
 
-        let pctColl = toPct(r[C.pctColl]);
-        if (pctColl === 0 && tgtColl > 0) pctColl = achColl / tgtColl * 100;
+        const tgtTrx   = toNum(r[9]);
+        const achTrx   = toNum(r[10]);
+        let pctTrx     = toPct(r[11]);
+        if (pctTrx === 0 && tgtTrx > 0) pctTrx = (achTrx / tgtTrx) * 100;
 
-        let pctTrx = toPct(r[C.pctTrx]);
-        if (pctTrx === 0 && tgtTrx > 0) pctTrx = achTrx / tgtTrx * 100;
+        const trxLalu  = toNum(r[12]);
+        const trxIni   = toNum(r[13]);
+        let growth     = toPct(r[14]);
+        if (growth === 0 && trxLalu > 0) growth = ((trxIni - trxLalu) / trxLalu) * 100;
 
-        let growth = toPct(r[C.growth]);
-        if (growth === 0 && trxLalu > 0) growth = (trxIni - trxLalu) / trxLalu * 100;
+        let score = toPct(r[15]);
+        if (score === 0) score = (pctVisit * 0.15) + (pctColl * 0.25) + (pctTrx * 0.35) + (growth * 0.25);
 
-        let score = toPct(r[C.score]);
-        if (score === 0) score = pctVisit*0.15 + pctColl*0.25 + pctTrx*0.35 + growth*0.25;
+        const insentif = toNum(r[16]);
 
         result.push({
-          bulan: bulanLabel, bulanKey,
+          bulan: bulanLabel,
+          bulanKey,
           nama,
-          pjp: toNum(r[C.pjp]),
-          tgtVisit, achVisit, pctVisit,
-          tgtColl,  achColl,  pctColl,
-          tgtTrx,   achTrx,   pctTrx,
-          trxLalu,  trxIni,   growth,
+          pjp,
+          tgt_visit: tgtVisit,
+          ach_visit: achVisit,
+          pct_visit: pctVisit,
+          tgt_coll: tgtColl,
+          ach_coll: achColl,
+          pct_coll: pctColl,
+          tgt_trx: tgtTrx,
+          ach_trx: achTrx,
+          pct_trx: pctTrx,
+          trx_lalu: trxLalu,
+          trx_ini: trxIni,
+          growth,
           score,
-          insentif: toNum(r[C.insentif]),
+          insentif
         });
       }
       return result;
@@ -1430,81 +1156,7 @@
         return true;
       });
 
-      renderMetrics();
-      renderPodium();
       renderTable();
-    }
-
-    /* ── Render Summary Metrics ───────────────────────────────────── */
-    function renderMetrics() {
-      const totalSco = shownData.length;
-      document.getElementById('kpiTotalSco').textContent = totalSco;
-      
-      const bVal = document.getElementById('filterBulan').value;
-      document.getElementById('kpiTotalScoSub').textContent = bVal ? `Periode ${bVal}` : 'Seluruh data tercatat';
-
-      if (totalSco === 0) {
-        document.getElementById('kpiAvgScore').textContent = '0%';
-        document.getElementById('kpiAvgTrx').textContent = '0%';
-        document.getElementById('kpiTotalInsentif').textContent = 'Rp 0';
-        return;
-      }
-
-      const sumScore = shownData.reduce((acc, d) => acc + (d.score || 0), 0);
-      const avgScore = sumScore / totalSco;
-      document.getElementById('kpiAvgScore').textContent = fmtNum(avgScore, 1) + '%';
-      document.getElementById('kpiAvgScoreSub').textContent = avgScore >= 90 ? 'Status: Sangat Baik' : avgScore >= 70 ? 'Status: Cukup' : 'Status: Perlu Evaluasi';
-
-      const sumTrx = shownData.reduce((acc, d) => acc + (d.pctTrx || 0), 0);
-      const avgTrx = sumTrx / totalSco;
-      document.getElementById('kpiAvgTrx').textContent = fmtNum(avgTrx, 1) + '%';
-
-      const sumInsentif = shownData.reduce((acc, d) => acc + (d.insentif || 0), 0);
-      document.getElementById('kpiTotalInsentif').textContent = fmtRp(sumInsentif);
-    }
-
-    /* ── Render Podium Top 3 ──────────────────────────────────────── */
-    function renderPodium() {
-      const podiumGrid = document.getElementById('podiumGrid');
-      const podiumSection = document.getElementById('podiumSection');
-      if (!podiumGrid) return;
-
-      if (!shownData.length) {
-        podiumSection.style.display = 'none';
-        return;
-      }
-      podiumSection.style.display = 'block';
-
-      // Sort by score descending
-      const top3 = [...shownData].sort((a,b) => b.score - a.score).slice(0, 3);
-      const rankLabels = ['Juara 1', 'Juara 2', 'Juara 3'];
-
-      podiumGrid.innerHTML = top3.map((r, idx) => {
-        const initials = r.nama.split(' ').map(n=>n[0]).slice(0,2).join('').toUpperCase();
-        return `
-          <div class="podium-card rank-${idx+1}">
-            <div class="podium-rank-badge">${idx+1}</div>
-            <div class="podium-avatar">${initials}</div>
-            <div class="podium-name">${esc(r.nama)}</div>
-            <div style="font-size:11px; color:var(--text-muted); margin-bottom:8px;">${esc(r.bulan)}</div>
-            <div>${badge(r.score)}</div>
-            <div class="podium-stats-row">
-              <div class="podium-stat-item">
-                <span class="podium-stat-label">Trx Ach</span>
-                <span class="podium-stat-val">${fmtNum(r.pctTrx)}%</span>
-              </div>
-              <div class="podium-stat-item">
-                <span class="podium-stat-label">Visit Ach</span>
-                <span class="podium-stat-val">${fmtNum(r.pctVisit)}%</span>
-              </div>
-              <div class="podium-stat-item">
-                <span class="podium-stat-label">Insentif</span>
-                <span class="podium-stat-val" style="color:var(--brand-primary);">${fmtRp(r.insentif)}</span>
-              </div>
-            </div>
-          </div>
-        `;
-      }).join('');
     }
 
     /* ── Sort Table ───────────────────────────────────────────────── */
@@ -1514,7 +1166,7 @@
       renderTable();
     }
 
-    /* ── Render Table ─────────────────────────────────────────────── */
+    /* ── Render Table (1:1 Sesuai Sheet KPI_SCO) ──────────────────── */
     function renderTable() {
       const rows = [...shownData];
 
@@ -1533,7 +1185,7 @@
         return sortAsc ? va - vb : vb - va;
       });
 
-      // Update header icons
+      // Update header sort icons
       document.querySelectorAll('#kpiTable thead th').forEach(th => {
         const m = (th.getAttribute('onclick')||'').match(/sortTable\('([^']+)'\)/);
         if (!m) return;
@@ -1553,12 +1205,12 @@
 
       const tbody = document.getElementById('tableBody');
       if (rows.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="13" style="text-align:center;padding:36px;color:var(--text-muted);font-size:13px;">Tidak ada data yang sesuai dengan filter.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="18" style="text-align:center;padding:36px;color:var(--text-muted);font-size:13px;">Tidak ada data yang sesuai dengan filter.</td></tr>';
         return;
       }
 
       tbody.innerHTML = rows.map((r, i) => {
-        const gSign = r.growth >= 0 ? '+' : '';
+        const gSign = r.growth > 0 ? '+' : '';
         const gCls  = r.growth >= 0 ? 'positive' : 'negative';
         return `
           <tr>
@@ -1566,13 +1218,18 @@
             <td><span class="tag-month">${esc(r.bulan)}</span></td>
             <td class="name-col">${esc(r.nama)}</td>
             <td class="num">${Math.round(r.pjp)}</td>
-            <td class="num">${fmtNum(r.achVisit,0)} <span style="font-size:10px;color:var(--text-light)">/ ${fmtNum(r.tgtVisit,0)}</span></td>
-            <td class="num">${badge(r.pctVisit)}</td>
-            <td class="num">${fmtNum(r.achColl,0)} <span style="font-size:10px;color:var(--text-light)">/ ${fmtNum(r.tgtColl,0)}</span></td>
-            <td class="num">${badge(r.pctColl)}</td>
-            <td class="num">${fmtNum(r.achTrx,1)} <span style="font-size:10px;color:var(--text-light)">/ ${fmtNum(r.tgtTrx,1)}</span></td>
-            <td class="num">${badge(r.pctTrx)}</td>
-            <td class="num"><span class="growth-pill ${gCls}">${gSign}${fmtNum(r.growth)}%</span></td>
+            <td class="num">${fmtNum(r.tgt_visit, 0)}</td>
+            <td class="num">${fmtNum(r.ach_visit, 0)}</td>
+            <td class="num">${badge(r.pct_visit)}</td>
+            <td class="num">${fmtNum(r.tgt_coll, 0)}</td>
+            <td class="num">${fmtNum(r.ach_coll, 0)}</td>
+            <td class="num">${badge(r.pct_coll)}</td>
+            <td class="num">${fmtNum(r.tgt_trx, 1)}</td>
+            <td class="num">${fmtNum(r.ach_trx, 1)}</td>
+            <td class="num">${badge(r.pct_trx)}</td>
+            <td class="num">${fmtNum(r.trx_lalu, 1)}</td>
+            <td class="num">${fmtNum(r.trx_ini, 1)}</td>
+            <td class="num"><span class="growth-pill ${gCls}">${gSign}${fmtNum(r.growth, 1)}%</span></td>
             <td class="num">${badge(r.score)}</td>
             <td class="num" style="font-weight:700;color:var(--brand-primary)">${fmtRp(r.insentif)}</td>
           </tr>`;
@@ -1584,10 +1241,12 @@
       if (!shownData.length) { alert('Tidak ada data untuk diexport!'); return; }
       const hdr = ['Bulan','Nama SCO','#PJP','Tgt Visit','Ach Visit','% Visit','Tgt Coll','Ach Coll','% Coll','Tgt Trx','Ach Trx','% Trx','Trx Lalu','Trx Ini','% Growth','KPI Score','Insentif (Rp)'];
       const rows = shownData.map(r => [
-        `"${r.bulan}"`,`"${r.nama}"`,r.pjp,r.tgtVisit,r.achVisit,
-        `${r.pctVisit.toFixed(2)}%`,r.tgtColl,r.achColl,`${r.pctColl.toFixed(2)}%`,
-        r.tgtTrx,r.achTrx,`${r.pctTrx.toFixed(2)}%`,r.trxLalu,r.trxIni,
-        `${r.growth.toFixed(2)}%`,`${r.score.toFixed(2)}%`,r.insentif
+        `"${r.bulan}"`,`"${r.nama}"`,r.pjp,
+        r.tgt_visit,r.ach_visit,`${r.pct_visit.toFixed(1)}%`,
+        r.tgt_coll,r.ach_coll,`${r.pct_coll.toFixed(1)}%`,
+        r.tgt_trx,r.ach_trx,`${r.pct_trx.toFixed(1)}%`,
+        r.trx_lalu,r.trx_ini,
+        `${r.growth.toFixed(1)}%`,`${r.score.toFixed(1)}%`,r.insentif
       ].join(';'));
       const csv = '\uFEFF' + [hdr.join(';'), ...rows].join('\r\n');
       const a = Object.assign(document.createElement('a'), {
@@ -1629,16 +1288,51 @@
       if (fText) fText.textContent = msg;
     }
 
-    /* ── Load Data ────────────────────────────────────────────────── */
+    /* ── Load Data (Prioritas: data_sco.json, Fallback: Excel) ─────── */
     async function reloadData() {
       const btn = document.getElementById('btnRefresh');
       if (btn) {
         btn.disabled = true;
         btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Memuat...</span>';
       }
-      setStatus('Mengunduh data HARIAN SCO.xlsx...', 'loading');
+      setStatus('Memuat data KPI SCO...', 'loading');
       document.getElementById('alertBanner').style.display = 'none';
 
+      // 1. Coba baca data_sco.json dulu (sangat cepat & data terverifikasi)
+      try {
+        const jsonPaths = ['./data_sco.json', 'data_sco.json'];
+        for (const jp of jsonPaths) {
+          try {
+            const res = await fetch(`${jp}?t=${Date.now()}`, { cache: 'no-store' });
+            if (res.ok) {
+              const json = await res.json();
+              if (json && json.kpi_sco && json.kpi_sco.length > 0) {
+                allData = json.kpi_sco.map(r => {
+                  const { label: bulanLabel, key: bulanKey } = parseBulan(r.bulan);
+                  return {
+                    ...r,
+                    bulan: bulanLabel || r.bulan,
+                    bulanKey
+                  };
+                });
+                populateFilters();
+                applyFilters();
+                setStatus(`${allData.length} baris dimuat · data_sco.json`);
+                document.getElementById('footerStatusText').textContent = `Terhubung ke data_sco.json · Total: ${allData.length} baris`;
+                if (btn) {
+                  btn.disabled = false;
+                  btn.innerHTML = '<i class="fa-solid fa-arrows-rotate"></i> <span>Refresh</span>';
+                }
+                return;
+              }
+            }
+          } catch(e) {}
+        }
+      } catch(e) {
+        console.warn('Gagal memuat JSON KPI:', e);
+      }
+
+      // 2. Fallback baca file Excel HARIAN SCO.xlsx langsung
       let ok = false;
       for (const url of DATA_URLS) {
         try {

@@ -122,6 +122,14 @@
       gap: 12px;
     }
 
+    .brand-logo-img {
+      height: 38px;
+      max-width: 125px;
+      object-fit: contain;
+      filter: drop-shadow(0 2px 6px rgba(0,0,0,0.3));
+      flex-shrink: 0;
+    }
+
     .brand-icon-box {
       width: 42px;
       height: 42px;
@@ -421,10 +429,10 @@
       color: var(--brand-text);
     }
 
-    /* ── KPI CARDS (4-CARD GRID) ── */
+    /* ── KPI CARDS (2x2 GRID) ── */
     .kpi-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(2, 1fr);
       gap: 16px;
       margin-bottom: 24px;
     }
@@ -794,11 +802,22 @@
         height: 34px;
       }
       .kpi-grid {
-        grid-template-columns: 1fr;
-        gap: 12px;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+      }
+      .kpi-card {
+        padding: 14px 12px;
+      }
+      .kpi-title {
+        font-size: 10px;
       }
       .kpi-value {
-        font-size: 26px;
+        font-size: 20px;
+      }
+      .kpi-footer {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
       }
       .panel-box {
         padding: 16px;
@@ -831,9 +850,7 @@
   <!-- ── SIDEBAR ── -->
   <aside class="app-sidebar" id="sidebar">
     <div class="sidebar-header">
-      <div class="brand-icon-box">
-        <i class="fa-solid fa-chart-line"></i>
-      </div>
+      <img src="./logo_myastaga.png" alt="MyAstaga" class="brand-logo-img">
       <div class="brand-name-box">
         <span class="brand-title">SCO SUITE</span>
         <span class="brand-subtitle">Executive Daily</span>
