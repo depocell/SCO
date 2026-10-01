@@ -1,0 +1,1709 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>KPI & Insentif SCO • SCO Executive Suite</title>
+  
+  <!-- Google Fonts & Font Awesome 6 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  
+  <!-- SheetJS & ChartJS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+
+  <style>
+    :root {
+      --font: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+      
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 20px;
+
+      /* Brand Theme: Modern SCO Executive */
+      --brand-primary: #0284c7;
+      --brand-secondary: #06b6d4;
+      --brand-gradient: linear-gradient(135deg, #0284c7 0%, #06b6d4 100%);
+      --brand-glow: rgba(2, 132, 199, 0.25);
+      --brand-subtle: #e0f2fe;
+      --brand-text: #0369a1;
+
+      /* Light Theme (Default) */
+      --bg-body: #f8fafc;
+      --bg-sidebar: #0f172a;
+      --bg-card: #ffffff;
+      --bg-card-subtle: #f1f5f9;
+      --border-color: #e2e8f0;
+      --border-subtle: #f1f5f9;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --text-light: #94a3b8;
+      
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+      --shadow-md: 0 4px 14px -2px rgba(15, 23, 42, 0.06), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
+      --shadow-lg: 0 10px 25px -4px rgba(15, 23, 42, 0.08), 0 4px 10px -2px rgba(15, 23, 42, 0.04);
+      
+      --success: #10b981;
+      --success-bg: #d1fae5;
+      --danger: #ef4444;
+      --danger-bg: #fee2e2;
+      --warning: #f59e0b;
+      --warning-bg: #fef3c7;
+      --purple: #8b5cf6;
+      --purple-bg: #ede9fe;
+    }
+
+    body.dark-theme {
+      --bg-body: #0b1120;
+      --bg-sidebar: #070c18;
+      --bg-card: #131c31;
+      --bg-card-subtle: #1e293b;
+      --border-color: #1e293b;
+      --border-subtle: #182234;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-light: #64748b;
+      
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+      --shadow-md: 0 6px 18px rgba(0,0,0,0.25);
+      --shadow-lg: 0 14px 30px rgba(0,0,0,0.35);
+      
+      --brand-subtle: rgba(2, 132, 199, 0.18);
+      --brand-text: #38bdf8;
+      --success-bg: rgba(16, 185, 129, 0.15);
+      --danger-bg: rgba(239, 68, 68, 0.15);
+      --warning-bg: rgba(245, 158, 11, 0.15);
+      --purple-bg: rgba(139, 92, 246, 0.15);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: var(--font);
+      background-color: var(--bg-body);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      overflow-x: hidden;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── SIDEBAR NAVIGATION ── */
+    .app-sidebar {
+      width: 270px;
+      background: var(--bg-sidebar);
+      color: #e2e8f0;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 100;
+      transition: var(--transition);
+      box-shadow: 4px 0 20px rgba(0,0,0,0.15);
+    }
+
+    .sidebar-header {
+      padding: 22px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon-box {
+      width: 42px;
+      height: 42px;
+      border-radius: var(--radius-md);
+      background: var(--brand-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 18px;
+      box-shadow: 0 4px 14px var(--brand-glow);
+      flex-shrink: 0;
+    }
+
+    .brand-name-box {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .brand-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: -0.3px;
+    }
+
+    .brand-subtitle {
+      font-size: 10px;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .sidebar-menu {
+      padding: 16px 14px;
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .menu-heading {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #64748b;
+      font-weight: 700;
+      padding: 12px 10px 4px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 14px;
+      border-radius: var(--radius-md);
+      color: #cbd5e1;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: var(--transition);
+    }
+
+    .nav-item:hover {
+      background: rgba(255,255,255,0.06);
+      color: #ffffff;
+      transform: translateX(3px);
+    }
+
+    .nav-item.active {
+      background: var(--brand-gradient);
+      color: #ffffff;
+      box-shadow: 0 4px 14px var(--brand-glow);
+    }
+
+    .nav-item i {
+      width: 20px;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .nav-item .badge {
+      margin-left: auto;
+      font-size: 9px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.2);
+    }
+
+    .sidebar-footer {
+      padding: 16px 18px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      background: rgba(0,0,0,0.15);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .data-status-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      color: #94a3b8;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 8px var(--success);
+      flex-shrink: 0;
+    }
+
+    .status-dot.loading {
+      background: var(--warning);
+      box-shadow: 0 0 8px var(--warning);
+      animation: pulse 1.2s infinite;
+    }
+    .status-dot.error {
+      background: var(--danger);
+      box-shadow: 0 0 8px var(--danger);
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(1.3); }
+    }
+
+    /* ── BACKDROP FOR MOBILE ── */
+    .sidebar-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      z-index: 95;
+      display: none;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .sidebar-backdrop.show {
+      display: block;
+      opacity: 1;
+    }
+
+    /* ── MAIN LAYOUT ── */
+    .app-main {
+      flex: 1;
+      margin-left: 270px;
+      min-height: 100vh;
+      min-width: 0;
+      max-width: calc(100vw - 270px);
+      display: flex;
+      flex-direction: column;
+      transition: var(--transition);
+    }
+
+    /* ── TOPBAR ── */
+    .app-topbar {
+      height: 70px;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      position: sticky;
+      top: 0;
+      z-index: 90;
+      backdrop-filter: blur(12px);
+      box-shadow: var(--shadow-sm);
+      gap: 12px;
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .toggle-sidebar-btn {
+      display: none;
+      background: transparent;
+      border: 1px solid var(--border-color);
+      width: 38px;
+      height: 38px;
+      border-radius: var(--radius-md);
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 16px;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+    }
+
+    .toggle-sidebar-btn:hover {
+      background: var(--bg-card-subtle);
+      color: var(--text-main);
+    }
+
+    .page-title-box h1 {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      letter-spacing: -0.3px;
+      white-space: nowrap;
+    }
+
+    .brand-tag-chip {
+      font-size: 10.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: var(--brand-subtle);
+      color: var(--brand-text);
+      letter-spacing: 0.4px;
+      white-space: nowrap;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .action-btn {
+      height: 38px;
+      padding: 0 14px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+      background: var(--bg-card);
+      color: var(--text-main);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      transition: var(--transition);
+      font-family: inherit;
+      text-decoration: none;
+    }
+
+    .action-btn:hover {
+      background: var(--bg-card-subtle);
+      border-color: var(--brand-primary);
+      color: var(--brand-primary);
+    }
+
+    .action-btn.btn-primary {
+      background: var(--brand-gradient);
+      color: #ffffff;
+      border: none;
+      box-shadow: 0 4px 12px var(--brand-glow);
+    }
+
+    .action-btn.btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px var(--brand-glow);
+      color: #ffffff;
+    }
+
+    .action-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    /* ── CONTENT CONTAINER ── */
+    .app-content {
+      padding: 24px 28px 48px;
+      flex: 1;
+    }
+
+    /* ── ALERT BANNER ── */
+    .alert-banner {
+      background: var(--warning-bg);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      color: #b45309;
+      padding: 14px 20px;
+      border-radius: var(--radius-md);
+      margin-bottom: 20px;
+      font-size: 13px;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    /* ── FILTER & CONTROLS PANEL ── */
+    .filter-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 18px 22px;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      flex: 1;
+    }
+
+    .filter-item {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 170px;
+    }
+
+    .filter-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .filter-select, .search-input {
+      padding: 9px 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+      background: var(--bg-card-subtle);
+      color: var(--text-main);
+      font-family: var(--font);
+      font-size: 13px;
+      font-weight: 600;
+      outline: none;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .filter-select:focus, .search-input:focus {
+      border-color: var(--brand-primary);
+      box-shadow: 0 0 0 3px var(--brand-glow);
+    }
+
+    .search-input {
+      width: 220px;
+      cursor: text;
+    }
+
+    .data-status-chip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-muted);
+      background: var(--bg-card-subtle);
+      padding: 7px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--border-color);
+      white-space: nowrap;
+    }
+
+    /* ── LEGEND BAR ── */
+    .legend-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 22px;
+      padding: 12px 18px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      font-size: 12px;
+      color: var(--text-muted);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .legend-items {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 600;
+    }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .legend-formula {
+      font-size: 11.5px;
+      color: var(--text-muted);
+    }
+
+    /* ── METRIC CARDS GRID ── */
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .metric-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 18px 20px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      transition: var(--transition);
+    }
+
+    .metric-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+      border-color: var(--brand-primary);
+    }
+
+    .metric-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--card-accent, var(--brand-primary));
+    }
+
+    .metric-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .metric-title {
+      font-size: 11.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+    }
+
+    .metric-icon-box {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      background: var(--icon-bg, var(--brand-subtle));
+      color: var(--icon-color, var(--brand-primary));
+    }
+
+    .metric-value {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: var(--text-main);
+      margin-bottom: 4px;
+      font-family: var(--font);
+    }
+
+    .metric-sub {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* ── PODIUM SECTION ── */
+    .podium-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 22px 24px;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 24px;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .section-title {
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: -0.3px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .podium-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .podium-card {
+      background: var(--bg-card-subtle);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 16px 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      position: relative;
+      transition: var(--transition);
+    }
+
+    .podium-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .podium-rank-badge {
+      position: absolute;
+      top: -12px;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 800;
+      color: #fff;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+    .rank-1 .podium-rank-badge { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    .rank-2 .podium-rank-badge { background: linear-gradient(135deg, #94a3b8, #64748b); }
+    .rank-3 .podium-rank-badge { background: linear-gradient(135deg, #b45309, #78350f); }
+    
+    .podium-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--brand-glow);
+      color: var(--brand-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 800;
+      margin-top: 6px;
+      margin-bottom: 8px;
+      border: 2px solid var(--border-color);
+    }
+
+    .podium-name {
+      font-size: 14px;
+      font-weight: 800;
+      margin-bottom: 4px;
+      color: var(--text-main);
+    }
+
+    .podium-stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      width: 100%;
+      padding-top: 10px;
+      border-top: 1px solid var(--border-color);
+      font-size: 11px;
+      margin-top: 8px;
+    }
+
+    .podium-stat-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .podium-stat-label {
+      color: var(--text-muted);
+      font-size: 9.5px;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .podium-stat-val {
+      font-weight: 700;
+      margin-top: 2px;
+    }
+
+    /* ── TABLE PANEL ── */
+    .table-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 22px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .table-header-wrap {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .chart-title-box h3 {
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: -0.3px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .chart-title-box p {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .table-responsive {
+      overflow-x: auto;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      max-height: 640px;
+    }
+
+    table.kpi-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+      white-space: nowrap;
+    }
+
+    table.kpi-table th {
+      background: var(--bg-card-subtle);
+      color: var(--text-muted);
+      font-weight: 700;
+      padding: 12px 14px;
+      text-align: left;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      cursor: pointer;
+      user-select: none;
+      transition: var(--transition);
+    }
+
+    table.kpi-table th:hover {
+      color: var(--brand-primary);
+      background: var(--border-color);
+    }
+
+    table.kpi-table td {
+      padding: 11px 14px;
+      border-bottom: 1px solid var(--border-subtle);
+      color: var(--text-main);
+    }
+
+    table.kpi-table tbody tr:hover td {
+      background: var(--bg-card-subtle);
+    }
+
+    .num {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .name-col {
+      font-weight: 700;
+    }
+
+    .tag-month {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: var(--bg-card-subtle);
+      border: 1px solid var(--border-color);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    /* Badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+    .badge-green {
+      background: var(--success-bg);
+      color: #059669;
+    }
+    .badge-yellow {
+      background: var(--warning-bg);
+      color: #d97706;
+    }
+    .badge-red {
+      background: var(--danger-bg);
+      color: #dc2626;
+    }
+    .badge::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .growth-pill {
+      font-weight: 700;
+      font-size: 11px;
+    }
+    .growth-pill.positive { color: #10b981; }
+    .growth-pill.negative { color: #ef4444; }
+
+    /* ── FOOTER ── */
+    .report-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 18px;
+      border-top: 1px solid var(--border-color);
+      color: var(--text-light);
+      font-size: 12px;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 24px;
+    }
+
+    /* ── RESPONSIVE MEDIA QUERIES ── */
+    @media (max-width: 1024px) {
+      .metric-grid { grid-template-columns: repeat(2, 1fr); }
+      .podium-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 992px) {
+      .app-sidebar {
+        transform: translateX(-100%);
+      }
+      .app-sidebar.show {
+        transform: translateX(0);
+      }
+      .app-main {
+        margin-left: 0;
+        max-width: 100vw;
+      }
+      .toggle-sidebar-btn {
+        display: inline-flex;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .app-topbar {
+        padding: 0 14px;
+        height: 60px;
+      }
+      .app-content {
+        padding: 16px 14px 36px;
+      }
+      .page-title-box h1 {
+        font-size: 15px;
+      }
+      .brand-tag-chip {
+        display: none;
+      }
+      .action-btn span {
+        display: none;
+      }
+      .action-btn {
+        padding: 0 10px;
+        height: 34px;
+      }
+      .metric-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+      .filter-panel {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .filter-group {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .filter-item, .search-input {
+        width: 100%;
+        min-width: 100%;
+      }
+    }
+
+    @media print {
+      .app-sidebar, .app-topbar, .sidebar-backdrop, .filter-panel, .action-btn, [data-html2canvas-ignore="true"] {
+        display: none !important;
+      }
+      .app-main {
+        margin-left: 0 !important;
+        max-width: 100% !important;
+      }
+      body {
+        background: #fff !important;
+        color: #000 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── SIDEBAR NAVIGATION ── -->
+  <aside class="app-sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="brand-icon-box">
+        <i class="fa-solid fa-chart-line"></i>
+      </div>
+      <div class="brand-name-box">
+        <span class="brand-title">SCO SUITE</span>
+        <span class="brand-subtitle">Executive Daily</span>
+      </div>
+    </div>
+
+    <!-- Navigation Menu (NO BI LINK) -->
+    <nav class="sidebar-menu">
+      <div class="menu-heading">Menu Utama</div>
+      <a class="nav-item" href="index.html">
+        <i class="fa-solid fa-gauge-high"></i>
+        <span>Ringkasan Performa</span>
+        <span class="badge">MoM</span>
+      </a>
+      <a class="nav-item" href="detil_sco.html">
+        <i class="fa-solid fa-user-tie"></i>
+        <span>Detil per SCO</span>
+        <span class="badge" style="background: #10b981; color: #fff;">Live</span>
+      </a>
+      <a class="nav-item active" href="kpi_sco.html">
+        <i class="fa-solid fa-bullseye"></i>
+        <span>KPI & Insentif SCO</span>
+        <span class="badge" style="background: #8b5cf6; color: #fff;">KPI</span>
+      </a>
+    </nav>
+
+    <!-- Sidebar Footer -->
+    <div class="sidebar-footer">
+      <div class="data-status-badge">
+        <div class="status-dot" id="statusDot"></div>
+        <span id="sidebarStatusText">Memuat data...</span>
+      </div>
+      <div style="font-size: 10px; color: #64748b;" id="sidebarCutoffText">Periode otomatis</div>
+    </div>
+  </aside>
+
+  <!-- Sidebar Backdrop for Mobile -->
+  <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar()"></div>
+
+  <!-- ── MAIN CONTENT AREA ── -->
+  <main class="app-main">
+    <!-- Topbar -->
+    <header class="app-topbar">
+      <div class="topbar-left">
+        <button class="toggle-sidebar-btn" onclick="toggleSidebar()" aria-label="Toggle Sidebar">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+        <div class="page-title-box">
+          <h1>
+            <span>KPI & Insentif SCO</span>
+            <span class="brand-tag-chip" id="kpiUpdatedBadge"><i class="fa-solid fa-bullseye"></i> Evaluasi Performa</span>
+          </h1>
+        </div>
+      </div>
+
+      <div class="topbar-right">
+        <button class="action-btn" onclick="reloadData()" id="btnRefresh" title="Refresh data dari Excel">
+          <i class="fa-solid fa-arrows-rotate"></i>
+          <span>Refresh</span>
+        </button>
+        <button class="action-btn btn-primary" onclick="exportTableToCSV()" title="Export tabel ke CSV">
+          <i class="fa-solid fa-file-excel"></i>
+          <span>Export CSV</span>
+        </button>
+        <button class="action-btn" onclick="window.print()" title="Cetak / Simpan PDF">
+          <i class="fa-solid fa-print"></i>
+          <span>Cetak</span>
+        </button>
+        <button class="action-btn" onclick="toggleTheme()" id="btnThemeToggle" title="Ganti Tema Dark/Light">
+          <i class="fa-solid fa-moon"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- App Content -->
+    <div class="app-content">
+
+      <!-- Alert Banner for Fallback -->
+      <div class="alert-banner" id="alertBanner">
+        <div>
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span id="alertMsg">Memuat data dari HARIAN SCO.xlsx...</span>
+        </div>
+        <label class="action-btn btn-primary" style="cursor:pointer; margin:0; padding:6px 12px; font-size:12px;">
+          <i class="fa-solid fa-folder-open"></i> Pilih File Manual
+          <input type="file" accept=".xlsx,.xls" style="display:none" onchange="handleManualFile(this)">
+        </label>
+      </div>
+
+      <!-- Filter & Controls -->
+      <section class="filter-panel">
+        <div class="filter-group">
+          <div class="filter-item">
+            <label class="filter-label"><i class="fa-solid fa-calendar"></i> Periode Bulan</label>
+            <select id="filterBulan" class="filter-select" onchange="applyFilters()">
+              <option value="">Semua Bulan</option>
+            </select>
+          </div>
+
+          <div class="filter-item">
+            <label class="filter-label"><i class="fa-solid fa-user-tie"></i> Personil SCO</label>
+            <select id="filterNama" class="filter-select" onchange="applyFilters()">
+              <option value="">Semua SCO</option>
+            </select>
+          </div>
+
+          <div class="filter-item">
+            <label class="filter-label"><i class="fa-solid fa-magnifying-glass"></i> Cari SCO</label>
+            <input type="text" id="searchInput" class="search-input" placeholder="Ketik nama personil..." oninput="applyFilters()">
+          </div>
+        </div>
+
+        <div class="data-status-chip">
+          <div class="status-dot" id="filterStatusDot"></div>
+          <span id="statusText">Memuat Excel...</span>
+        </div>
+      </section>
+
+      <!-- Legend & Evaluation Matrix -->
+      <div class="legend-bar">
+        <div class="legend-items">
+          <span class="legend-item"><span class="legend-dot" style="background:#10b981;"></span> ≥ 90% Sangat Baik (Target Tercapai)</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#f59e0b;"></span> 70% – 89.9% Cukup (Perlu Ditingkatkan)</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#ef4444;"></span> &lt; 70% Di Bawah Target</span>
+        </div>
+        <div class="legend-formula">
+          <i class="fa-solid fa-calculator"></i> <strong>Formula KPI:</strong> (15% Visit) + (25% Coll) + (35% Trx) + (25% Growth)
+        </div>
+      </div>
+
+      <!-- Metric Cards Grid -->
+      <div class="metric-grid" id="metricCardsGrid">
+        <div class="metric-card" style="--card-accent: #0284c7;">
+          <div class="metric-header">
+            <span class="metric-title">Total Personil SCO</span>
+            <div class="metric-icon-box" style="--icon-bg: #e0f2fe; --icon-color: #0284c7;">
+              <i class="fa-solid fa-users"></i>
+            </div>
+          </div>
+          <div class="metric-value" id="kpiTotalSco">0</div>
+          <div class="metric-sub" id="kpiTotalScoSub">Personil terdaftar</div>
+        </div>
+
+        <div class="metric-card" style="--card-accent: #8b5cf6;">
+          <div class="metric-header">
+            <span class="metric-title">Rata-rata Skor KPI</span>
+            <div class="metric-icon-box" style="--icon-bg: #ede9fe; --icon-color: #8b5cf6;">
+              <i class="fa-solid fa-award"></i>
+            </div>
+          </div>
+          <div class="metric-value" id="kpiAvgScore">0%</div>
+          <div class="metric-sub" id="kpiAvgScoreSub">Index pencapaian tim</div>
+        </div>
+
+        <div class="metric-card" style="--card-accent: #10b981;">
+          <div class="metric-header">
+            <span class="metric-title">Rata-rata % Trx</span>
+            <div class="metric-icon-box" style="--icon-bg: #d1fae5; --icon-color: #10b981;">
+              <i class="fa-solid fa-cart-shopping"></i>
+            </div>
+          </div>
+          <div class="metric-value" id="kpiAvgTrx">0%</div>
+          <div class="metric-sub" id="kpiAvgTrxSub">Bobot 35% pada formula</div>
+        </div>
+
+        <div class="metric-card" style="--card-accent: #f59e0b;">
+          <div class="metric-header">
+            <span class="metric-title">Total Estimasi Insentif</span>
+            <div class="metric-icon-box" style="--icon-bg: #fef3c7; --icon-color: #f59e0b;">
+              <i class="fa-solid fa-sack-dollar"></i>
+            </div>
+          </div>
+          <div class="metric-value" id="kpiTotalInsentif">Rp 0</div>
+          <div class="metric-sub" id="kpiTotalInsentifSub">Akumulasi insentif periode ini</div>
+        </div>
+      </div>
+
+      <!-- Podium Top 3 Performers -->
+      <section class="podium-section" id="podiumSection">
+        <div class="section-header">
+          <div class="section-title">
+            <i class="fa-solid fa-trophy" style="color: #f59e0b;"></i>
+            <span>Top 3 Performers SCO</span>
+          </div>
+          <span style="font-size:12px; color:var(--text-muted);" id="podiumMonthLabel">Berdasarkan KPI Score tertinggi</span>
+        </div>
+        <div class="podium-grid" id="podiumGrid">
+          <!-- Populated by JS -->
+        </div>
+      </section>
+
+      <!-- Detail Table Panel -->
+      <section class="table-panel">
+        <div class="table-header-wrap">
+          <div class="chart-title-box">
+            <h3><i class="fa-solid fa-table-list" style="color:var(--brand-primary)"></i> Tabel Evaluasi KPI & Insentif SCO</h3>
+            <p id="tableSummaryText">Menampilkan data performa detail</p>
+          </div>
+          <div style="font-size:12px; color:var(--text-muted);">
+            <i class="fa-solid fa-arrow-down-a-z"></i> Klik header kolom untuk mengurutkan data
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="kpi-table" id="kpiTable">
+            <thead>
+              <tr>
+                <th onclick="sortTable('rank')">#</th>
+                <th onclick="sortTable('bulan')">Bulan <i class="fa-solid fa-sort"></i></th>
+                <th onclick="sortTable('nama')">Nama SCO <i class="fa-solid fa-sort"></i></th>
+                <th class="num" onclick="sortTable('pjp')">#PJP <i class="fa-solid fa-sort"></i></th>
+                <th class="num" onclick="sortTable('achVisit')">Ach Visit <i class="fa-solid fa-sort"></i></th>
+                <th class="num" onclick="sortTable('pctVisit')">% Visit <i class="fa-solid fa-sort"></i></th>
+                <th class="num" onclick="sortTable('achColl')">Ach Coll <i class="fa-solid fa-sort"></i></th>
+                <th class="num" onclick="sortTable('pctColl')">% Coll <i class="fa-solid fa-sort"></i></th>
+                <th class="num" onclick="sortTable('achTrx')">Ach Trx <i class="fa-solid fa-sort"></i></th>
+                <th class="num" onclick="sortTable('pctTrx')">% Trx <i class="fa-solid fa-sort"></i></th>
+                <th class="num" onclick="sortTable('growth')">% Growth <i class="fa-solid fa-sort"></i></th>
+                <th class="num" onclick="sortTable('score')">KPI Score <i class="fa-solid fa-sort"></i></th>
+                <th class="num" onclick="sortTable('insentif')">Insentif (Rp) <i class="fa-solid fa-sort"></i></th>
+              </tr>
+            </thead>
+            <tbody id="tableBody">
+              <!-- Rows via JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <footer class="report-footer">
+        <div>
+          <strong>SCO SUITE</strong> • Executive Daily & Performance Intelligence
+        </div>
+        <div id="footerStatusText">
+          Data source: HARIAN SCO.xlsx (Sheet: KPI_SCO)
+        </div>
+      </footer>
+
+    </div>
+  </main>
+
+  <script>
+    /* ── Mobile Sidebar Toggle ─────────────────────────────────────── */
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const backdrop = document.getElementById('sidebarBackdrop');
+      if (sidebar && backdrop) {
+        sidebar.classList.toggle('show');
+        backdrop.classList.toggle('show');
+      }
+    }
+
+    /* ── Konfigurasi Data ─────────────────────────────────────────── */
+    const SHEET_NAME = 'KPI_SCO';
+    const DATA_URLS = [
+      './HARIAN%20SCO.xlsx',
+      './HARIAN SCO.xlsx',
+      'HARIAN SCO.xlsx',
+      './DATA_DASHBOARD.xlsx'
+    ];
+
+    // ── State ────────────────────────────────────────────────────────
+    let allData      = [];
+    let shownData    = [];
+    let sortCol      = 'bulan';
+    let sortAsc      = false;
+
+    // ── Map bulan pendek → nama lengkap Indonesia ────────────────────
+    const MONTH_MAP = {
+      'jan':'Januari','feb':'Februari','mar':'Maret','apr':'April',
+      'mei':'Mei','may':'Mei','jun':'Juni','jul':'Juli',
+      'agu':'Agustus','aug':'Agustus','sep':'September','okt':'Oktober',
+      'oct':'Oktober','nov':'November','des':'Desember','dec':'Desember'
+    };
+    const MONTH_NUM = {
+      'januari':'01','februari':'02','maret':'03','april':'04','mei':'05','juni':'06',
+      'juli':'07','agustus':'08','september':'09','oktober':'10','november':'11','desember':'12'
+    };
+
+    function parseBulanStr(raw) {
+      if (!raw) return { label: '', key: '' };
+      const s = String(raw).trim();
+
+      // Format "Mon-YY" atau "Mon-YYYY"
+      const m = s.match(/^([A-Za-z]+)[-\s](\d{2,4})$/);
+      if (m) {
+        const prefix = m[1].toLowerCase().slice(0, 3);
+        let yr = parseInt(m[2]);
+        if (yr < 100) yr += 2000;
+        const fullName = MONTH_MAP[prefix] || m[1];
+        const numStr   = MONTH_NUM[fullName.toLowerCase()] || '00';
+        return { label: `${fullName} ${yr}`, key: `${yr}-${numStr}` };
+      }
+
+      // Format "2026-01" atau "2026-01-01"
+      const iso = s.match(/^(\d{4})-(\d{2})/);
+      if (iso) {
+        const yr = parseInt(iso[1]), mo = parseInt(iso[2]) - 1;
+        const names = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+        const label = `${names[mo]} ${yr}`;
+        return { label, key: `${yr}-${String(mo+1).padStart(2,'0')}` };
+      }
+
+      // Sudah bentuk "Januari 2026"
+      const parts = s.split(/\s+/);
+      if (parts.length === 2) {
+        const lc = parts[0].toLowerCase();
+        const numStr = MONTH_NUM[lc] || '00';
+        return { label: s, key: `${parts[1]}-${numStr}` };
+      }
+
+      return { label: s, key: s };
+    }
+
+    const toNum = v => {
+      if (v === null || v === undefined || v === '') return 0;
+      if (typeof v === 'number') return isNaN(v) ? 0 : v;
+      const n = parseFloat(String(v).replace(/[^0-9.,-]/g, '').replace(',', '.'));
+      return isNaN(n) ? 0 : n;
+    };
+    const toPct  = v => { const n = toNum(v); return (n !== 0 && Math.abs(n) <= 2) ? n * 100 : n; };
+
+    const fmtNum = (n, d=1) => new Intl.NumberFormat('id-ID',{maximumFractionDigits:d,minimumFractionDigits:d}).format(n||0);
+    const fmtRp  = n => 'Rp ' + Math.round(n||0).toLocaleString('id-ID');
+    const esc    = x => String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+    function badge(pct) {
+      const cls = pct >= 90 ? 'badge-green' : pct >= 70 ? 'badge-yellow' : 'badge-red';
+      return `<span class="badge ${cls}">${fmtNum(pct)}%</span>`;
+    }
+
+    /* ── Parse Sheet ───────────────────────────────────────────────── */
+    function parseSheet(sheet) {
+      const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '', raw: false });
+      if (rows.length < 2) return [];
+
+      const hdr = rows[0].map(c => String(c||'').replace(/[\r\n\s]+/g,' ').trim().toUpperCase());
+      const col = (keywords, fallback) => {
+        const i = hdr.findIndex(h => keywords.every(k => h.includes(k)));
+        return i >= 0 ? i : fallback;
+      };
+
+      const C = {
+        bulan    : col(['BULAN'], 0),
+        nama     : col(['NAMA'], 1),
+        pjp      : col(['PJP'], 2),
+        tgtVisit : col(['TGT','VISIT'], 3),
+        achVisit : col(['ACH','VISIT'], 4),
+        pctVisit : 5,
+        tgtColl  : col(['TGT','COLL'], 6),
+        achColl  : col(['ACH','COLL'], 7),
+        pctColl  : 8,
+        tgtTrx   : col(['TGT','TRX'], 9),
+        achTrx   : col(['ACH','TRX'], 10),
+        pctTrx   : 11,
+        trxLalu  : col(['LALU'], 12),
+        trxIni   : col(['INI'], 13),
+        growth   : col(['GROWTH'], 14),
+        score    : col(['SCORE'], 15),
+        insentif : col(['INSENTIF'], 16),
+      };
+
+      const result = [];
+      for (let i = 1; i < rows.length; i++) {
+        const r = rows[i];
+        if (!r[C.nama] || !r[C.bulan]) continue;
+
+        const nama = String(r[C.nama]).trim();
+        if (!nama || ['nama','total',''].includes(nama.toLowerCase())) continue;
+
+        const bulanRaw = String(r[C.bulan]).trim();
+        const { label: bulanLabel, key: bulanKey } = parseBulanStr(bulanRaw);
+        if (!bulanLabel) continue;
+
+        const tgtVisit = toNum(r[C.tgtVisit]);
+        const achVisit = toNum(r[C.achVisit]);
+        const tgtColl  = toNum(r[C.tgtColl]);
+        const achColl  = toNum(r[C.achColl]);
+        const tgtTrx   = toNum(r[C.tgtTrx]);
+        const achTrx   = toNum(r[C.achTrx]);
+        const trxLalu  = toNum(r[C.trxLalu]);
+        const trxIni   = toNum(r[C.trxIni]);
+
+        let pctVisit = toPct(r[C.pctVisit]);
+        if (pctVisit === 0 && tgtVisit > 0) pctVisit = achVisit / tgtVisit * 100;
+
+        let pctColl = toPct(r[C.pctColl]);
+        if (pctColl === 0 && tgtColl > 0) pctColl = achColl / tgtColl * 100;
+
+        let pctTrx = toPct(r[C.pctTrx]);
+        if (pctTrx === 0 && tgtTrx > 0) pctTrx = achTrx / tgtTrx * 100;
+
+        let growth = toPct(r[C.growth]);
+        if (growth === 0 && trxLalu > 0) growth = (trxIni - trxLalu) / trxLalu * 100;
+
+        let score = toPct(r[C.score]);
+        if (score === 0) score = pctVisit*0.15 + pctColl*0.25 + pctTrx*0.35 + growth*0.25;
+
+        result.push({
+          bulan: bulanLabel, bulanKey,
+          nama,
+          pjp: toNum(r[C.pjp]),
+          tgtVisit, achVisit, pctVisit,
+          tgtColl,  achColl,  pctColl,
+          tgtTrx,   achTrx,   pctTrx,
+          trxLalu,  trxIni,   growth,
+          score,
+          insentif: toNum(r[C.insentif]),
+        });
+      }
+      return result;
+    }
+
+    /* ── Populate Filters ─────────────────────────────────────────── */
+    function populateFilters() {
+      const selBulan = document.getElementById('filterBulan');
+      const selNama  = document.getElementById('filterNama');
+      const prevB = selBulan.value, prevN = selNama.value;
+
+      const bulanMap = new Map();
+      allData.forEach(d => bulanMap.set(d.bulan, d.bulanKey));
+      const bulans = [...bulanMap.entries()].sort((a,b) => b[1].localeCompare(a[1]));
+
+      selBulan.innerHTML = '<option value="">Semua Bulan</option>' +
+        bulans.map(([b]) => `<option value="${esc(b)}">${esc(b)}</option>`).join('');
+      if (prevB && bulanMap.has(prevB)) selBulan.value = prevB;
+
+      const namas = [...new Set(allData.map(d => d.nama))].sort((a,b) => a.localeCompare(b,'id'));
+      selNama.innerHTML = '<option value="">Semua SCO</option>' +
+        namas.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('');
+      if (prevN && namas.includes(prevN)) selNama.value = prevN;
+    }
+
+    /* ── Apply Filters ────────────────────────────────────────────── */
+    function applyFilters() {
+      const bVal = document.getElementById('filterBulan').value;
+      const nVal = document.getElementById('filterNama').value;
+      const qVal = document.getElementById('searchInput').value.toLowerCase().trim();
+
+      shownData = allData.filter(d => {
+        if (bVal && d.bulan !== bVal)                     return false;
+        if (nVal && d.nama !== nVal)                      return false;
+        if (qVal && !d.nama.toLowerCase().includes(qVal)) return false;
+        return true;
+      });
+
+      renderMetrics();
+      renderPodium();
+      renderTable();
+    }
+
+    /* ── Render Summary Metrics ───────────────────────────────────── */
+    function renderMetrics() {
+      const totalSco = shownData.length;
+      document.getElementById('kpiTotalSco').textContent = totalSco;
+      
+      const bVal = document.getElementById('filterBulan').value;
+      document.getElementById('kpiTotalScoSub').textContent = bVal ? `Periode ${bVal}` : 'Seluruh data tercatat';
+
+      if (totalSco === 0) {
+        document.getElementById('kpiAvgScore').textContent = '0%';
+        document.getElementById('kpiAvgTrx').textContent = '0%';
+        document.getElementById('kpiTotalInsentif').textContent = 'Rp 0';
+        return;
+      }
+
+      const sumScore = shownData.reduce((acc, d) => acc + (d.score || 0), 0);
+      const avgScore = sumScore / totalSco;
+      document.getElementById('kpiAvgScore').textContent = fmtNum(avgScore, 1) + '%';
+      document.getElementById('kpiAvgScoreSub').textContent = avgScore >= 90 ? 'Status: Sangat Baik' : avgScore >= 70 ? 'Status: Cukup' : 'Status: Perlu Evaluasi';
+
+      const sumTrx = shownData.reduce((acc, d) => acc + (d.pctTrx || 0), 0);
+      const avgTrx = sumTrx / totalSco;
+      document.getElementById('kpiAvgTrx').textContent = fmtNum(avgTrx, 1) + '%';
+
+      const sumInsentif = shownData.reduce((acc, d) => acc + (d.insentif || 0), 0);
+      document.getElementById('kpiTotalInsentif').textContent = fmtRp(sumInsentif);
+    }
+
+    /* ── Render Podium Top 3 ──────────────────────────────────────── */
+    function renderPodium() {
+      const podiumGrid = document.getElementById('podiumGrid');
+      const podiumSection = document.getElementById('podiumSection');
+      if (!podiumGrid) return;
+
+      if (!shownData.length) {
+        podiumSection.style.display = 'none';
+        return;
+      }
+      podiumSection.style.display = 'block';
+
+      // Sort by score descending
+      const top3 = [...shownData].sort((a,b) => b.score - a.score).slice(0, 3);
+      const rankLabels = ['Juara 1', 'Juara 2', 'Juara 3'];
+
+      podiumGrid.innerHTML = top3.map((r, idx) => {
+        const initials = r.nama.split(' ').map(n=>n[0]).slice(0,2).join('').toUpperCase();
+        return `
+          <div class="podium-card rank-${idx+1}">
+            <div class="podium-rank-badge">${idx+1}</div>
+            <div class="podium-avatar">${initials}</div>
+            <div class="podium-name">${esc(r.nama)}</div>
+            <div style="font-size:11px; color:var(--text-muted); margin-bottom:8px;">${esc(r.bulan)}</div>
+            <div>${badge(r.score)}</div>
+            <div class="podium-stats-row">
+              <div class="podium-stat-item">
+                <span class="podium-stat-label">Trx Ach</span>
+                <span class="podium-stat-val">${fmtNum(r.pctTrx)}%</span>
+              </div>
+              <div class="podium-stat-item">
+                <span class="podium-stat-label">Visit Ach</span>
+                <span class="podium-stat-val">${fmtNum(r.pctVisit)}%</span>
+              </div>
+              <div class="podium-stat-item">
+                <span class="podium-stat-label">Insentif</span>
+                <span class="podium-stat-val" style="color:var(--brand-primary);">${fmtRp(r.insentif)}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    /* ── Sort Table ───────────────────────────────────────────────── */
+    function sortTable(col) {
+      if (sortCol === col) { sortAsc = !sortAsc; }
+      else { sortCol = col; sortAsc = (col === 'nama'); }
+      renderTable();
+    }
+
+    /* ── Render Table ─────────────────────────────────────────────── */
+    function renderTable() {
+      const rows = [...shownData];
+
+      rows.sort((a, b) => {
+        let va, vb;
+        if (sortCol === 'bulan' || sortCol === 'rank') {
+          va = a.bulanKey; vb = b.bulanKey;
+          const res = sortAsc ? va.localeCompare(vb) : vb.localeCompare(va);
+          if (res !== 0) return res;
+          return a.nama.localeCompare(b.nama, 'id');
+        }
+        va = a[sortCol]; vb = b[sortCol];
+        if (typeof va === 'string') {
+          return sortAsc ? va.localeCompare(vb,'id') : vb.localeCompare(va,'id');
+        }
+        return sortAsc ? va - vb : vb - va;
+      });
+
+      // Update header icons
+      document.querySelectorAll('#kpiTable thead th').forEach(th => {
+        const m = (th.getAttribute('onclick')||'').match(/sortTable\('([^']+)'\)/);
+        if (!m) return;
+        const ico = th.querySelector('i');
+        if (!ico) return;
+        if (m[1] === sortCol) {
+          ico.className = sortAsc ? 'fa-solid fa-sort-up' : 'fa-solid fa-sort-down';
+          th.style.color = 'var(--brand-primary)';
+        } else {
+          ico.className = 'fa-solid fa-sort';
+          th.style.color = '';
+        }
+      });
+
+      document.getElementById('tableSummaryText').textContent =
+        `Menampilkan ${rows.length} catatan performa SCO`;
+
+      const tbody = document.getElementById('tableBody');
+      if (rows.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="13" style="text-align:center;padding:36px;color:var(--text-muted);font-size:13px;">Tidak ada data yang sesuai dengan filter.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = rows.map((r, i) => {
+        const gSign = r.growth >= 0 ? '+' : '';
+        const gCls  = r.growth >= 0 ? 'positive' : 'negative';
+        return `
+          <tr>
+            <td style="font-weight:700;color:var(--text-light)">${i+1}</td>
+            <td><span class="tag-month">${esc(r.bulan)}</span></td>
+            <td class="name-col">${esc(r.nama)}</td>
+            <td class="num">${Math.round(r.pjp)}</td>
+            <td class="num">${fmtNum(r.achVisit,0)} <span style="font-size:10px;color:var(--text-light)">/ ${fmtNum(r.tgtVisit,0)}</span></td>
+            <td class="num">${badge(r.pctVisit)}</td>
+            <td class="num">${fmtNum(r.achColl,0)} <span style="font-size:10px;color:var(--text-light)">/ ${fmtNum(r.tgtColl,0)}</span></td>
+            <td class="num">${badge(r.pctColl)}</td>
+            <td class="num">${fmtNum(r.achTrx,1)} <span style="font-size:10px;color:var(--text-light)">/ ${fmtNum(r.tgtTrx,1)}</span></td>
+            <td class="num">${badge(r.pctTrx)}</td>
+            <td class="num"><span class="growth-pill ${gCls}">${gSign}${fmtNum(r.growth)}%</span></td>
+            <td class="num">${badge(r.score)}</td>
+            <td class="num" style="font-weight:700;color:var(--brand-primary)">${fmtRp(r.insentif)}</td>
+          </tr>`;
+      }).join('');
+    }
+
+    /* ── Export CSV ───────────────────────────────────────────────── */
+    function exportTableToCSV() {
+      if (!shownData.length) { alert('Tidak ada data untuk diexport!'); return; }
+      const hdr = ['Bulan','Nama SCO','#PJP','Tgt Visit','Ach Visit','% Visit','Tgt Coll','Ach Coll','% Coll','Tgt Trx','Ach Trx','% Trx','Trx Lalu','Trx Ini','% Growth','KPI Score','Insentif (Rp)'];
+      const rows = shownData.map(r => [
+        `"${r.bulan}"`,`"${r.nama}"`,r.pjp,r.tgtVisit,r.achVisit,
+        `${r.pctVisit.toFixed(2)}%`,r.tgtColl,r.achColl,`${r.pctColl.toFixed(2)}%`,
+        r.tgtTrx,r.achTrx,`${r.pctTrx.toFixed(2)}%`,r.trxLalu,r.trxIni,
+        `${r.growth.toFixed(2)}%`,`${r.score.toFixed(2)}%`,r.insentif
+      ].join(';'));
+      const csv = '\uFEFF' + [hdr.join(';'), ...rows].join('\r\n');
+      const a = Object.assign(document.createElement('a'), {
+        href: URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'})),
+        download: `KPI_SCO_${new Date().toISOString().slice(0,10)}.csv`
+      });
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    }
+
+    /* ── Theme Management ─────────────────────────────────────────── */
+    function toggleTheme() {
+      document.body.classList.toggle('dark-theme');
+      const dark = document.body.classList.contains('dark-theme');
+      localStorage.setItem('sco_theme', dark ? 'dark' : 'light');
+      const btn = document.getElementById('btnThemeToggle');
+      if (btn) btn.innerHTML = dark ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
+    }
+
+    function initTheme() {
+      const s = localStorage.getItem('sco_theme');
+      if (s === 'dark' || (!s && window.matchMedia('(prefers-color-scheme:dark)').matches)) {
+        document.body.classList.add('dark-theme');
+        const btn = document.getElementById('btnThemeToggle');
+        if (btn) btn.innerHTML = '<i class="fa-solid fa-sun"></i>';
+      }
+    }
+
+    /* ── Status Management ────────────────────────────────────────── */
+    function setStatus(msg, state='normal') {
+      const dot1 = document.getElementById('statusDot');
+      const dot2 = document.getElementById('filterStatusDot');
+      const sText = document.getElementById('sidebarStatusText');
+      const fText = document.getElementById('statusText');
+
+      const cls = 'status-dot' + (state==='loading'?' loading':state==='error'?' error':'');
+      if (dot1) dot1.className = cls;
+      if (dot2) dot2.className = cls;
+      if (sText) sText.textContent = msg;
+      if (fText) fText.textContent = msg;
+    }
+
+    /* ── Load Data ────────────────────────────────────────────────── */
+    async function reloadData() {
+      const btn = document.getElementById('btnRefresh');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Memuat...</span>';
+      }
+      setStatus('Mengunduh data HARIAN SCO.xlsx...', 'loading');
+      document.getElementById('alertBanner').style.display = 'none';
+
+      let ok = false;
+      for (const url of DATA_URLS) {
+        try {
+          const res = await fetch(url + '?t=' + Date.now(), { cache: 'no-store' });
+          if (!res.ok) continue;
+          const buf = await res.arrayBuffer();
+          const wb = XLSX.read(new Uint8Array(buf), { type: 'array' });
+          const sheet = wb.Sheets[SHEET_NAME] || wb.Sheets[wb.SheetNames[0]];
+          if (!sheet) throw new Error(`Sheet ${SHEET_NAME} tidak ditemukan`);
+
+          allData = parseSheet(sheet);
+          if (!allData.length) throw new Error('Data kosong');
+
+          populateFilters();
+          applyFilters();
+          setStatus(`${allData.length} baris dimuat · Sheet: ${SHEET_NAME}`);
+          document.getElementById('footerStatusText').textContent = `Terhubung ke ${url} · Sheet: ${SHEET_NAME}`;
+          ok = true;
+          break;
+        } catch(e) {
+          console.warn('Gagal memuat URL:', url, e);
+        }
+      }
+
+      if (!ok) {
+        setStatus('Gagal memuat otomatis', 'error');
+        document.getElementById('alertBanner').style.display = 'flex';
+        document.getElementById('alertMsg').textContent =
+          'Tidak dapat memuat HARIAN SCO.xlsx otomatis. Silakan pilih file manual:';
+      }
+
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-arrows-rotate"></i> <span>Refresh</span>';
+      }
+    }
+
+    function handleManualFile(input) {
+      const file = input.files[0];
+      if (!file) return;
+      setStatus(`Membaca: ${file.name}...`, 'loading');
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+          const sheet = wb.Sheets[SHEET_NAME] || wb.Sheets[wb.SheetNames[0]];
+          if (!sheet) throw new Error('Sheet tidak ditemukan');
+          allData = parseSheet(sheet);
+          populateFilters();
+          applyFilters();
+          setStatus(`${allData.length} baris dimuat`);
+          document.getElementById('alertBanner').style.display = 'none';
+        } catch(err) {
+          alert('Gagal: ' + err.message);
+          setStatus('Gagal membaca file', 'error');
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    /* ── Init ─────────────────────────────────────────────────────── */
+    document.addEventListener('DOMContentLoaded', () => {
+      initTheme();
+      reloadData();
+    });
+  </script>
+</body>
+</html>
