@@ -910,18 +910,13 @@
                 <th onclick="sortTable('bulan')">Bulan <i class="fa-solid fa-sort"></i></th>
                 <th onclick="sortTable('nama')">Nama SCO <i class="fa-solid fa-sort"></i></th>
                 <th class="num" onclick="sortTable('pjp')">#PJP <i class="fa-solid fa-sort"></i></th>
-                <th class="num" onclick="sortTable('tgt_visit')">Tgt Visit <i class="fa-solid fa-sort"></i></th>
-                <th class="num" onclick="sortTable('ach_visit')">Ach Visit <i class="fa-solid fa-sort"></i></th>
-                <th class="num" onclick="sortTable('pct_visit')">% Visit <i class="fa-solid fa-sort"></i></th>
-                <th class="num" onclick="sortTable('tgt_coll')">Tgt Coll <i class="fa-solid fa-sort"></i></th>
-                <th class="num" onclick="sortTable('ach_coll')">Ach Coll <i class="fa-solid fa-sort"></i></th>
-                <th class="num" onclick="sortTable('pct_coll')">% Coll <i class="fa-solid fa-sort"></i></th>
-                <th class="num" onclick="sortTable('tgt_trx')">Tgt Trx <i class="fa-solid fa-sort"></i></th>
-                <th class="num" onclick="sortTable('ach_trx')">Ach Trx <i class="fa-solid fa-sort"></i></th>
-                <th class="num" onclick="sortTable('pct_trx')">% Trx <i class="fa-solid fa-sort"></i></th>
-                <th class="num" onclick="sortTable('trx_lalu')">Trx Lalu <i class="fa-solid fa-sort"></i></th>
-                <th class="num" onclick="sortTable('trx_ini')">Trx Ini <i class="fa-solid fa-sort"></i></th>
-                <th class="num" onclick="sortTable('growth')">% Growth <i class="fa-solid fa-sort"></i></th>
+                <th class="num" onclick="sortTable('tgt_visit')">Target Visit <i class="fa-solid fa-sort"></i></th>
+                <th class="num" onclick="sortTable('pct_visit')">Realisasi Visit (%) <i class="fa-solid fa-sort"></i></th>
+                <th class="num" onclick="sortTable('tgt_coll')">Target Coll <i class="fa-solid fa-sort"></i></th>
+                <th class="num" onclick="sortTable('pct_coll')">Realisasi Coll (%) <i class="fa-solid fa-sort"></i></th>
+                <th class="num" onclick="sortTable('tgt_trx')">Target Trx <i class="fa-solid fa-sort"></i></th>
+                <th class="num" onclick="sortTable('pct_trx')">Realisasi Trx (%) <i class="fa-solid fa-sort"></i></th>
+                <th class="num" onclick="sortTable('growth')">Growth % <i class="fa-solid fa-sort"></i></th>
                 <th class="num" onclick="sortTable('score')">KPI Score <i class="fa-solid fa-sort"></i></th>
                 <th class="num" onclick="sortTable('insentif')">Insentif (Rp) <i class="fa-solid fa-sort"></i></th>
               </tr>
@@ -1127,7 +1122,11 @@
 
       selBulan.innerHTML = '<option value="">Semua Bulan</option>' +
         bulans.map(([b]) => `<option value="${esc(b)}">${esc(b)}</option>`).join('');
-      if (prevB && bulanMap.has(prevB)) selBulan.value = prevB;
+      if (prevB && bulanMap.has(prevB)) {
+        selBulan.value = prevB;
+      } else if (!prevB && bulans.length > 0) {
+        selBulan.value = bulans[0][0];
+      }
 
       const namas = [...new Set(allData.map(d => d.nama))].sort((a,b) => a.localeCompare(b,'id'));
       selNama.innerHTML = '<option value="">Semua SCO</option>' +
@@ -1158,7 +1157,7 @@
       renderTable();
     }
 
-    /* ── Render Table (1:1 Sesuai Sheet KPI_SCO) ──────────────────── */
+    /* ── Render Table (Concise KPI SCO) ───────────────────────────── */
     function renderTable() {
       const rows = [...shownData];
 
@@ -1197,7 +1196,7 @@
 
       const tbody = document.getElementById('tableBody');
       if (rows.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="18" style="text-align:center;padding:36px;color:var(--text-muted);font-size:13px;">Tidak ada data yang sesuai dengan filter.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="13" style="text-align:center;padding:36px;color:var(--text-muted);font-size:13px;">Tidak ada data yang sesuai dengan filter.</td></tr>';
         return;
       }
 
@@ -1206,24 +1205,19 @@
         const gCls  = r.growth >= 0 ? 'positive' : 'negative';
         return `
           <tr>
-            <td style="font-weight:700;color:var(--text-light)">${i+1}</td>
+            <td style="font-weight:700;color:var(--text-light);text-align:center;">${i+1}</td>
             <td><span class="tag-month">${esc(r.bulan)}</span></td>
-            <td class="name-col">${esc(r.nama)}</td>
-            <td class="num">${Math.round(r.pjp)}</td>
+            <td class="name-col" style="font-weight:700;">${esc(r.nama)}</td>
+            <td class="num" style="text-align:center;">${Math.round(r.pjp)}</td>
             <td class="num">${fmtNum(r.tgt_visit, 0)}</td>
-            <td class="num">${fmtNum(r.ach_visit, 0)}</td>
             <td class="num">${badge(r.pct_visit)}</td>
             <td class="num">${fmtNum(r.tgt_coll, 0)}</td>
-            <td class="num">${fmtNum(r.ach_coll, 0)}</td>
             <td class="num">${badge(r.pct_coll)}</td>
             <td class="num">${fmtNum(r.tgt_trx, 1)}</td>
-            <td class="num">${fmtNum(r.ach_trx, 1)}</td>
             <td class="num">${badge(r.pct_trx)}</td>
-            <td class="num">${fmtNum(r.trx_lalu, 1)}</td>
-            <td class="num">${fmtNum(r.trx_ini, 1)}</td>
             <td class="num"><span class="growth-pill ${gCls}">${gSign}${fmtNum(r.growth, 1)}%</span></td>
-            <td class="num">${badge(r.score)}</td>
-            <td class="num" style="font-weight:700;color:var(--brand-primary)">${fmtRp(r.insentif)}</td>
+            <td class="num" style="font-weight:800;color:var(--purple);">${fmtNum(r.score, 1)}</td>
+            <td class="num" style="font-weight:800;color:var(--brand-primary);">${fmtRp(r.insentif)}</td>
           </tr>`;
       }).join('');
     }
@@ -1231,13 +1225,12 @@
     /* ── Export CSV ───────────────────────────────────────────────── */
     function exportTableToCSV() {
       if (!shownData.length) { alert('Tidak ada data untuk diexport!'); return; }
-      const hdr = ['Bulan','Nama SCO','#PJP','Tgt Visit','Ach Visit','% Visit','Tgt Coll','Ach Coll','% Coll','Tgt Trx','Ach Trx','% Trx','Trx Lalu','Trx Ini','% Growth','KPI Score','Insentif (Rp)'];
+      const hdr = ['Bulan','Nama SCO','#PJP','Target Visit','Realisasi Visit (%)','Target Coll','Realisasi Coll (%)','Target Trx','Realisasi Trx (%)','Growth %','KPI Score','Insentif (Rp)'];
       const rows = shownData.map(r => [
         `"${r.bulan}"`,`"${r.nama}"`,r.pjp,
-        r.tgt_visit,r.ach_visit,`${r.pct_visit.toFixed(1)}%`,
-        r.tgt_coll,r.ach_coll,`${r.pct_coll.toFixed(1)}%`,
-        r.tgt_trx,r.ach_trx,`${r.pct_trx.toFixed(1)}%`,
-        r.trx_lalu,r.trx_ini,
+        r.tgt_visit,`${r.pct_visit.toFixed(1)}%`,
+        r.tgt_coll,`${r.pct_coll.toFixed(1)}%`,
+        r.tgt_trx,`${r.pct_trx.toFixed(1)}%`,
         `${r.growth.toFixed(1)}%`,`${r.score.toFixed(1)}%`,r.insentif
       ].join(';'));
       const csv = '\uFEFF' + [hdr.join(';'), ...rows].join('\r\n');
