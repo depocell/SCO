@@ -859,6 +859,194 @@
       font-weight: 600;
     }
 
+    /* ── SIMULASI PROYEKSI CLOSING (RUN-RATE TRACKER) ── */
+    .sim-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px 18px;
+      margin-top: 14px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow);
+    }
+    .sim-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .sim-title {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .sim-status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .sim-pill {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 9px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+    html.light .sim-pill {
+      background: #dcfce7;
+      color: #15803d;
+    }
+    .sim-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(0, 2.5fr) minmax(0, 1.3fr);
+      gap: 10px;
+      align-items: stretch;
+    }
+    @media (max-width: 900px) {
+      .sim-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    .sim-card {
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-width: 0;
+    }
+    .sim-card-target {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+    }
+    .sim-target-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11.5px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .sim-target-val {
+      color: var(--text);
+      font-size: 13px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .sim-progress-track {
+      height: 6px;
+      background: var(--surface-hover);
+      border-radius: 6px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+    .sim-progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #0284c7 0%, #10b981 100%);
+      border-radius: 6px;
+      transition: width 0.4s ease;
+    }
+    .sim-cards-trio {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      min-width: 0;
+    }
+    @media (max-width: 520px) {
+      .sim-cards-trio {
+        grid-template-columns: 1fr;
+      }
+    }
+    .sim-card-cons {
+      background: rgba(245, 158, 11, 0.08);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      text-align: center;
+    }
+    html.light .sim-card-cons {
+      background: #ffffff;
+      border: 1px solid #fde68a;
+    }
+    .sim-card-mod {
+      background: rgba(59, 130, 246, 0.08);
+      border: 1px solid rgba(59, 130, 246, 0.35);
+      text-align: center;
+    }
+    html.light .sim-card-mod {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+    }
+    .sim-card-opt {
+      background: rgba(16, 185, 129, 0.08);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      text-align: center;
+    }
+    html.light .sim-card-opt {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+    }
+    .sim-scenario-title {
+      font-size: 9.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-bottom: 2px;
+    }
+    .sim-card-cons .sim-scenario-title { color: #f59e0b; }
+    html.light .sim-card-cons .sim-scenario-title { color: #b45309; }
+    .sim-card-mod .sim-scenario-title { color: #60a5fa; }
+    html.light .sim-card-mod .sim-scenario-title { color: #1e40af; }
+    .sim-card-opt .sim-scenario-title { color: #34d399; }
+    html.light .sim-card-opt .sim-scenario-title { color: #166534; }
+
+    .sim-scenario-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14.5px;
+      font-weight: 800;
+      margin: 1px 0;
+      color: var(--text);
+    }
+    html.light .sim-card-cons .sim-scenario-val { color: #78350f; }
+    html.light .sim-card-mod .sim-scenario-val { color: #1e3a8a; }
+    html.light .sim-card-opt .sim-scenario-val { color: #14532d; }
+
+    .sim-scenario-grow {
+      font-size: 10px;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .sim-card-cons .sim-scenario-grow { color: #f59e0b; }
+    html.light .sim-card-cons .sim-scenario-grow { color: #92400e; }
+    .sim-card-mod .sim-scenario-grow { color: #60a5fa; }
+    html.light .sim-card-mod .sim-scenario-grow { color: #1d4ed8; }
+    .sim-card-opt .sim-scenario-grow { color: #34d399; }
+    html.light .sim-card-opt .sim-scenario-grow { color: #15803d; }
+
+    .sim-card-gap {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      text-align: center;
+      justify-content: center;
+    }
+    .sim-gap-label {
+      font-size: 10.5px;
+      color: var(--text-muted);
+      margin-bottom: 3px;
+    }
+    .sim-gap-val {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--primary);
+    }
+
     /* ── BOTTOM NAVIGATION ── */
     .bottom-nav {
       position: fixed;
@@ -1229,12 +1417,6 @@
     </div>
 
     <div class="header-actions">
-      <!-- Upload File Button -->
-      <button class="icon-btn" id="uploadBtn" title="Muat File Excel Baru">
-        <svg viewBox="0 0 24 24"><path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/></svg>
-      </button>
-      <input type="file" id="filePicker" accept=".xlsx, .xls"/>
-
       <!-- Theme Toggle -->
       <button class="icon-btn" id="themeBtn" title="Ganti Tema">
         <svg id="themeIcon" viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-3.03 0-5.5-2.47-5.5-5.5 0-1.82.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z"/></svg>
@@ -1394,25 +1576,58 @@
         </div>
       </div>
 
-      <!-- Table Daily Breakdown (Tgl 1 - 31) -->
-      <div class="daily-table-container">
-        <div class="table-header">
-          <span>Rincian Transaksi Tanggal 1 s/d 31</span>
+      <!-- Widget Simulasi Proyeksi Akhir Bulan (Run-Rate Tracker) -->
+      <div class="sim-panel">
+        <div class="sim-header">
+          <div class="sim-title">
+            <i class="fa-solid fa-calculator" style="color: #f59e0b;"></i>
+            <span>Simulasi Proyeksi Closing Akhir Bulan (Run-Rate Tracker)</span>
+          </div>
+          <div class="sim-status">
+            <span class="sim-pill" id="simDaysBadge">Hari ke-30 dari 30</span>
+            <span>Progress Hari Kerja: <b id="simProgressPct" style="color: var(--text);">100%</b></span>
+          </div>
         </div>
-        <div style="overflow-x: auto;">
-          <table class="daily-table">
-            <thead>
-              <tr>
-                <th>Tgl</th>
-                <th id="thM2" style="text-align:right; color:var(--aug-color);">Agustus</th>
-                <th id="thM3" style="text-align:right; color:var(--sep-color);">September</th>
-                <th style="text-align:right;">Growth MoM</th>
-              </tr>
-            </thead>
-            <tbody id="dailyTableBody">
-              <!-- Rendered via JS -->
-            </tbody>
-          </table>
+
+        <div class="sim-grid">
+          <!-- Sisi Kiri: Progress Bar & Target Samai BL -->
+          <div class="sim-card sim-card-target">
+            <div class="sim-target-row">
+              <span class="sim-target-label">Target Samai BL:</span>
+              <b class="sim-target-val" id="simTargetBl">- trx</b>
+            </div>
+            <div class="sim-progress-track">
+              <div class="sim-progress-fill" id="simProgressBar"></div>
+            </div>
+          </div>
+
+          <!-- Sisi Tengah: 3 Kartu Skenario Berdampingan -->
+          <div class="sim-cards-trio">
+            <!-- Konservatif -->
+            <div class="sim-card sim-card-cons">
+              <div class="sim-scenario-title">KONSERVATIF (-5%)</div>
+              <div class="sim-scenario-val" id="simValCons">-</div>
+              <div class="sim-scenario-grow" id="simGrowCons">- % vs BL</div>
+            </div>
+            <!-- Moderat (Run-Rate) -->
+            <div class="sim-card sim-card-mod">
+              <div class="sim-scenario-title">MODERAT (RUN-RATE)</div>
+              <div class="sim-scenario-val" id="simValMod">-</div>
+              <div class="sim-scenario-grow" id="simGrowMod">- % vs BL</div>
+            </div>
+            <!-- Optimis -->
+            <div class="sim-card sim-card-opt">
+              <div class="sim-scenario-title">OPTIMIS (+5%)</div>
+              <div class="sim-scenario-val" id="simValOpt">-</div>
+              <div class="sim-scenario-grow" id="simGrowOpt">- % vs BL</div>
+            </div>
+          </div>
+
+          <!-- Sisi Kanan: Kebutuhan Sisa Hari -->
+          <div class="sim-card sim-card-gap">
+            <div class="sim-gap-label">Kebutuhan Sisa Hari:</div>
+            <div class="sim-gap-val" id="simTargetGap">-</div>
+          </div>
         </div>
       </div>
     </section>
@@ -1585,9 +1800,11 @@
         });
       });
 
-      // File Picker Trigger
-      uploadBtn.addEventListener('click', () => filePicker.click());
-      filePicker.addEventListener('change', handleFileUpload);
+      // File Picker Trigger (if present)
+      if (uploadBtn && filePicker) {
+        uploadBtn.addEventListener('click', () => filePicker.click());
+        filePicker.addEventListener('change', handleFileUpload);
+      }
     }
 
     // ── SALES MODAL LOGIC ──
@@ -2289,54 +2506,74 @@
       document.getElementById('kpiDailyPeakSub').textContent = peakDay !== '-' ? `Rekor pada ${peakDay}` : '-';
       document.getElementById('kpiDailySepAvg').textContent = avgDailyM3.toLocaleString('id-ID');
 
-      renderDailyTableRows(activeData);
+      renderSimulationTracker(sumM3, sumM2, avgDailyM3, countDaysM3, mn);
     }
 
-    // ── RENDER DAILY TABLE ROWS (Tgl 1 - 31) ──
-    function renderDailyTableRows(activeData) {
-      const tbody = document.getElementById('dailyTableBody');
-      if (!tbody) return;
+    // ── RENDER RUN-RATE SIMULATION TRACKER ──
+    function renderSimulationTracker(sumM3, sumM2, avgDailyM3, countDaysM3, mn) {
+      const month3Str = (mn.m3 || '').toUpperCase();
+      let daysInMonth = 30;
+      if (month3Str.includes('JAN') || month3Str.includes('MAR') || month3Str.includes('MEI') || month3Str.includes('MAY') || month3Str.includes('JUL') || month3Str.includes('AGU') || month3Str.includes('AUG') || month3Str.includes('OKT') || month3Str.includes('OCT') || month3Str.includes('DES') || month3Str.includes('DEC')) {
+        daysInMonth = 31;
+      } else if (month3Str.includes('FEB')) {
+        daysInMonth = 28;
+      }
+      daysInMonth = Math.max(daysInMonth, countDaysM3);
 
-      const mn = state.monthNames;
-      const m2ByDay = {};
-      const m3ByDay = {};
+      const daysElapsed = Math.min(countDaysM3, daysInMonth);
+      const remDays = Math.max(0, daysInMonth - daysElapsed);
+      const progressPct = ((daysElapsed / daysInMonth) * 100).toFixed(0);
 
-      activeData.forEach(d => {
-        const b = d.bulan.toUpperCase();
-        if (b === mn.m2) m2ByDay[d.dayOfMonth] = (m2ByDay[d.dayOfMonth] || 0) + d.trx;
-        if (b === mn.m3) m3ByDay[d.dayOfMonth] = (m3ByDay[d.dayOfMonth] || 0) + d.trx;
-      });
+      const daysBadgeEl = document.getElementById('simDaysBadge');
+      if (daysBadgeEl) daysBadgeEl.textContent = `Hari ke-${daysElapsed} dari ${daysInMonth}`;
+      const progPctEl = document.getElementById('simProgressPct');
+      if (progPctEl) progPctEl.textContent = `${progressPct}%`;
+      const progBarEl = document.getElementById('simProgressBar');
+      if (progBarEl) progBarEl.style.width = `${progressPct}%`;
 
-      let html = '';
-      for (let day = 1; day <= 31; day++) {
-        const v2 = m2ByDay[day] !== undefined ? m2ByDay[day] : '-';
-        const v3 = m3ByDay[day] !== undefined ? m3ByDay[day] : '-';
+      // Baseline BL
+      const fullMonthPrev = sumM2;
+      const targetBlEl = document.getElementById('simTargetBl');
+      if (targetBlEl) targetBlEl.textContent = `${fullMonthPrev.toLocaleString('id-ID')} trx`;
 
-        let growthText = '-';
-        let growthClass = '';
-        if (typeof v2 === 'number' && typeof v3 === 'number') {
-          const g = v3 - v2;
-          const sign = g > 0 ? '+' : '';
-          growthText = `${sign}${g.toFixed(1)}`;
-          growthClass = g > 0 ? 'positive' : (g < 0 ? 'negative' : 'neutral');
-        }
+      // Scenarios: Mod, Cons, Opt
+      const modTotal = Math.round(sumM3 + (remDays * avgDailyM3));
+      const modGrowth = fullMonthPrev > 0 ? (((modTotal / fullMonthPrev) - 1) * 100) : 0;
 
-        // Only show rows that have data in at least one month
-        if (v2 !== '-' || v3 !== '-') {
-          html += `
-            <tr>
-              <td><strong>Tgl ${day}</strong></td>
-              <td class="num">${typeof v2 === 'number' ? v2.toLocaleString('id-ID') : '-'}</td>
-              <td class="num" style="font-weight:700;">${typeof v3 === 'number' ? v3.toLocaleString('id-ID') : '-'}</td>
-              <td class="num">
-                ${growthText !== '-' ? `<span class="growth-badge ${growthClass}">${growthText}</span>` : '-'}
-              </td>
-            </tr>
-          `;
+      const consTotal = Math.round(sumM3 + (remDays * avgDailyM3 * 0.95));
+      const consGrowth = fullMonthPrev > 0 ? (((consTotal / fullMonthPrev) - 1) * 100) : 0;
+
+      const optTotal = Math.round(sumM3 + (remDays * avgDailyM3 * 1.05));
+      const optGrowth = fullMonthPrev > 0 ? (((optTotal / fullMonthPrev) - 1) * 100) : 0;
+
+      const valConsEl = document.getElementById('simValCons');
+      if (valConsEl) valConsEl.textContent = consTotal.toLocaleString('id-ID');
+      const growConsEl = document.getElementById('simGrowCons');
+      if (growConsEl) growConsEl.textContent = `${consGrowth >= 0 ? '+' : ''}${consGrowth.toFixed(1)}% vs BL`;
+
+      const valModEl = document.getElementById('simValMod');
+      if (valModEl) valModEl.textContent = modTotal.toLocaleString('id-ID');
+      const growModEl = document.getElementById('simGrowMod');
+      if (growModEl) growModEl.textContent = `${modGrowth >= 0 ? '+' : ''}${modGrowth.toFixed(1)}% vs BL`;
+
+      const valOptEl = document.getElementById('simValOpt');
+      if (valOptEl) valOptEl.textContent = optTotal.toLocaleString('id-ID');
+      const growOptEl = document.getElementById('simGrowOpt');
+      if (growOptEl) growOptEl.textContent = `${optGrowth >= 0 ? '+' : ''}${optGrowth.toFixed(1)}% vs BL`;
+
+      // Gap / Target Sisa Hari
+      const gapNeeded = fullMonthPrev - sumM3;
+      const gapPerDay = remDays > 0 ? Math.round(gapNeeded / remDays) : 0;
+      const gapEl = document.getElementById('simTargetGap');
+      if (gapEl) {
+        if (remDays === 0) {
+          gapEl.innerHTML = `<span style="color: var(--text-muted); font-size: 11.5px; font-weight: 700;"><i class="fa-solid fa-flag-checkered" style="color: var(--primary);"></i> Closing Bulan Ini Lengkap (${daysInMonth} Hari)</span>`;
+        } else if (gapNeeded <= 0) {
+          gapEl.innerHTML = `<span style="color: var(--green); font-size: 11.5px; font-weight: 700;"><i class="fa-solid fa-circle-check"></i> Target Terlampaui!</span>`;
+        } else {
+          gapEl.innerHTML = `<span style="font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 800; color: var(--primary);">${gapPerDay.toLocaleString('id-ID')}</span> <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">trx/hari</span>`;
         }
       }
-
-      tbody.innerHTML = html;
     }
 
     // ── RENDER DAILY CHART (Chart.js) ──
