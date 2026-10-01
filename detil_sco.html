@@ -611,6 +611,73 @@
       font-weight: 600;
       font-size: 12px;
       line-height: 1.3;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 6px;
+      margin: -2px -4px;
+      border-radius: 6px;
+      transition: background-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
+      user-select: none;
+      -webkit-tap-highlight-color: rgba(59, 130, 246, 0.2);
+    }
+    .cust-name-cell:hover {
+      background: var(--surface-hover);
+      color: var(--primary);
+    }
+    .cust-name-cell:active {
+      transform: scale(0.96);
+      background: rgba(59, 130, 246, 0.15);
+    }
+    .cust-name-cell.copied {
+      background: rgba(16, 185, 129, 0.18) !important;
+      color: var(--green) !important;
+    }
+    .cust-copy-icon {
+      font-size: 10px;
+      opacity: 0.35;
+      transition: opacity 0.15s ease, transform 0.15s ease;
+      flex-shrink: 0;
+    }
+    .cust-name-cell:hover .cust-copy-icon {
+      opacity: 0.9;
+    }
+
+    /* Floating Toast Feedback */
+    .copy-toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: rgba(15, 23, 42, 0.92);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      color: #ffffff;
+      padding: 10px 18px;
+      border-radius: 50px;
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
+      z-index: 99999;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      max-width: 90vw;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    .copy-toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+    .toast-msg {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 260px;
     }
     .sco-cell {
       font-size: 11px;
@@ -1153,6 +1220,12 @@
         <!-- Rendered via JS -->
       </div>
     </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION FOR COPY -->
+  <div id="copyToast" class="copy-toast">
+    <span class="toast-icon">📋</span>
+    <span id="toastMsg" class="toast-msg">Tersalin ke clipboard</span>
   </div>
 
   <!-- ═════════════════════════════════════════════════════════ -->
@@ -1907,7 +1980,10 @@
             <tr>
               <td>${i + 1}</td>
               <td class="col-cust">
-                <div class="cust-name-cell">${escapeHtml(c.customer)}</div>
+                <div class="cust-name-cell" data-name="${escapeHtml(c.customer)}" onclick="copyStoreName(this)" title="Sentuh / klik untuk salin nama toko">
+                  <span>${escapeHtml(c.customer)}</span>
+                  <span class="cust-copy-icon" title="Salin">📋</span>
+                </div>
               </td>
               <td><span class="jadwal-tag">${escapeHtml(c.jadwal)}</span></td>
               ${showSCO ? `<td class="sco-cell">${escapeHtml(c.sco)}</td>` : ''}
@@ -2160,6 +2236,73 @@
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
+    }
+
+    // ── CLIPBOARD COPY FEATURE ──
+    let toastTimeout = null;
+    function showCopyToast(msg) {
+      const toast = document.getElementById('copyToast');
+      const toastMsg = document.getElementById('toastMsg');
+      if (!toast) return;
+      if (toastMsg) toastMsg.textContent = msg;
+      toast.classList.add('show');
+      if (toastTimeout) clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2000);
+    }
+
+    function copyToClipboard(text) {
+      if (navigator.clipboard && window.isSecureContext) {
+        return navigator.clipboard.writeText(text);
+      }
+      // Fallback for non-https / webviews
+      return new Promise((resolve, reject) => {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-999999px";
+        textArea.style.top = "-999999px";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+          const successful = document.execCommand('copy');
+          document.body.removeChild(textArea);
+          successful ? resolve() : reject();
+        } catch (err) {
+          document.body.removeChild(textArea);
+          reject(err);
+        }
+      });
+    }
+
+    function copyStoreName(el) {
+      const text = el.getAttribute('data-name') || el.innerText.trim();
+      if (!text) return;
+
+      copyToClipboard(text).then(() => {
+        // Haptic feedback for touch devices
+        if (navigator.vibrate) {
+          try { navigator.vibrate(40); } catch (e) {}
+        }
+
+        // Visual flash & checkmark
+        el.classList.add('copied');
+        const icon = el.querySelector('.cust-copy-icon');
+        const originalIcon = icon ? icon.textContent : '📋';
+        if (icon) icon.textContent = '✓';
+
+        setTimeout(() => {
+          el.classList.remove('copied');
+          if (icon) icon.textContent = originalIcon;
+        }, 1200);
+
+        showCopyToast('Tersalin: ' + text);
+      }).catch(err => {
+        console.error('Gagal menyalin:', err);
+        showCopyToast('Gagal menyalin');
+      });
     }
   </script>
 </body>
