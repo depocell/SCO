@@ -12,10 +12,11 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   
-  <!-- Fonts -->
+  <!-- Fonts & Icons -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
   <style>
     :root {
@@ -1000,18 +1001,198 @@
 
     /* Hidden file input */
     #filePicker { display: none; }
+
+    /* ── SIDEBAR DRAWER STYLES (MATCHING WEB BI & INDEX) ── */
+    .app-sidebar {
+      width: 270px;
+      background: #0f172a;
+      color: #e2e8f0;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 1000;
+      transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 4px 0 20px rgba(0,0,0,0.3);
+      transform: translateX(-100%);
+    }
+    .app-sidebar.show {
+      transform: translateX(0);
+    }
+    .sidebar-header {
+      padding: 20px 18px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-icon-box {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #0284c7 0%, #06b6d4 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 18px;
+      box-shadow: 0 4px 14px rgba(2, 132, 199, 0.25);
+    }
+    .brand-name-box {
+      display: flex;
+      flex-direction: column;
+    }
+    .brand-title-side {
+      font-size: 15px;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: -0.3px;
+    }
+    .brand-subtitle-side {
+      font-size: 10px;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+    .sidebar-menu {
+      padding: 16px 14px;
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .menu-heading {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #64748b;
+      font-weight: 700;
+      padding: 12px 10px 4px;
+    }
+    .nav-item-side {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 14px;
+      border-radius: 12px;
+      color: #cbd5e1;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.2s ease;
+    }
+    .nav-item-side:hover {
+      background: rgba(255,255,255,0.06);
+      color: #ffffff;
+      transform: translateX(3px);
+    }
+    .nav-item-side.active {
+      background: linear-gradient(135deg, #0284c7 0%, #06b6d4 100%);
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(2, 132, 199, 0.25);
+    }
+    .nav-item-side i {
+      width: 20px;
+      text-align: center;
+      font-size: 14px;
+    }
+    .nav-item-side .badge {
+      margin-left: auto;
+      font-size: 9px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.2);
+    }
+    .sidebar-footer {
+      padding: 16px 18px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      background: rgba(0,0,0,0.15);
+      font-size: 11px;
+      color: #94a3b8;
+    }
+    .sidebar-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      z-index: 995;
+      display: none;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .sidebar-backdrop.show {
+      display: block;
+      opacity: 1;
+    }
   </style>
 </head>
 <body>
 
+  <!-- SIDEBAR DRAWER -->
+  <aside class="app-sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="brand-icon-box">
+        <i class="fa-solid fa-chart-line"></i>
+      </div>
+      <div class="brand-name-box">
+        <span class="brand-title-side">SCO SUITE</span>
+        <span class="brand-subtitle-side">Executive Daily</span>
+      </div>
+    </div>
+
+    <!-- Navigation Menu -->
+    <nav class="sidebar-menu">
+      <div class="menu-heading">Menu Utama</div>
+      <a class="nav-item-side" href="index.html">
+        <i class="fa-solid fa-gauge-high"></i>
+        <span>Ringkasan Performa</span>
+        <span class="badge">MoM</span>
+      </a>
+      <a class="nav-item-side active" href="detil_sco.html">
+        <i class="fa-solid fa-user-tie"></i>
+        <span>Detil per SCO</span>
+        <span class="badge" style="background: #10b981; color: #fff;">Live</span>
+      </a>
+
+      <div class="menu-heading">Eksternal</div>
+      <a class="nav-item-side" href="https://depocell.github.io/dashboard/" target="_blank">
+        <i class="fa-solid fa-layer-group"></i>
+        <span>Executive BI Suite</span>
+        <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 10px; margin-left: auto;"></i>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <span>SCO Suite v2.0 • depocell</span>
+    </div>
+  </aside>
+
+  <!-- Backdrop -->
+  <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar()"></div>
+
   <!-- HEADER -->
   <header>
-    <div class="brand">
-      <div class="brand-icon">SCO</div>
-      <div class="brand-title">
-        Daily Report
-        <span id="headerSubText">Mobile Dashboard</span>
-      </div>
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <button class="icon-btn" onclick="toggleSidebar()" title="Buka Menu" style="font-size: 14px; color: var(--text);">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+      <a href="index.html" class="brand" style="text-decoration: none; color: inherit;" title="Ke Ringkasan SCO">
+        <div class="brand-icon">SCO</div>
+        <div class="brand-title">
+          Daily Report
+          <span id="headerSubText">Mobile Dashboard</span>
+        </div>
+      </a>
     </div>
 
     <!-- Selected Sales Trigger -->
@@ -2303,6 +2484,20 @@
         console.error('Gagal menyalin:', err);
         showCopyToast('Gagal menyalin');
       });
+    }
+
+    // ── SIDEBAR DRAWER TOGGLE ──
+    function toggleSidebar(forceClose = false) {
+      const sb = document.getElementById('sidebar');
+      const bd = document.getElementById('sidebarBackdrop');
+      if (!sb || !bd) return;
+      if (forceClose) {
+        sb.classList.remove('show');
+        bd.classList.remove('show');
+        return;
+      }
+      sb.classList.toggle('show');
+      bd.classList.toggle('show');
     }
   </script>
 </body>

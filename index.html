@@ -3,278 +3,681 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Dashboard Ringkasan SCO</title>
+  <title>Dashboard Ringkasan SCO • Executive Performance Suite</title>
+  
+  <!-- Google Fonts & Font Awesome 6 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   
   <!-- SheetJS & ChartJS & html2canvas -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  
-  <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 
   <style>
     :root {
-      --bg: #f8fafc;
-      --surface: #ffffff;
-      --text: #0f172a;
+      --font: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+      
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 20px;
+
+      /* Brand Theme: Modern SCO Executive */
+      --brand-primary: #0284c7;
+      --brand-secondary: #06b6d4;
+      --brand-gradient: linear-gradient(135deg, #0284c7 0%, #06b6d4 100%);
+      --brand-glow: rgba(2, 132, 199, 0.25);
+      --brand-subtle: #e0f2fe;
+      --brand-text: #0369a1;
+
+      /* Light Theme (Default) */
+      --bg-body: #f8fafc;
+      --bg-sidebar: #0f172a;
+      --bg-card: #ffffff;
+      --bg-card-subtle: #f1f5f9;
+      --border-color: #e2e8f0;
+      --border-subtle: #f1f5f9;
+      --text-main: #0f172a;
       --text-muted: #64748b;
-      --text-dim: #94a3b8;
-      --primary: #3b82f6;
-      --primary-dim: rgba(59, 130, 246, 0.1);
-      --border: #e2e8f0;
-      --radius: 12px;
-      --green: #10b981;
-      --green-dim: rgba(16, 185, 129, 0.12);
-      --red: #ef4444;
-      --red-dim: rgba(239, 68, 68, 0.12);
+      --text-light: #94a3b8;
+      
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+      --shadow-md: 0 4px 14px -2px rgba(15, 23, 42, 0.06), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
+      --shadow-lg: 0 10px 25px -4px rgba(15, 23, 42, 0.08), 0 4px 10px -2px rgba(15, 23, 42, 0.04);
+      
+      --success: #10b981;
+      --success-bg: #d1fae5;
+      --danger: #ef4444;
+      --danger-bg: #fee2e2;
+      --warning: #f59e0b;
+      --warning-bg: #fef3c7;
       --purple: #8b5cf6;
-      --purple-dim: rgba(139, 92, 246, 0.12);
-      --cyan: #06b6d4;
-      --cyan-dim: rgba(6, 182, 212, 0.12);
-      --shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
-      --shadow-hover: 0 8px 20px rgba(0, 0, 0, 0.08);
+      --purple-bg: #ede9fe;
     }
-    
-    * {
-      box-sizing: border-box;
+
+    body.dark-theme {
+      --bg-body: #0b1120;
+      --bg-sidebar: #070c18;
+      --bg-card: #131c31;
+      --bg-card-subtle: #1e293b;
+      --border-color: #1e293b;
+      --border-subtle: #182234;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-light: #64748b;
+      
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+      --shadow-md: 0 6px 18px rgba(0,0,0,0.25);
+      --shadow-lg: 0 14px 30px rgba(0,0,0,0.35);
+      
+      --brand-subtle: rgba(2, 132, 199, 0.18);
+      --brand-text: #38bdf8;
+      --success-bg: rgba(16, 185, 129, 0.15);
+      --danger-bg: rgba(239, 68, 68, 0.15);
+      --warning-bg: rgba(245, 158, 11, 0.15);
+      --purple-bg: rgba(139, 92, 246, 0.15);
     }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     
     body {
-      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background-color: var(--bg);
-      color: var(--text);
-      margin: 0;
-      padding: 16px;
+      font-family: var(--font);
+      background-color: var(--bg-body);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      overflow-x: hidden;
+      transition: background-color 0.3s ease, color 0.3s ease;
       -webkit-font-smoothing: antialiased;
     }
-    
-    .container {
-      max-width: 1040px;
-      margin: 0 auto;
-    }
-    
-    .page-header {
-      text-align: center;
-      margin-bottom: 20px;
-      padding: 4px 0;
-    }
-    
-    .page-title {
-      font-size: 22px;
-      font-weight: 800;
-      color: var(--text);
-      margin: 0 0 4px 0;
-      letter-spacing: -0.02em;
-    }
-    
-    .page-subtitle {
-      font-size: 13px;
-      color: var(--text-muted);
-      margin: 0;
-    }
 
-    /* ── HEADER BADGES ── */
-    .header-badges {
+    /* ── SIDEBAR NAVIGATION ── */
+    .app-sidebar {
+      width: 270px;
+      background: var(--bg-sidebar);
+      color: #e2e8f0;
       display: flex;
-      gap: 8px;
-      margin-bottom: 16px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-    .updated-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: #ecfdf5;
-      color: #047857;
-      border: 1px solid #a7f3d0;
-      padding: 4px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 0.2px;
-    }
-    .badge-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 3px 10px;
-      border-radius: 12px;
-      font-size: 11.5px;
-      font-weight: 700;
-    }
-    .badge-pill.negative {
-      background-color: #fee2e2;
-      color: #dc2626;
-      border: 1px solid #fecaca;
-    }
-    .badge-pill.positive {
-      background-color: #dcfce7;
-      color: #16a34a;
-      border: 1px solid #bbf7d0;
+      flex-direction: column;
+      flex-shrink: 0;
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 100;
+      transition: var(--transition);
+      box-shadow: 4px 0 20px rgba(0,0,0,0.15);
     }
 
-    /* ── CARDS (BEAUTIFIED 4-CARD LAYOUT) ── */
+    .sidebar-header {
+      padding: 22px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon-box {
+      width: 42px;
+      height: 42px;
+      border-radius: var(--radius-md);
+      background: var(--brand-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 18px;
+      box-shadow: 0 4px 14px var(--brand-glow);
+      flex-shrink: 0;
+    }
+
+    .brand-name-box {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .brand-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: -0.3px;
+    }
+
+    .brand-subtitle {
+      font-size: 10px;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .sidebar-menu {
+      padding: 16px 14px;
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .menu-heading {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #64748b;
+      font-weight: 700;
+      padding: 12px 10px 4px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 14px;
+      border-radius: var(--radius-md);
+      color: #cbd5e1;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: var(--transition);
+    }
+
+    .nav-item:hover {
+      background: rgba(255,255,255,0.06);
+      color: #ffffff;
+      transform: translateX(3px);
+    }
+
+    .nav-item.active {
+      background: var(--brand-gradient);
+      color: #ffffff;
+      box-shadow: 0 4px 14px var(--brand-glow);
+    }
+
+    .nav-item i {
+      width: 20px;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .nav-item .badge {
+      margin-left: auto;
+      font-size: 9px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.2);
+    }
+
+    .sidebar-footer {
+      padding: 16px 18px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      background: rgba(0,0,0,0.15);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .data-status-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      color: #94a3b8;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 8px var(--success);
+      flex-shrink: 0;
+    }
+
+    .status-dot.loading {
+      background: var(--warning);
+      box-shadow: 0 0 8px var(--warning);
+      animation: pulse 1.2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(1.3); }
+    }
+
+    /* ── BACKDROP FOR MOBILE ── */
+    .sidebar-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      z-index: 95;
+      display: none;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .sidebar-backdrop.show {
+      display: block;
+      opacity: 1;
+    }
+
+    /* ── MAIN LAYOUT ── */
+    .app-main {
+      flex: 1;
+      margin-left: 270px;
+      min-height: 100vh;
+      min-width: 0;
+      max-width: calc(100vw - 270px);
+      display: flex;
+      flex-direction: column;
+      transition: var(--transition);
+    }
+
+    /* ── TOPBAR ── */
+    .app-topbar {
+      height: 70px;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      position: sticky;
+      top: 0;
+      z-index: 90;
+      backdrop-filter: blur(12px);
+      box-shadow: var(--shadow-sm);
+      gap: 12px;
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .toggle-sidebar-btn {
+      display: none;
+      background: transparent;
+      border: 1px solid var(--border-color);
+      width: 38px;
+      height: 38px;
+      border-radius: var(--radius-md);
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 16px;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+    }
+
+    .toggle-sidebar-btn:hover {
+      background: var(--bg-card-subtle);
+      color: var(--text-main);
+    }
+
+    .page-title-box h1 {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      letter-spacing: -0.3px;
+      white-space: nowrap;
+    }
+
+    .brand-tag-chip {
+      font-size: 10.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: var(--brand-subtle);
+      color: var(--brand-text);
+      letter-spacing: 0.4px;
+      white-space: nowrap;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .action-btn {
+      height: 38px;
+      padding: 0 14px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+      background: var(--bg-card);
+      color: var(--text-main);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      transition: var(--transition);
+      font-family: inherit;
+      text-decoration: none;
+    }
+
+    .action-btn:hover {
+      background: var(--bg-card-subtle);
+      border-color: var(--brand-primary);
+      color: var(--brand-primary);
+    }
+
+    .action-btn.btn-primary {
+      background: var(--brand-gradient);
+      color: #ffffff;
+      border: none;
+      box-shadow: 0 4px 12px var(--brand-glow);
+    }
+
+    .action-btn.btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px var(--brand-glow);
+      color: #ffffff;
+    }
+
+    .action-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    /* ── CONTENT CONTAINER ── */
+    .app-content {
+      padding: 24px 28px 48px;
+      flex: 1;
+    }
+
+    .status-alert {
+      padding: 12px 16px;
+      border-radius: var(--radius-md);
+      margin-bottom: 20px;
+      font-size: 13px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--brand-subtle);
+      border: 1px solid rgba(2, 132, 199, 0.2);
+      color: var(--brand-text);
+    }
+
+    /* ── KPI CARDS (4-CARD GRID) ── */
     .kpi-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 14px;
+      gap: 16px;
       margin-bottom: 24px;
     }
+
     .kpi-card {
-      background: #fff5f5;
-      border: 1px solid #fecaca;
-      border-radius: 16px;
-      padding: 16px 20px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 18px 20px;
+      box-shadow: var(--shadow-sm);
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
     }
+
+    .kpi-card::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--brand-gradient);
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
     .kpi-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(220, 38, 38, 0.08);
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-md);
+      border-color: rgba(2, 132, 199, 0.3);
     }
+
+    .kpi-card:hover::after {
+      opacity: 1;
+    }
+
+    .kpi-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
     .kpi-title {
       font-size: 11.5px;
       font-weight: 700;
-      color: #991b1b;
+      color: var(--text-muted);
       letter-spacing: 0.5px;
       text-transform: uppercase;
-      margin-bottom: 6px;
     }
+
+    .kpi-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: var(--brand-subtle);
+      color: var(--brand-text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+    }
+
     .kpi-value {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, 'Plus Jakarta Sans', sans-serif;
-      font-size: 34px;
-      font-weight: 700;
-      color: #991b1b;
-      line-height: 1.1;
-      margin-bottom: 8px;
+      font-family: var(--font);
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--text-main);
+      line-height: 1.15;
+      margin-bottom: 12px;
+      letter-spacing: -0.5px;
     }
+
     .kpi-footer {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      font-size: 13px;
-      color: #64748b;
+      font-size: 12px;
+      color: var(--text-muted);
       font-weight: 500;
-    }
-    .kpi-footer .badge-pill {
-      padding: 2px 9px;
-      border-radius: 12px;
-      font-size: 11.5px;
+      border-top: 1px solid var(--border-subtle);
+      padding-top: 10px;
     }
 
-    /* ── TABLE CARD (BEAUTIFIED) ── */
-    .table-card {
-      background: var(--surface);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      border: 1px solid var(--border);
-      overflow: hidden;
-      margin-bottom: 24px;
+    /* ── BADGE PILLS ── */
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      font-family: var(--font-mono);
     }
-    .table-card-header {
-      padding: 14px 18px;
-      background: #ffffff;
-      border-bottom: 1px solid var(--border);
+
+    .badge-pill.positive {
+      background-color: var(--success-bg);
+      color: #15803d;
+    }
+
+    .badge-pill.negative {
+      background-color: var(--danger-bg);
+      color: #dc2626;
+    }
+
+    /* ── PANELS (TABLE & CHART) ── */
+    .panel-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 22px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .panel-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
     }
-    .table-header-left {
+
+    .panel-header-left {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
     }
-    .table-header-icon {
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
-      background: var(--primary-dim);
-      color: var(--primary);
+
+    .panel-icon-box {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-md);
+      background: var(--brand-subtle);
+      color: var(--brand-text);
       display: flex;
       align-items: center;
       justify-content: center;
+      font-size: 15px;
       flex-shrink: 0;
     }
-    .table-header-title {
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--text);
+
+    .panel-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--text-main);
+      letter-spacing: -0.2px;
     }
-    .table-header-subtitle {
-      font-size: 11px;
+
+    .panel-subtitle {
+      font-size: 11.5px;
       color: var(--text-muted);
     }
-    .table-header-badge {
-      font-size: 11px;
-      font-weight: 700;
-      padding: 4px 10px;
-      background: var(--primary-dim);
-      color: var(--primary);
-      border-radius: 999px;
-      border: 1px solid rgba(59, 130, 246, 0.2);
+
+    .panel-header-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
     }
-    .table-responsive {
+
+    .custom-input {
+      height: 36px;
+      padding: 0 12px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-card-subtle);
+      border-radius: var(--radius-md);
+      font-size: 12px;
+      color: var(--text-main);
+      font-family: inherit;
+      outline: none;
+      transition: var(--transition);
+      min-width: 180px;
+    }
+
+    .custom-input:focus {
+      border-color: var(--brand-primary);
+      background: var(--bg-card);
+      box-shadow: 0 0 0 3px var(--brand-glow);
+    }
+
+    /* ── TABLE STYLING ── */
+    .table-wrapper {
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
     }
+
     table {
       width: 100%;
       border-collapse: collapse;
       font-size: 13px;
     }
+
     thead th {
-      background: #f8fafc;
+      background: var(--bg-card-subtle);
       padding: 12px 14px;
       font-size: 11px;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.05em;
       color: var(--text-muted);
-      border-bottom: 2px solid var(--border);
+      border-bottom: 2px solid var(--border-color);
       white-space: nowrap;
       text-align: left;
     }
+
     thead th.num {
       text-align: right;
     }
+
     tbody td {
-      padding: 11px 14px;
-      border-bottom: 1px solid var(--border);
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border-color);
       vertical-align: middle;
-      color: var(--text);
+      color: var(--text-main);
+      transition: background 0.15s ease;
     }
+
     tbody tr:hover {
-      background: #f8fafc;
+      background: var(--bg-card-subtle);
     }
+
     td.num {
       text-align: right;
-      font-family: 'JetBrains Mono', monospace;
+      font-family: var(--font-mono);
       font-weight: 600;
     }
+
     td.num.negative,
     .row-total td.num.negative {
-      color: var(--red) !important;
+      color: var(--danger) !important;
     }
+
     td.num.positive,
     .row-total td.num.positive {
-      color: var(--green) !important;
+      color: var(--success) !important;
     }
+
     .row-total td {
-      font-weight: 700;
-      background: #f1f5f9;
-      border-top: 1px solid #cbd5e1;
-      border-bottom: 2px solid #cbd5e1;
+      font-weight: 800;
+      background: var(--bg-card-subtle);
+      border-top: 1px solid var(--border-color);
+      border-bottom: 2px solid var(--border-color);
     }
-    
+
     /* Growth Badge inside table */
     .growth-badge {
       display: inline-flex;
@@ -282,219 +685,354 @@
       gap: 2px;
       padding: 3px 8px;
       border-radius: 6px;
-      font-size: 12px;
+      font-size: 11.5px;
       font-weight: 700;
-      font-family: 'JetBrains Mono', monospace;
+      font-family: var(--font-mono);
     }
+
     .growth-badge.positive {
-      background: var(--green-dim);
-      color: var(--green);
+      background: var(--success-bg);
+      color: #15803d;
     }
+
     .growth-badge.negative {
-      background: var(--red-dim);
-      color: var(--red);
+      background: var(--danger-bg);
+      color: var(--danger);
     }
 
-    /* ── CHART CARD ── */
-    .chart-card {
-      background: var(--surface);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      border: 1px solid var(--border);
-      overflow: hidden;
-      margin-bottom: 24px;
-    }
-    .chart-container {
+    /* ── CHART CONTAINER ── */
+    .chart-container-wrap {
       position: relative;
-      height: 350px;
+      height: 380px;
       width: 100%;
-      padding: 16px;
     }
 
-    /* ── BUTTONS ── */
-    .btn-container {
+    /* ── BANNER CARD ── */
+    .quick-banner {
+      background: linear-gradient(135deg, rgba(2, 132, 199, 0.08) 0%, rgba(6, 182, 212, 0.08) 100%);
+      border: 1px solid rgba(2, 132, 199, 0.2);
+      border-radius: var(--radius-lg);
+      padding: 20px 24px;
       display: flex;
-      justify-content: center;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-bottom: 40px;
-    }
-    .btn {
-      display: inline-flex;
       align-items: center;
-      justify-content: center;
-      background-color: var(--primary);
-      color: white;
-      padding: 12px 22px;
-      border-radius: 8px;
-      text-decoration: none;
-      font-weight: 700;
-      font-size: 14px;
-      transition: all 0.2s ease;
-      box-shadow: 0 4px 6px rgba(59, 130, 246, 0.25);
-      border: none;
-      cursor: pointer;
-      font-family: inherit;
-    }
-    .btn:hover {
-      background-color: #2563eb;
-      transform: translateY(-1px);
-    }
-    .btn-export {
-      background-color: #10b981;
-      box-shadow: 0 4px 6px rgba(16, 185, 129, 0.25);
-    }
-    .btn-export:hover {
-      background-color: #059669;
-    }
-    .btn-export:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      transform: none;
-    }
-    
-    .status {
-      text-align: center;
-      font-size: 13px;
-      color: var(--text-muted);
-      margin-bottom: 16px;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
     }
 
-    @media (max-width: 960px) {
+    .banner-text-box h3 {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--text-main);
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .banner-text-box p {
+      font-size: 12.5px;
+      color: var(--text-muted);
+    }
+
+    /* ── FOOTER ── */
+    .report-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 18px;
+      border-top: 1px solid var(--border-color);
+      color: var(--text-light);
+      font-size: 12px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    /* ── RESPONSIVE MEDIA QUERIES ── */
+    @media (max-width: 1024px) {
       .kpi-grid {
         grid-template-columns: repeat(2, 1fr);
       }
     }
-    @media (max-width: 540px) {
+
+    @media (max-width: 992px) {
+      .app-sidebar {
+        transform: translateX(-100%);
+      }
+      .app-sidebar.show {
+        transform: translateX(0);
+      }
+      .app-main {
+        margin-left: 0;
+        max-width: 100vw;
+      }
+      .toggle-sidebar-btn {
+        display: inline-flex;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .app-topbar {
+        padding: 0 14px;
+        height: 60px;
+      }
+      .app-content {
+        padding: 16px 14px 36px;
+      }
+      .page-title-box h1 {
+        font-size: 15px;
+      }
+      .brand-tag-chip {
+        display: none;
+      }
+      .action-btn span {
+        display: none;
+      }
+      .action-btn {
+        padding: 0 10px;
+        height: 34px;
+      }
       .kpi-grid {
         grid-template-columns: 1fr;
+        gap: 12px;
       }
       .kpi-value {
-        font-size: 28px;
+        font-size: 26px;
+      }
+      .panel-box {
+        padding: 16px;
+      }
+      .custom-input {
+        width: 100%;
+      }
+      .chart-container-wrap {
+        height: 320px;
+      }
+    }
+
+    @media print {
+      .app-sidebar, .app-topbar, .sidebar-backdrop, [data-html2canvas-ignore="true"] {
+        display: none !important;
+      }
+      .app-main {
+        margin-left: 0 !important;
+        max-width: 100% !important;
       }
       body {
-        padding: 12px;
+        background: #fff !important;
+        color: #000 !important;
       }
     }
   </style>
 </head>
 <body>
 
-  <div class="container">
-    <div class="page-header">
-      <h1 class="page-title">Dashboard Ringkasan SCO</h1>
-      <p class="page-subtitle">Monitoring Performa Harian & Tren Penjualan</p>
-    </div>
-    
-    <div id="status" class="status">Memuat data dari HARIAN SCO.xlsx...</div>
-
-    <!-- HEADER BADGES -->
-    <div class="header-badges">
-      <span class="updated-badge" id="scoUpdatedBadge">📅 Updated s/d tgl -</span>
-      <span class="badge-pill positive">⚡ Auto-calculated</span>
-    </div>
-
-    <!-- CARDS (4-CARD LAYOUT) -->
-    <div class="kpi-grid">
-      <div class="kpi-card">
-        <div class="kpi-title">TOTAL SCO (AVG/HARI)</div>
-        <div class="kpi-value" id="kpi-total-sco">-</div>
-        <div class="kpi-footer">
-          <span id="kpi-total-sco-prev">Bulan Lalu: -</span>
-          <span id="kpi-total-sco-growth" class="badge-pill">-</span>
-        </div>
+  <!-- ── SIDEBAR ── -->
+  <aside class="app-sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="brand-icon-box">
+        <i class="fa-solid fa-chart-line"></i>
       </div>
-
-      <div class="kpi-card">
-        <div class="kpi-title">TOTAL NON SCO (AVG/HARI)</div>
-        <div class="kpi-value" id="kpi-total-non">-</div>
-        <div class="kpi-footer">
-          <span id="kpi-total-non-prev">Bulan Lalu: -</span>
-          <span id="kpi-total-non-growth" class="badge-pill">-</span>
-        </div>
-      </div>
-
-      <div class="kpi-card">
-        <div class="kpi-title">ONLINE (AVG/HARI)</div>
-        <div class="kpi-value" id="kpi-online">-</div>
-        <div class="kpi-footer">
-          <span id="kpi-online-prev">Bulan Lalu: -</span>
-          <span id="kpi-online-growth" class="badge-pill">-</span>
-        </div>
-      </div>
-
-      <div class="kpi-card">
-        <div class="kpi-title">GRAND TOTAL (AVG/HARI)</div>
-        <div class="kpi-value" id="kpi-grand">-</div>
-        <div class="kpi-footer">
-          <span id="kpi-grand-prev">Bulan Lalu: -</span>
-          <span id="kpi-grand-growth" class="badge-pill">-</span>
-        </div>
+      <div class="brand-name-box">
+        <span class="brand-title">SCO SUITE</span>
+        <span class="brand-subtitle">Executive Daily</span>
       </div>
     </div>
 
-    <!-- TABLE CARD (BEAUTIFIED) -->
-    <div class="table-card">
-      <div class="table-card-header">
-        <div class="table-header-left">
-          <div class="table-header-icon">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M3 3v18h18"/><rect width="12" height="4" x="7" y="5" rx="1"/><rect width="7" height="4" x="7" y="11" rx="1"/>
-            </svg>
+    <!-- Navigation Menu -->
+    <nav class="sidebar-menu">
+      <div class="menu-heading">Menu Utama</div>
+      <a class="nav-item active" href="index.html">
+        <i class="fa-solid fa-gauge-high"></i>
+        <span>Ringkasan Performa</span>
+        <span class="badge">MoM</span>
+      </a>
+      <a class="nav-item" href="detil_sco.html">
+        <i class="fa-solid fa-user-tie"></i>
+        <span>Detil per SCO</span>
+        <span class="badge" style="background: #10b981; color: #fff;">Live</span>
+      </a>
+
+      <div class="menu-heading">Eksternal</div>
+      <a class="nav-item" href="https://depocell.github.io/dashboard/" target="_blank">
+        <i class="fa-solid fa-layer-group"></i>
+        <span>Executive BI Suite</span>
+        <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 10px; margin-left: auto;"></i>
+      </a>
+    </nav>
+
+    <!-- Sidebar Footer -->
+    <div class="sidebar-footer">
+      <div class="data-status-badge">
+        <div class="status-dot" id="statusDot"></div>
+        <span id="sidebarStatusText">Memuat data...</span>
+      </div>
+      <div style="font-size: 10px; color: #64748b;" id="sidebarCutoffText">Periode otomatis</div>
+    </div>
+  </aside>
+
+  <!-- Sidebar Backdrop for Mobile -->
+  <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar()"></div>
+
+  <!-- ── MAIN CONTENT AREA ── -->
+  <main class="app-main">
+    <!-- Topbar -->
+    <header class="app-topbar">
+      <div class="topbar-left">
+        <button class="toggle-sidebar-btn" onclick="toggleSidebar()" aria-label="Toggle Sidebar">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+        <div class="page-title-box">
+          <h1>
+            <span>Ringkasan SCO</span>
+            <span class="brand-tag-chip" id="scoUpdatedBadge">📅 Memuat...</span>
+          </h1>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <button class="action-btn" onclick="toggleDarkMode()" title="Ganti Tema">
+          <i class="fa-solid fa-moon" id="themeIcon"></i>
+          <span>Dark Mode</span>
+        </button>
+        <button class="action-btn" onclick="loadData()" title="Segarkan Data">
+          <i class="fa-solid fa-arrows-rotate"></i>
+          <span>Refresh</span>
+        </button>
+        <button class="action-btn btn-primary" id="btnExportJpg" onclick="exportToJpg()" title="Simpan sebagai Gambar">
+          <i class="fa-solid fa-download"></i>
+          <span>Export JPG</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Content -->
+    <div class="app-content" id="reportContent">
+      <div id="status" class="status-alert" style="display: none;">
+        <i class="fa-solid fa-circle-notch fa-spin"></i>
+        <span id="statusMsg">Memuat data...</span>
+      </div>
+
+      <!-- 4 KPI CARDS -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-title">TOTAL SCO (AVG/HARI)</span>
+            <div class="kpi-icon"><i class="fa-solid fa-user-check"></i></div>
           </div>
-          <div>
-            <div class="table-header-title">Ringkasan Tren Penjualan</div>
-            <div class="table-header-subtitle">Data performa per SCO, Non SCO & Online</div>
+          <div class="kpi-value" id="kpi-total-sco">-</div>
+          <div class="kpi-footer">
+            <span id="kpi-total-sco-prev">Bulan Lalu: -</span>
+            <span id="kpi-total-sco-growth" class="badge-pill">-</span>
           </div>
         </div>
-        <div class="table-header-badge" id="tableMonthBadge">MoM</div>
-      </div>
-      <div class="table-responsive">
-        <table id="dataTable">
-          <thead>
-            <tr id="tableHeadRow">
-              <!-- Headers render otomatis di sini -->
-            </tr>
-          </thead>
-          <tbody id="tableBody">
-            <!-- Data render otomatis di sini -->
-          </tbody>
-        </table>
-      </div>
-    </div>
 
-    <!-- CHART CARD -->
-    <div class="chart-card">
-      <div class="table-card-header">
-        <div class="table-header-left">
-          <div class="table-header-icon" style="background: var(--purple-dim); color: var(--purple);">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="18" x2="18" y1="20" y2="10"/><line x1="12" x2="12" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="14"/>
-            </svg>
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-title">TOTAL NON SCO (AVG/HARI)</span>
+            <div class="kpi-icon" style="background: rgba(139, 92, 246, 0.15); color: #8b5cf6;"><i class="fa-solid fa-users"></i></div>
           </div>
-          <div>
-            <div class="table-header-title">Perbandingan Performa per SCO</div>
-            <div class="table-header-subtitle">Rata-rata transaksi harian per personil</div>
+          <div class="kpi-value" id="kpi-total-non">-</div>
+          <div class="kpi-footer">
+            <span id="kpi-total-non-prev">Bulan Lalu: -</span>
+            <span id="kpi-total-non-growth" class="badge-pill">-</span>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-title">ONLINE (AVG/HARI)</span>
+            <div class="kpi-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;"><i class="fa-solid fa-globe"></i></div>
+          </div>
+          <div class="kpi-value" id="kpi-online">-</div>
+          <div class="kpi-footer">
+            <span id="kpi-online-prev">Bulan Lalu: -</span>
+            <span id="kpi-online-growth" class="badge-pill">-</span>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-title">GRAND TOTAL (AVG/HARI)</span>
+            <div class="kpi-icon" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;"><i class="fa-solid fa-chart-pie"></i></div>
+          </div>
+          <div class="kpi-value" id="kpi-grand">-</div>
+          <div class="kpi-footer">
+            <span id="kpi-grand-prev">Bulan Lalu: -</span>
+            <span id="kpi-grand-growth" class="badge-pill">-</span>
           </div>
         </div>
       </div>
-      <div class="chart-container">
-        <canvas id="myChart"></canvas>
-      </div>
-    </div>
 
-    <!-- BUTTONS -->
-    <div class="btn-container" data-html2canvas-ignore="true">
-      <button type="button" id="btnExportJpg" class="btn btn-export" onclick="exportToJpg()">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 6px;">
-          <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
-          <circle cx="9" cy="9" r="2"/>
-          <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
-        </svg>Export JPG
-      </button>
-      <a href="detil_sco.html" class="btn">Lihat Detil per SCO &rarr;</a>
+      <!-- TABLE PANEL -->
+      <div class="panel-box">
+        <div class="panel-header">
+          <div class="panel-header-left">
+            <div class="panel-icon-box">
+              <i class="fa-solid fa-table-list"></i>
+            </div>
+            <div>
+              <div class="panel-title">Ringkasan Tren Penjualan</div>
+              <div class="panel-subtitle">Data performa per SCO, Non SCO & Online</div>
+            </div>
+          </div>
+          <div class="panel-header-right">
+            <input type="text" class="custom-input" id="tableSearchInput" placeholder="Cari SCO / Cabang..." onkeyup="filterTable()">
+            <span class="badge-pill" id="tableMonthBadge" style="background: var(--brand-subtle); color: var(--brand-text); font-size: 11px;">MoM</span>
+          </div>
+        </div>
+
+        <div class="table-wrapper">
+          <table id="dataTable">
+            <thead>
+              <tr id="tableHeadRow">
+                <!-- Auto-rendered headers -->
+              </tr>
+            </thead>
+            <tbody id="tableBody">
+              <!-- Auto-rendered rows -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- CHART PANEL -->
+      <div class="panel-box">
+        <div class="panel-header">
+          <div class="panel-header-left">
+            <div class="panel-icon-box" style="background: rgba(139, 92, 246, 0.15); color: #8b5cf6;">
+              <i class="fa-solid fa-chart-column"></i>
+            </div>
+            <div>
+              <div class="panel-title">Perbandingan Performa per SCO</div>
+              <div class="panel-subtitle">Rata-rata transaksi harian per personil</div>
+            </div>
+          </div>
+        </div>
+        <div class="chart-container-wrap">
+          <canvas id="myChart"></canvas>
+        </div>
+      </div>
+
+      <!-- QUICK NAVIGATION BANNER TO DETIL SCO -->
+      <div class="quick-banner" data-html2canvas-ignore="true">
+        <div class="banner-text-box">
+          <h3><i class="fa-solid fa-id-badge" style="color: var(--brand-primary);"></i> Eksplorasi Detil per Personil</h3>
+          <p>Lihat kalender pencapaian harian, perbandingan target vs realisasi, dan monitoring outlet per SCO.</p>
+        </div>
+        <a href="detil_sco.html" class="action-btn btn-primary">
+          <span>Buka Detil SCO</span>
+          <i class="fa-solid fa-arrow-right"></i>
+        </a>
+      </div>
+
+      <!-- FOOTER -->
+      <footer class="report-footer">
+        <span id="footerBrand">SCO Suite v2.0 • Executive Reporting Automation</span>
+        <span id="footerGenerated">Data diperbarui otomatis</span>
+      </footer>
     </div>
-  </div>
+  </main>
 
   <script>
     let excelData = [];
@@ -502,7 +1040,63 @@
     let colM1 = '';
     let colM2 = '';
 
+    // ── SIDEBAR DRAWER TOGGLE ──
+    function toggleSidebar(forceClose = false) {
+      const sb = document.getElementById('sidebar');
+      const bd = document.getElementById('sidebarBackdrop');
+      if (forceClose) {
+        sb.classList.remove('show');
+        bd.classList.remove('show');
+        return;
+      }
+      sb.classList.toggle('show');
+      bd.classList.toggle('show');
+    }
+
+    // Close sidebar when clicking links on mobile
+    document.querySelectorAll('.app-sidebar .nav-item').forEach(link => {
+      link.addEventListener('click', () => {
+        if (window.innerWidth <= 992) toggleSidebar(true);
+      });
+    });
+
+    // ── DARK MODE TOGGLE ──
+    function initTheme() {
+      const saved = localStorage.getItem('sco_theme');
+      if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.body.classList.add('dark-theme');
+        updateThemeIcon(true);
+      } else {
+        document.body.classList.remove('dark-theme');
+        updateThemeIcon(false);
+      }
+    }
+
+    function toggleDarkMode() {
+      const isDark = document.body.classList.toggle('dark-theme');
+      localStorage.setItem('sco_theme', isDark ? 'dark' : 'light');
+      updateThemeIcon(isDark);
+      if (chartInstance) renderChart();
+    }
+
+    function updateThemeIcon(isDark) {
+      const icon = document.getElementById('themeIcon');
+      if (icon) {
+        icon.className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+      }
+    }
+
+    // ── DATA LOADING ──
     async function loadData() {
+      const statusBox = document.getElementById('status');
+      const statusMsg = document.getElementById('statusMsg');
+      const statusDot = document.getElementById('statusDot');
+      const sidebarStatus = document.getElementById('sidebarStatusText');
+      const sidebarCutoff = document.getElementById('sidebarCutoffText');
+
+      if (statusDot) statusDot.className = 'status-dot loading';
+      if (sidebarStatus) sidebarStatus.textContent = 'Memuat data...';
+
       // 1. Coba baca data_sco.json (Super Cepat)
       try {
         const jsonRes = await fetch(`data_sco.json?t=${Date.now()}`, { cache: 'no-store' });
@@ -512,11 +1106,16 @@
             colM1 = jsonData.months.prev;
             colM2 = jsonData.months.curr;
             excelData = jsonData.index;
-            if (jsonData.cutoff_date) {
-              const b = document.getElementById('scoUpdatedBadge');
-              if (b) b.textContent = `📅 Updated s/d tgl ${jsonData.cutoff_date}`;
-            }
-            document.getElementById('status').style.display = 'none';
+            
+            const cutoff = jsonData.cutoff_date ? `s/d tgl ${jsonData.cutoff_date}` : (colM2 || 'Terbaru');
+            const badge = document.getElementById('scoUpdatedBadge');
+            if (badge) badge.textContent = `📅 ${cutoff}`;
+            if (sidebarCutoff) sidebarCutoff.textContent = `Periode: ${colM1 || 'M1'} vs ${colM2 || 'M2'}`;
+
+            if (statusDot) statusDot.className = 'status-dot';
+            if (sidebarStatus) sidebarStatus.textContent = 'Data Terhubung';
+            if (statusBox) statusBox.style.display = 'none';
+
             renderCards();
             renderTable();
             renderChart();
@@ -529,6 +1128,11 @@
 
       // 2. Fallback baca Excel
       try {
+        if (statusBox) {
+          statusBox.style.display = 'flex';
+          statusMsg.textContent = 'Membaca file Excel HARIAN SCO.xlsx...';
+        }
+
         let response = await fetch(`HARIAN SCO.xlsx?t=${Date.now()}`, { cache: 'no-store' });
         if (!response.ok) {
           response = await fetch(`HARIAN SCO_AUTO.xlsx?t=${Date.now()}`, { cache: 'no-store' });
@@ -538,56 +1142,55 @@
         const arrayBuffer = await response.arrayBuffer();
         const workbook = XLSX.read(arrayBuffer, { type: 'array' });
         
-        // Cari sheet bernama "Index"
-        let sheetName = workbook.SheetNames.find(n => n.toLowerCase() === 'index');
-        if (!sheetName) {
-            sheetName = workbook.SheetNames[0]; // fallback
-        }
-        
+        let sheetName = workbook.SheetNames.find(n => n.toLowerCase() === 'index') || workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
-        
-        // Konversi ke JSON
         const rawData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
         
-        if(rawData.length > 0) {
-            const keys = Object.keys(rawData[0]).filter(k => !String(k).includes('__EMPTY'));
-            // Deteksi otomatis kolom bulan (selain SCO, CABANG, Growth, %)
-            const monthKeys = keys.filter(k => {
-              const lower = String(k).toLowerCase().trim();
-              return lower !== 'sco' && lower !== 'cabang' && !lower.includes('growth') && lower !== '%';
-            });
-            if (monthKeys.length >= 2) {
-              colM1 = monthKeys[monthKeys.length - 2]; // Bulan Lalu (misal Aug atau Sep)
-              colM2 = monthKeys[monthKeys.length - 1]; // Bulan Ini (misal Sep atau Oct)
-            } else {
-              colM1 = keys[2] || 'AUG'; 
-              colM2 = keys[3] || 'SEP'; 
-            }
+        if (rawData.length > 0) {
+          const keys = Object.keys(rawData[0]).filter(k => !String(k).includes('__EMPTY'));
+          const monthKeys = keys.filter(k => {
+            const lower = String(k).toLowerCase().trim();
+            return lower !== 'sco' && lower !== 'cabang' && !lower.includes('growth') && lower !== '%';
+          });
+          if (monthKeys.length >= 2) {
+            colM1 = monthKeys[monthKeys.length - 2];
+            colM2 = monthKeys[monthKeys.length - 1];
+          } else {
+            colM1 = keys[2] || 'AUG'; 
+            colM2 = keys[3] || 'SEP'; 
+          }
         }
 
         excelData = rawData;
         
-        if (colM2) {
-          const b = document.getElementById('scoUpdatedBadge');
-          if (b && (!b.textContent || b.textContent.includes('-'))) {
-            b.textContent = `📅 Periode ${colM2}`;
-          }
-        }
+        const badge = document.getElementById('scoUpdatedBadge');
+        if (badge && colM2) badge.textContent = `📅 Periode ${colM2}`;
+        if (sidebarCutoff && colM1 && colM2) sidebarCutoff.textContent = `Periode: ${colM1} vs ${colM2}`;
 
-        document.getElementById('status').style.display = 'none';
+        if (statusDot) statusDot.className = 'status-dot';
+        if (sidebarStatus) sidebarStatus.textContent = 'Excel Dimuat';
+        if (statusBox) statusBox.style.display = 'none';
         
         renderCards();
         renderTable();
         renderChart();
-        
       } catch (error) {
-        document.getElementById('status').innerHTML = `<span style="color:red">Error: ${error.message}. Pastikan file data_sco.json atau HARIAN SCO.xlsx ada di folder yang sama.</span>`;
+        if (statusDot) statusDot.className = 'status-dot loading';
+        if (sidebarStatus) sidebarStatus.textContent = 'Gagal Memuat';
+        if (statusBox) {
+          statusBox.style.display = 'flex';
+          statusBox.className = 'status-alert';
+          statusBox.style.background = 'var(--danger-bg)';
+          statusBox.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+          statusBox.style.color = 'var(--danger)';
+          statusMsg.innerHTML = `<strong>Error:</strong> ${error.message}. Pastikan file <code>data_sco.json</code> atau <code>HARIAN SCO.xlsx</code> tersedia.`;
+        }
         console.error(error);
       }
     }
 
     function formatNumber(num) {
-      if(typeof num !== 'number') return num;
+      if (typeof num !== 'number') return num;
       return num.toLocaleString('id-ID', { maximumFractionDigits: 1 });
     }
 
@@ -602,7 +1205,7 @@
       return sign + val.toFixed(1).replace('.', ',') + '%';
     }
 
-    // ── 1. RENDER 4 CARDS (MATCHING ATTACHMENT) ──
+    // ── 1. RENDER 4 CARDS ──
     function updateScoKpi(prefix, row) {
       const elVal = document.getElementById(prefix);
       const elPrev = document.getElementById(`${prefix}-prev`);
@@ -626,7 +1229,7 @@
         : (valPrev > 0 ? (growth / valPrev * 100) : 0);
 
       elVal.textContent = formatNumberID(Math.round(valCurr));
-      if (elPrev) elPrev.textContent = `${colM1}: ${formatNumberID(Math.round(valPrev))}`;
+      if (elPrev) elPrev.textContent = `${colM1 || 'Bulan Lalu'}: ${formatNumberID(Math.round(valPrev))}`;
       if (elGrowth) {
         elGrowth.textContent = formatPct(pct);
         elGrowth.className = 'badge-pill ' + (pct > 0 ? 'positive' : (pct < 0 ? 'negative' : ''));
@@ -634,7 +1237,7 @@
     }
 
     function renderCards() {
-      if (excelData.length === 0) return;
+      if (!excelData || excelData.length === 0) return;
       
       const rowTotSco = excelData.find(r => {
         const s = String(r['SCO'] || '').trim().toLowerCase();
@@ -659,35 +1262,44 @@
       updateScoKpi('kpi-grand', rowGrand);
     }
 
-    // ── 2. RENDER TABLE (GROWTH 1 DESIMAL & GROWTH %) ──
+    // ── 2. RENDER TABLE & REAL-TIME SEARCH FILTER ──
+    function filterTable() {
+      const q = (document.getElementById('tableSearchInput')?.value || '').toLowerCase().trim();
+      const rows = document.querySelectorAll('#tableBody tr');
+      rows.forEach(tr => {
+        const text = tr.innerText.toLowerCase();
+        tr.style.display = text.includes(q) ? '' : 'none';
+      });
+    }
+
     function renderTable() {
-      if (excelData.length === 0) return;
+      if (!excelData || excelData.length === 0) return;
 
       const thead = document.getElementById('tableHeadRow');
       thead.innerHTML = `
         <th>SCO</th>
         <th>CABANG</th>
-        <th class="num">${colM1 ? colM1.toUpperCase() : 'AUG'}</th>
-        <th class="num">${colM2 ? colM2.toUpperCase() : 'SEP'}</th>
+        <th class="num">${colM1 ? colM1.toUpperCase() : 'BULAN LALU'}</th>
+        <th class="num">${colM2 ? colM2.toUpperCase() : 'BULAN INI'}</th>
         <th class="num">Growth</th>
         <th class="num" style="text-align:center;">Growth (%)</th>
       `;
 
       const monthBadge = document.getElementById('tableMonthBadge');
       if (monthBadge && colM1 && colM2) {
-        monthBadge.textContent = `${colM1} vs ${colM2}`;
+        monthBadge.textContent = `${colM1.toUpperCase()} vs ${colM2.toUpperCase()}`;
       }
 
       const tbody = document.getElementById('tableBody');
       const html = excelData.map(row => {
-        const scoName = String(row['SCO']).toLowerCase();
+        const scoName = String(row['SCO'] || '').toLowerCase();
         const isTotalRow = scoName.includes('total') || scoName.includes('grand');
         const trClass = isTotalRow ? 'class="row-total"' : '';
         
         const v1 = parseFloat(row[colM1]) || 0;
         const v2 = parseFloat(row[colM2]) || 0;
         
-        // 1) Growth (Delta 1 desimal)
+        // Growth delta
         const diff = (row['Growth'] !== undefined && row['Growth'] !== '') 
           ? parseFloat(row['Growth']) 
           : (v2 - v1);
@@ -696,7 +1308,7 @@
         const diffFormatted = !isNaN(diff) ? `${diffSign}${diff.toFixed(1)}` : '-';
         const diffClass = isDiffNeg ? 'num negative' : 'num';
 
-        // 2) Growth (% dalam badge)
+        // Growth %
         let growthPct = 0;
         if (row['%'] !== undefined && row['%'] !== '') {
           growthPct = parseFloat(row['%']) * 100;
@@ -710,7 +1322,7 @@
         const pctBadge = `<span class="growth-badge ${badgeClass}">${pctSign}${growthPct.toFixed(1)}%</span>`;
 
         return `<tr ${trClass}>
-          <td>${row['SCO'] || '-'}</td>
+          <td style="font-weight: ${isTotalRow ? '800' : '600'};">${row['SCO'] || '-'}</td>
           <td>${row['CABANG'] || '-'}</td>
           <td class="num">${formatNumber(v1)}</td>
           <td class="num">${formatNumber(v2)}</td>
@@ -720,14 +1332,15 @@
       }).join('');
       
       tbody.innerHTML = html;
+      filterTable();
     }
 
-    // ── 3. RENDER CHART (DATA LABELS 1 DESIMAL) ──
+    // ── 3. RENDER CHART ──
     function renderChart() {
-      if (excelData.length === 0) return;
+      if (!excelData || excelData.length === 0) return;
 
       const chartData = excelData.filter(row => {
-          const sco = String(row['SCO']).toLowerCase();
+          const sco = String(row['SCO'] || '').toLowerCase();
           return !sco.includes('total') && 
                  sco !== 'online' && 
                  sco !== 'non sco' && 
@@ -742,6 +1355,11 @@
       const ctx = document.getElementById('myChart');
       if (chartInstance) chartInstance.destroy();
 
+      const isDark = document.body.classList.contains('dark-theme');
+      const textColor = isDark ? '#94a3b8' : '#64748b';
+      const gridColor = isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.05)';
+      const datalabelColor = isDark ? '#e2e8f0' : '#334155';
+
       chartInstance = new Chart(ctx, {
         type: 'bar', 
         plugins: [ChartDataLabels],
@@ -749,20 +1367,24 @@
           labels: labels,
           datasets: [
             {
-              label: colM1,
+              label: colM1 || 'Bulan Lalu',
               data: dataM1,
               backgroundColor: 'rgba(139, 92, 246, 0.75)',
               borderColor: 'rgba(139, 92, 246, 1)',
               borderWidth: 1,
-              borderRadius: 6
+              borderRadius: 6,
+              barPercentage: 0.75,
+              categoryPercentage: 0.7
             },
             {
-              label: colM2,
+              label: colM2 || 'Bulan Ini',
               data: dataM2,
               backgroundColor: 'rgba(16, 185, 129, 0.75)',
               borderColor: 'rgba(16, 185, 129, 1)',
               borderWidth: 1,
-              borderRadius: 6
+              borderRadius: 6,
+              barPercentage: 0.75,
+              categoryPercentage: 0.7
             }
           ]
         },
@@ -770,9 +1392,7 @@
           responsive: true,
           maintainAspectRatio: false,
           layout: {
-            padding: {
-              top: 25
-            }
+            padding: { top: 25, bottom: 6 }
           },
           interaction: {
             mode: 'index',
@@ -783,21 +1403,23 @@
               position: 'bottom',
               labels: {
                 font: { family: 'Plus Jakarta Sans', weight: '600', size: 12 },
+                color: textColor,
                 boxWidth: 14,
                 boxHeight: 14,
                 borderRadius: 3,
-                useBorderRadius: true
+                useBorderRadius: true,
+                padding: 16
               }
             },
             datalabels: {
               anchor: 'end',
               align: 'top',
               offset: 2,
-              color: '#334155',
+              color: datalabelColor,
               font: {
                 family: 'JetBrains Mono',
                 weight: '700',
-                size: 11
+                size: 10.5
               },
               formatter: function(value) {
                 if (typeof value === 'number') {
@@ -825,19 +1447,17 @@
             y: {
               grace: '15%',
               beginAtZero: true,
-              grid: {
-                color: 'rgba(0, 0, 0, 0.05)'
-              },
+              grid: { color: gridColor },
               ticks: {
-                font: { family: 'JetBrains Mono', size: 10 }
+                font: { family: 'JetBrains Mono', size: 10 },
+                color: textColor
               }
             },
             x: {
-              grid: {
-                display: false
-              },
+              grid: { display: false },
               ticks: {
-                font: { family: 'Plus Jakarta Sans', weight: '600', size: 11 }
+                font: { family: 'Plus Jakarta Sans', weight: '600', size: 11 },
+                color: textColor
               }
             }
           }
@@ -850,19 +1470,20 @@
       const btn = document.getElementById('btnExportJpg');
       const originalHtml = btn.innerHTML;
       btn.disabled = true;
-      btn.innerHTML = 'Sedang Menyimpan...';
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Menyimpan...</span>';
 
       try {
-        const target = document.querySelector('.container');
+        const target = document.getElementById('reportContent');
+        const isDark = document.body.classList.contains('dark-theme');
         
         const canvas = await html2canvas(target, {
           scale: 2,
           useCORS: true,
           logging: false,
-          backgroundColor: '#f8fafc',
-          ignoreElements: (element) => element.getAttribute('data-html2canvas-ignore') === 'true',
+          backgroundColor: isDark ? '#0b1120' : '#f8fafc',
+          ignoreElements: (el) => el.getAttribute('data-html2canvas-ignore') === 'true',
           onclone: (clonedDoc) => {
-            const tableResp = clonedDoc.querySelector('.table-responsive');
+            const tableResp = clonedDoc.querySelector('.table-wrapper');
             if (tableResp) {
               tableResp.style.overflow = 'visible';
             }
@@ -870,7 +1491,6 @@
         });
 
         const image = canvas.toDataURL('image/jpeg', 0.95);
-        
         const now = new Date();
         const dateStr = now.toISOString().slice(0, 10);
         const filename = `Dashboard_Ringkasan_SCO_${dateStr}.jpg`;
@@ -890,7 +1510,8 @@
       }
     }
 
-    // Eksekusi
+    // ── INIT ON LOAD ──
+    initTheme();
     loadData();
   </script>
 </body>
