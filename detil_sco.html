@@ -150,16 +150,16 @@
       gap: 10px;
       flex-wrap: wrap;
     }
-    .sales-bar-label {
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--text-muted);
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      white-space: nowrap;
+    .sco-select-wrap, .period-select-wrap {
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .sco-select-wrap:hover, .period-select-wrap:hover {
+      border-color: var(--primary);
+    }
+    .sco-select-wrap select option,
+    .period-select-wrap select option {
+      background: var(--surface);
+      color: var(--text);
     }
     .sales-selector-btn {
       display: flex;
@@ -1437,21 +1437,25 @@
   <!-- SALES SELECTOR BAR (BELOW HEADER) -->
   <div class="sales-bar">
     <div class="sales-bar-inner" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
-      <div style="display: flex; align-items: center; gap: 8px;">
-        <div class="sales-bar-label">
-          <i class="fa-solid fa-user-tie" style="color: var(--primary);"></i>
-          <span>SCO:</span>
-        </div>
-        <button class="sales-selector-btn" id="salesModalTrigger" title="Klik untuk ganti sales">
-          <div class="sales-avatar-badge" id="salesAvatarBadge">A</div>
-          <span class="name-label" id="salesNameBadge">Memuat...</span>
-          <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
-        </button>
+      <!-- SCO Dropdown Filter (Simpel & Ringan) -->
+      <div class="sco-select-wrap" style="display: inline-flex; align-items: center; gap: 6px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 4px 8px; font-size: 12px;">
+        <i class="fa-solid fa-user-tie" style="color: var(--primary); font-size: 12px;"></i>
+        <span style="font-size: 12px; font-weight: 700; color: var(--text-muted);">SCO:</span>
+        <select id="scoSelect" onchange="onScoSelectChange(this.value)" style="background: transparent; border: none; color: var(--text); font-size: 12px; font-weight: 700; cursor: pointer; outline: none; font-family: inherit; min-width: 130px;">
+          <option value="ALL">🌐 ALL (Semua SCO)</option>
+          <option value="Abdul Harris">Abdul Harris</option>
+          <option value="Febri Kurniawan">Febri Kurniawan</option>
+          <option value="Hupron">Hupron</option>
+          <option value="Khoirul Anan">Khoirul Anan</option>
+          <option value="Mas Komarjaya">Mas Komarjaya</option>
+          <option value="ONLINE">ONLINE</option>
+        </select>
       </div>
 
       <!-- Periode Dropdown Filter -->
       <div class="period-select-wrap" style="display: inline-flex; align-items: center; gap: 6px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 4px 8px; font-size: 12px;">
         <i class="fa-solid fa-calendar-days" style="color: var(--primary); font-size: 12px;"></i>
+        <span style="font-size: 12px; font-weight: 700; color: var(--text-muted);">Periode:</span>
         <select id="periodSelect" onchange="onPeriodChange(this.value)" style="background: transparent; border: none; color: var(--text); font-size: 12px; font-weight: 700; cursor: pointer; outline: none; font-family: inherit;">
           <option value="">Memuat periode...</option>
         </select>
@@ -1666,18 +1670,6 @@
     </button>
   </nav>
 
-  <!-- ── SALES SELECTOR MODAL ── -->
-  <div class="modal-overlay" id="salesModal">
-    <div class="modal-sheet">
-      <div class="modal-drag-handle"></div>
-      <div class="modal-title">Pilih Sales (SCO)</div>
-      <div class="modal-desc">Pilih nama sales untuk menyaring data performa customer dan transaksi harian:</div>
-      
-      <div class="sales-option-list" id="salesOptionList">
-        <!-- Rendered via JS -->
-      </div>
-    </div>
-  </div>
 
   <!-- TOAST NOTIFICATION FOR COPY -->
   <div id="copyToast" class="copy-toast">
@@ -1722,11 +1714,7 @@
     // DOM Elements
     const statusBanner = document.getElementById('statusBanner');
     const statusText = document.getElementById('statusText');
-    const salesModal = document.getElementById('salesModal');
-    const salesModalTrigger = document.getElementById('salesModalTrigger');
-    const salesNameBadge = document.getElementById('salesNameBadge');
-    const salesAvatarBadge = document.getElementById('salesAvatarBadge');
-    const salesOptionList = document.getElementById('salesOptionList');
+    const scoSelect = document.getElementById('scoSelect');
     const customerList = document.getElementById('customerList');
     const searchInput = document.getElementById('searchInput');
     const sortSelect = document.getElementById('sortSelect');
@@ -1753,7 +1741,7 @@
       initNavigation();
       initTheme();
       initEventListeners();
-      updateSalesBadge();
+      populateScoSelect();
       loadExcelData();
     });
 
@@ -1792,14 +1780,6 @@
 
     // ── EVENT LISTENERS ──
     function initEventListeners() {
-      // Open / Close Sales Modal
-      salesModalTrigger.addEventListener('click', openSalesModal);
-      salesModal.addEventListener('click', (e) => {
-        if (e.target === salesModal || e.target.classList.contains('modal-drag-handle')) {
-          closeSalesModal();
-        }
-      });
-
       // Search input
       searchInput.addEventListener('input', (e) => {
         state.searchQuery = e.target.value.toLowerCase().trim();
@@ -1829,62 +1809,38 @@
       }
     }
 
-    // ── SALES MODAL LOGIC ──
-    function updateSalesBadge() {
-      if (state.selectedSales === 'ALL') {
-        salesNameBadge.textContent = 'ALL (Semua Sales)';
-        salesAvatarBadge.textContent = '🌐';
+    // ── SCO SELECTOR LOGIC (SIMPEL & CEPAT) ──
+    function onScoSelectChange(val) {
+      state.selectedSales = val;
+      localStorage.setItem('sco_selected_sales', val);
+      updateAllViews();
+    }
+
+    function populateScoSelect() {
+      const sel = document.getElementById('scoSelect');
+      if (!sel) return;
+      const current = state.selectedSales || localStorage.getItem('sco_selected_sales') || 'ALL';
+      sel.innerHTML = '';
+      (state.salesList || ['ALL']).forEach(name => {
+        const opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = name === 'ALL' ? '🌐 ALL (Semua SCO)' : name;
+        sel.appendChild(opt);
+      });
+      if (state.salesList.includes(current)) {
+        sel.value = current;
+        state.selectedSales = current;
       } else {
-        salesNameBadge.textContent = state.selectedSales;
-        const initials = state.selectedSales.split(' ').map(w => w[0]).join('').slice(0, 2);
-        salesAvatarBadge.textContent = initials;
+        sel.value = state.salesList[0] || 'ALL';
+        state.selectedSales = sel.value;
       }
     }
 
-    function openSalesModal() {
-      renderSalesModalOptions();
-      salesModal.classList.add('open');
-    }
-
-    function closeSalesModal() {
-      salesModal.classList.remove('open');
-    }
-
-    function renderSalesModalOptions() {
-      salesOptionList.innerHTML = '';
-      state.salesList.forEach(name => {
-        const item = document.createElement('div');
-        item.className = `sales-option-item ${state.selectedSales === name ? 'selected' : ''}`;
-        
-        let countText = 'Seluruh data';
-        if (name !== 'ALL') {
-          const cCount = state.rawTrenAgen.filter(x => x.sco === name).length;
-          countText = `${cCount} customer binaan`;
-        }
-
-        const avatarText = name === 'ALL' ? '🌐' : name.split(' ').map(w => w[0]).join('').slice(0, 2);
-
-        item.innerHTML = `
-          <div class="sales-opt-left">
-            <div class="sales-opt-avatar">${avatarText}</div>
-            <div>
-              <div class="sales-opt-name">${name === 'ALL' ? 'ALL (Semua Sales)' : name}</div>
-              <div class="sales-opt-count">${countText}</div>
-            </div>
-          </div>
-          <svg class="check-icon" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-        `;
-
-        item.addEventListener('click', () => {
-          state.selectedSales = name;
-          localStorage.setItem('sco_selected_sales', name);
-          updateSalesBadge();
-          closeSalesModal();
-          updateAllViews();
-        });
-
-        salesOptionList.appendChild(item);
-      });
+    function updateSalesBadge() {
+      const sel = document.getElementById('scoSelect');
+      if (sel && sel.value !== state.selectedSales) {
+        sel.value = state.selectedSales;
+      }
     }
 
     // ── MANUAL REFRESH HANDLER ──
@@ -2020,6 +1976,7 @@
       const uniqueSales = Array.from(new Set(rawAgen.map(d => d.sco))).filter(Boolean);
       if (uniqueSales.length > 0) {
         state.salesList = ['ALL', ...uniqueSales];
+        populateScoSelect();
       }
 
       // 2. Process Tren Harian - include both currCode and prevCode
@@ -2220,6 +2177,7 @@
       const uniqueSales = Array.from(new Set(data.map(d => d.sco))).filter(Boolean);
       if (uniqueSales.length > 0) {
         state.salesList = ['ALL', ...uniqueSales];
+        populateScoSelect();
       }
     }
 
