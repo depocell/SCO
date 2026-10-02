@@ -1683,8 +1683,10 @@
     // Month abbreviation → full Indonesian name
     const MONTH_FULL = {
       'JAN': 'Januari', 'FEB': 'Februari', 'MAR': 'Maret', 'APR': 'April',
-      'MAY': 'Mei', 'JUN': 'Juni', 'JUL': 'Juli', 'AUG': 'Agustus',
-      'SEP': 'September', 'OCT': 'Oktober', 'NOV': 'November', 'DEC': 'Desember'
+      'MAY': 'Mei', 'MEI': 'Mei', 'JUN': 'Juni', 'JUL': 'Juli',
+      'AUG': 'Agustus', 'AGU': 'Agustus',
+      'SEP': 'September', 'OCT': 'Oktober', 'OKT': 'Oktober',
+      'NOV': 'November', 'DEC': 'Desember', 'DES': 'Desember'
     };
     const KNOWN_MONTHS = Object.keys(MONTH_FULL);
 
@@ -1955,7 +1957,7 @@
 
       const prevM = pData ? String(pData.prev_name).toUpperCase() : String(json.months.prev || 'AUG').toUpperCase();
       const currM = pData ? String(pData.curr_name).toUpperCase() : String(json.months.curr || 'SEP').toUpperCase();
-      state.monthNames = { m2: prevM, m3: currM };
+      state.monthNames = { m2: prevM, m3: currM, prevCode: prevCode, currCode: currCode };
 
       // 1. Process Tren Agen with monthly_avg mapping
       const rawAgen = (json.tren_agen || []).map(d => {
@@ -1992,9 +1994,12 @@
         state.salesList = ['ALL', ...uniqueSales];
       }
 
-      // 2. Process Tren Harian - filter by month_code
+      // 2. Process Tren Harian - include both currCode and prevCode
       const rawHarian = (json.tren_harian || [])
-        .filter(h => !currCode || h.month_code === currCode || !h.month_code)
+        .filter(h => {
+          if (!currCode) return true;
+          return h.month_code === currCode || (prevCode && h.month_code === prevCode);
+        })
         .map(h => {
           const parts = String(h.tanggal || '').split('-');
           let dayOfMonth = 1;
@@ -2002,6 +2007,7 @@
             dayOfMonth = parseInt(parts[2]) || 1;
           }
           return {
+            month_code: h.month_code,
             bulan: h.bulan,
             dateStr: h.tanggal,
             dayOfMonth: dayOfMonth,
@@ -2259,27 +2265,28 @@
     // ── UPDATE ALL MONTH LABELS IN HTML ──
     function updateMonthLabels() {
       const mn = state.monthNames;
-      const m2Full = monthFull(mn.m2);
+      const isBaseMonth = !mn.prevCode || mn.m2 === '-';
+      const m2Full = isBaseMonth ? 'Base' : monthFull(mn.m2);
       const m3Full = monthFull(mn.m3);
 
       // Tab 1 KPI cards
       const kpiM2Label = document.getElementById('kpiM2Label');
-      if (kpiM2Label) kpiM2Label.textContent = `Avg Bulan Lalu (${mn.m2})`;
+      if (kpiM2Label) kpiM2Label.textContent = isBaseMonth ? 'Avg Bulan Lalu (Base)' : `Avg Bulan Lalu (${mn.m2})`;
       const kpiM3Label = document.getElementById('kpiM3Label');
       if (kpiM3Label) kpiM3Label.textContent = `Avg Bulan Ini (${mn.m3})`;
       const kpiGrowthSub = document.getElementById('kpiGrowthBadgeWrap');
-      if (kpiGrowthSub) kpiGrowthSub.dataset.defaultText = `Performa vs ${mn.m2}`;
+      if (kpiGrowthSub) kpiGrowthSub.dataset.defaultText = isBaseMonth ? 'Periode Awal 2026' : `Performa vs ${mn.m2}`;
 
       // Sort dropdown
       const sortSelect = document.getElementById('sortSelect');
-      if (sortSelect) {
+      if (sortSelect && sortSelect.options && sortSelect.options.length >= 4) {
         sortSelect.options[2].text = `Avg ${mn.m3} Tertinggi`;
-        sortSelect.options[3].text = `Avg ${mn.m2} Tertinggi`;
+        sortSelect.options[3].text = isBaseMonth ? `Avg Base Tertinggi` : `Avg ${mn.m2} Tertinggi`;
       }
 
       // Tab 2 chart legend
       const legendM2 = document.getElementById('legendM2');
-      if (legendM2) legendM2.textContent = ` ${m2Full}`;
+      if (legendM2) legendM2.textContent = isBaseMonth ? ' Base' : ` ${m2Full}`;
       const legendM3 = document.getElementById('legendM3');
       if (legendM3) legendM3.textContent = ` ${m3Full}`;
 
@@ -2287,7 +2294,7 @@
       const kpiDailyM3Label = document.getElementById('kpiDailyM3Label');
       if (kpiDailyM3Label) kpiDailyM3Label.textContent = `Total Trx ${m3Full}`;
       const kpiDailyM2Label = document.getElementById('kpiDailyM2Label');
-      if (kpiDailyM2Label) kpiDailyM2Label.textContent = `Total Trx ${m2Full}`;
+      if (kpiDailyM2Label) kpiDailyM2Label.textContent = isBaseMonth ? 'Total Trx Bulan Lalu (Base)' : `Total Trx ${m2Full}`;
       const kpiDailyAvgLabel = document.getElementById('kpiDailyAvgLabel');
       if (kpiDailyAvgLabel) kpiDailyAvgLabel.textContent = `Avg Trx / Hari (${mn.m3})`;
 
@@ -2351,17 +2358,22 @@
         return val.toLocaleString('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
       };
 
-      document.getElementById('kpiAvgM2').textContent = fmtKpi(sumM2);
+      const isBaseMonth = !mn.prevCode || mn.m2 === '-';
+      document.getElementById('kpiAvgM2').textContent = isBaseMonth ? '-' : fmtKpi(sumM2);
       document.getElementById('kpiAvgM3').textContent = fmtKpi(sumM3);
       
-      const growthSign = growth > 0 ? '+' : '';
-      const growthFormatted = `${growthSign}${fmtKpi(growth)}`;
       const kpiGrowthEl = document.getElementById('kpiGrowth');
-      kpiGrowthEl.textContent = growthFormatted;
-
       const badgeWrap = document.getElementById('kpiGrowthBadgeWrap');
-      const badgeClass = growth > 0 ? 'positive' : (growth < 0 ? 'negative' : 'neutral');
-      badgeWrap.innerHTML = `<span class="growth-badge ${badgeClass}">${growthFormatted} MoM</span>`;
+      if (isBaseMonth) {
+        kpiGrowthEl.textContent = 'Base';
+        badgeWrap.innerHTML = `<span class="growth-badge">Periode Awal</span>`;
+      } else {
+        const growthSign = growth > 0 ? '+' : '';
+        const growthFormatted = `${growthSign}${fmtKpi(growth)}`;
+        kpiGrowthEl.textContent = growthFormatted;
+        const badgeClass = growth > 0 ? 'positive' : (growth < 0 ? 'negative' : 'neutral');
+        badgeWrap.innerHTML = `<span class="growth-badge ${badgeClass}">${growthFormatted} MoM</span>`;
+      }
     }
 
     // ── UPDATE JADWAL PILL COUNTS ──
@@ -2541,8 +2553,10 @@
         : state.rawTrenHarian.filter(x => x.sco === state.selectedSales);
 
       const mn = state.monthNames;
-      const m3Data = activeData.filter(x => x.bulan.toUpperCase() === mn.m3);
-      const m2Data = activeData.filter(x => x.bulan.toUpperCase() === mn.m2);
+      const isBaseMonth = !mn.prevCode || mn.m2 === '-';
+
+      const m3Data = activeData.filter(x => (mn.currCode && x.month_code === mn.currCode) || (x.bulan && x.bulan.toUpperCase() === mn.m3));
+      const m2Data = isBaseMonth ? [] : activeData.filter(x => (mn.prevCode && x.month_code === mn.prevCode) || (x.bulan && x.bulan.toUpperCase() === mn.m2));
 
       const sumM3 = m3Data.reduce((acc, curr) => acc + curr.trx, 0);
       const sumM2 = m2Data.reduce((acc, curr) => acc + curr.trx, 0);
@@ -2567,7 +2581,12 @@
 
       document.getElementById('kpiDailySepTotal').textContent = sumM3.toLocaleString('id-ID');
       document.getElementById('kpiDailySepSub').textContent = `Periode 1 - ${countDaysM3} ${monthFull(mn.m3)}`;
-      document.getElementById('kpiDailyAugTotal').textContent = sumM2.toLocaleString('id-ID');
+      
+      const elAugTotal = document.getElementById('kpiDailyAugTotal');
+      if (elAugTotal) {
+        elAugTotal.textContent = isBaseMonth ? 'Base' : sumM2.toLocaleString('id-ID');
+      }
+
       document.getElementById('kpiDailyPeak').textContent = peakVal > 0 ? peakVal.toLocaleString('id-ID') : '-';
       document.getElementById('kpiDailyPeakSub').textContent = peakDay !== '-' ? `Rekor pada ${peakDay}` : '-';
       document.getElementById('kpiDailySepAvg').textContent = avgDailyM3.toLocaleString('id-ID');
@@ -2598,9 +2617,12 @@
       if (progBarEl) progBarEl.style.width = `${progressPct}%`;
 
       // Baseline BL
+      const isBaseMonth = !mn.prevCode || mn.m2 === '-';
       const fullMonthPrev = sumM2;
       const targetBlEl = document.getElementById('simTargetBl');
-      if (targetBlEl) targetBlEl.textContent = `${fullMonthPrev.toLocaleString('id-ID')} trx`;
+      if (targetBlEl) {
+        targetBlEl.textContent = isBaseMonth ? 'Base (Bulan Awal)' : `${fullMonthPrev.toLocaleString('id-ID')} trx`;
+      }
 
       // Scenarios: Mod, Cons, Opt
       const modTotal = Math.round(sumM3 + (remDays * avgDailyM3));
@@ -2655,15 +2677,20 @@
       const labels = Array.from({ length: 31 }, (_, i) => String(i + 1));
 
       const mn = state.monthNames;
+      const isBaseMonth = !mn.prevCode || mn.m2 === '-';
       const m2Data = new Array(31).fill(null);
       const m3Data = new Array(31).fill(null);
 
       activeData.forEach(d => {
         const dayIdx = d.dayOfMonth - 1;
         if (dayIdx >= 0 && dayIdx < 31) {
-          const b = d.bulan.toUpperCase();
-          if (b === mn.m2) m2Data[dayIdx] = (m2Data[dayIdx] || 0) + d.trx;
-          if (b === mn.m3) m3Data[dayIdx] = (m3Data[dayIdx] || 0) + d.trx;
+          const isCurr = (mn.currCode && d.month_code === mn.currCode) || (d.bulan && d.bulan.toUpperCase() === mn.m3);
+          const isPrev = !isBaseMonth && ((mn.prevCode && d.month_code === mn.prevCode) || (d.bulan && d.bulan.toUpperCase() === mn.m2));
+          if (isCurr) {
+            m3Data[dayIdx] = (m3Data[dayIdx] || 0) + d.trx;
+          } else if (isPrev) {
+            m2Data[dayIdx] = (m2Data[dayIdx] || 0) + d.trx;
+          }
         }
       });
 
