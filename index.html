@@ -429,6 +429,118 @@
       color: var(--brand-text);
     }
 
+    /* ── PERIOD CONTROL BAR ── */
+    .period-control-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 12px 18px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow-sm);
+      flex-wrap: wrap;
+    }
+
+    .period-control-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      flex: 1;
+    }
+
+    .period-label-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-main);
+      white-space: nowrap;
+    }
+
+    .period-label-tag i {
+      color: var(--brand-primary);
+      font-size: 15px;
+    }
+
+    .period-select-box {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      min-width: 220px;
+      max-width: 100%;
+    }
+
+    .period-select-box select {
+      width: 100%;
+      height: 38px;
+      background: var(--bg-surface2);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      color: var(--text-main);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 0 36px 0 14px;
+      cursor: pointer;
+      outline: none;
+      font-family: inherit;
+      appearance: none;
+      -webkit-appearance: none;
+      transition: var(--transition);
+    }
+
+    .period-select-box select:focus,
+    .period-select-box select:hover {
+      border-color: var(--brand-primary);
+      background: var(--bg-card);
+    }
+
+    .period-select-box .select-arrow {
+      position: absolute;
+      right: 14px;
+      pointer-events: none;
+      color: var(--text-muted);
+      font-size: 11px;
+    }
+
+    .period-badge-cutoff {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--brand-text);
+      background: var(--brand-subtle);
+      border: 1px solid rgba(2, 132, 199, 0.2);
+      border-radius: 999px;
+      padding: 5px 12px;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 768px) {
+      .period-control-bar {
+        padding: 12px 14px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+      }
+      .period-control-left {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+      }
+      .period-select-box {
+        width: 100%;
+      }
+      .period-badge-cutoff {
+        align-self: flex-start;
+      }
+    }
+
     /* ── KPI CARDS (2x2 GRID) ── */
     .kpi-grid {
       display: grid;
@@ -902,19 +1014,10 @@
         <div class="page-title-box">
           <h1>
             <span>Ringkasan SCO</span>
-            <span class="brand-tag-chip" id="scoUpdatedBadge">📅 Memuat...</span>
           </h1>
         </div>
       </div>
       <div class="topbar-right">
-        <!-- Periode Dropdown Filter -->
-        <div class="period-select-wrap" style="display: inline-flex; align-items: center; gap: 8px; background: var(--bg-surface2); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 4px 10px; height: 38px;">
-          <i class="fa-solid fa-calendar-days" style="color: var(--brand-primary); font-size: 13px;"></i>
-          <select id="periodSelect" onchange="onPeriodChange(this.value)" style="background: transparent; border: none; color: var(--text-main); font-size: 12.5px; font-weight: 700; cursor: pointer; outline: none; font-family: inherit;">
-            <option value="">Memuat periode...</option>
-          </select>
-        </div>
-
         <button class="action-btn" onclick="toggleDarkMode()" title="Ganti Tema">
           <i class="fa-solid fa-moon" id="themeIcon"></i>
           <span>Dark Mode</span>
@@ -935,6 +1038,25 @@
       <div id="status" class="status-alert" style="display: none;">
         <i class="fa-solid fa-circle-notch fa-spin"></i>
         <span id="statusMsg">Memuat data...</span>
+      </div>
+
+      <!-- ── PERIOD CONTROL BAR ── -->
+      <div class="period-control-bar">
+        <div class="period-control-left">
+          <div class="period-label-tag">
+            <i class="fa-solid fa-calendar-days"></i>
+            <span>Pilih Periode:</span>
+          </div>
+          <div class="period-select-box">
+            <select id="periodSelect" onchange="onPeriodChange(this.value)">
+              <option value="">Memuat periode...</option>
+            </select>
+            <i class="fa-solid fa-chevron-down select-arrow"></i>
+          </div>
+        </div>
+        <div class="period-control-right">
+          <span class="period-badge-cutoff" id="scoUpdatedBadge">📅 Memuat...</span>
+        </div>
       </div>
 
       <!-- 4 KPI CARDS -->
@@ -1289,6 +1411,8 @@
 
       const valCurr = parseFloat(row[colM2]) || 0;
       const valPrev = parseFloat(row[colM1]) || 0;
+      const isBaseMonth = !colM1 || colM1 === '-' || valPrev === 0;
+
       const growth = (row['Growth'] !== undefined && row['Growth'] !== '') 
         ? parseFloat(row['Growth']) 
         : (valCurr - valPrev);
@@ -1297,10 +1421,17 @@
         : (valPrev > 0 ? (growth / valPrev * 100) : 0);
 
       elVal.textContent = formatNumberID(Math.round(valCurr));
-      if (elPrev) elPrev.textContent = `${colM1 || 'Bulan Lalu'}: ${formatNumberID(Math.round(valPrev))}`;
+      if (elPrev) {
+        elPrev.textContent = isBaseMonth ? `Periode Awal 2026` : `${colM1}: ${formatNumberID(Math.round(valPrev))}`;
+      }
       if (elGrowth) {
-        elGrowth.textContent = formatPct(pct);
-        elGrowth.className = 'badge-pill ' + (pct > 0 ? 'positive' : (pct < 0 ? 'negative' : ''));
+        if (isBaseMonth) {
+          elGrowth.textContent = 'Base';
+          elGrowth.className = 'badge-pill';
+        } else {
+          elGrowth.textContent = formatPct(pct);
+          elGrowth.className = 'badge-pill ' + (pct > 0 ? 'positive' : (pct < 0 ? 'negative' : ''));
+        }
       }
     }
 
@@ -1343,19 +1474,23 @@
     function renderTable() {
       if (!excelData || excelData.length === 0) return;
 
+      const isBaseMonth = !colM1 || colM1 === '-';
+      const colM1Header = isBaseMonth ? 'BASE' : colM1.toUpperCase();
+      const colM2Header = colM2 ? colM2.toUpperCase() : 'BULAN INI';
+
       const thead = document.getElementById('tableHeadRow');
       thead.innerHTML = `
         <th>SCO</th>
         <th>CABANG</th>
-        <th class="num">${colM1 ? colM1.toUpperCase() : 'BULAN LALU'}</th>
-        <th class="num">${colM2 ? colM2.toUpperCase() : 'BULAN INI'}</th>
+        <th class="num">${colM1Header}</th>
+        <th class="num">${colM2Header}</th>
         <th class="num">Growth</th>
         <th class="num" style="text-align:center;">Growth (%)</th>
       `;
 
       const monthBadge = document.getElementById('tableMonthBadge');
-      if (monthBadge && colM1 && colM2) {
-        monthBadge.textContent = `${colM1.toUpperCase()} vs ${colM2.toUpperCase()}`;
+      if (monthBadge) {
+        monthBadge.textContent = isBaseMonth ? `${colM2Header} (Bulan Awal)` : `${colM1.toUpperCase()} vs ${colM2Header}`;
       }
 
       const tbody = document.getElementById('tableBody');
@@ -1367,32 +1502,39 @@
         const v1 = parseFloat(row[colM1]) || 0;
         const v2 = parseFloat(row[colM2]) || 0;
         
-        // Growth delta
-        const diff = (row['Growth'] !== undefined && row['Growth'] !== '') 
-          ? parseFloat(row['Growth']) 
-          : (v2 - v1);
-        const isDiffNeg = !isNaN(diff) && diff < 0;
-        const diffSign = diff > 0 ? '+' : '';
-        const diffFormatted = !isNaN(diff) ? `${diffSign}${diff.toFixed(1)}` : '-';
-        const diffClass = isDiffNeg ? 'num negative' : 'num';
+        // Growth delta & %
+        let diffFormatted = '-';
+        let diffClass = 'num';
+        let pctBadge = `<span class="growth-badge">Base</span>`;
 
-        // Growth %
-        let growthPct = 0;
-        if (row['%'] !== undefined && row['%'] !== '') {
-          growthPct = parseFloat(row['%']) * 100;
-        } else if (v1 > 0) {
-          growthPct = ((v2 - v1) / v1) * 100;
+        if (!isBaseMonth && v1 > 0) {
+          const diff = (row['Growth'] !== undefined && row['Growth'] !== '') 
+            ? parseFloat(row['Growth']) 
+            : (v2 - v1);
+          const isDiffNeg = !isNaN(diff) && diff < 0;
+          const diffSign = diff > 0 ? '+' : '';
+          diffFormatted = !isNaN(diff) ? `${diffSign}${diff.toFixed(1)}` : '-';
+          diffClass = isDiffNeg ? 'num negative' : 'num';
+
+          let growthPct = 0;
+          if (row['%'] !== undefined && row['%'] !== '') {
+            growthPct = parseFloat(row['%']) * 100;
+          } else {
+            growthPct = ((v2 - v1) / v1) * 100;
+          }
+          const isPctNeg = growthPct < 0;
+          const isPctPos = growthPct > 0;
+          const badgeClass = isPctNeg ? 'negative' : (isPctPos ? 'positive' : '');
+          const pctSign = isPctPos ? '+' : '';
+          pctBadge = `<span class="growth-badge ${badgeClass}">${pctSign}${growthPct.toFixed(1)}%</span>`;
         }
-        const isPctNeg = growthPct < 0;
-        const isPctPos = growthPct > 0;
-        const badgeClass = isPctNeg ? 'negative' : (isPctPos ? 'positive' : '');
-        const pctSign = isPctPos ? '+' : '';
-        const pctBadge = `<span class="growth-badge ${badgeClass}">${pctSign}${growthPct.toFixed(1)}%</span>`;
+
+        const v1Display = isBaseMonth ? '-' : formatNumber(v1);
 
         return `<tr ${trClass}>
           <td style="font-weight: ${isTotalRow ? '800' : '600'};">${row['SCO'] || '-'}</td>
           <td>${row['CABANG'] || '-'}</td>
-          <td class="num">${formatNumber(v1)}</td>
+          <td class="num">${v1Display}</td>
           <td class="num">${formatNumber(v2)}</td>
           <td class="${diffClass}">${diffFormatted}</td>
           <td class="num" style="text-align:center;">${pctBadge}</td>
