@@ -424,7 +424,7 @@
     /* KPI Cards */
     .kpi-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      grid-template-columns: repeat(2, 1fr);
       gap: 16px;
     }
     .kpi-card {
@@ -682,6 +682,12 @@
       .app-topbar {
         padding: 0 16px;
       }
+      .kpi-grid {
+        gap: 12px;
+      }
+      .kpi-card {
+        padding: 14px 16px;
+      }
     }
   </style>
 </head>
@@ -752,10 +758,6 @@
       </div>
 
       <div class="topbar-right">
-        <button class="action-btn" onclick="exportCsv()" title="Download CSV">
-          <i class="fa-solid fa-file-csv"></i>
-          <span>Export CSV</span>
-        </button>
         <button class="action-btn" onclick="loadResellerData()" title="Segarkan Data" id="btnRefresh">
           <i class="fa-solid fa-arrows-rotate" id="refreshIcon"></i>
           <span>Refresh</span>
