@@ -2433,7 +2433,7 @@
         return {
           sco: d['NAMA SCO'],
           aid: d['AGEN ID'] || '',
-          customer: d['NAMA CUSTOMER'],
+          customer: (!d['NAMA CUSTOMER'] || String(d['NAMA CUSTOMER']).trim().toLowerCase() === 'nan') ? (d['AGEN ID'] || '') : d['NAMA CUSTOMER'],
           location: loc,
           mapsUrl: parseDmsToMaps(loc),
           jadwal: d['JADWAL'] || 'Lainnya',
