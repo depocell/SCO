@@ -907,6 +907,14 @@
         </div>
       </div>
       <div class="topbar-right">
+        <!-- Periode Dropdown Filter -->
+        <div class="period-select-wrap" style="display: inline-flex; align-items: center; gap: 8px; background: var(--bg-surface2); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 4px 10px; height: 38px;">
+          <i class="fa-solid fa-calendar-days" style="color: var(--brand-primary); font-size: 13px;"></i>
+          <select id="periodSelect" onchange="onPeriodChange(this.value)" style="background: transparent; border: none; color: var(--text-main); font-size: 12.5px; font-weight: 700; cursor: pointer; outline: none; font-family: inherit;">
+            <option value="">Memuat periode...</option>
+          </select>
+        </div>
+
         <button class="action-btn" onclick="toggleDarkMode()" title="Ganti Tema">
           <i class="fa-solid fa-moon" id="themeIcon"></i>
           <span>Dark Mode</span>
@@ -1045,6 +1053,7 @@
     let chartInstance = null;
     let colM1 = '';
     let colM2 = '';
+    let globalScoJson = null;
 
     // ── SIDEBAR DRAWER TOGGLE ──
     function toggleSidebar(forceClose = false) {
@@ -1108,15 +1117,48 @@
         const jsonRes = await fetch(`data_sco.json?t=${Date.now()}`, { cache: 'no-store' });
         if (jsonRes.ok) {
           const jsonData = await jsonRes.json();
-          if (jsonData && jsonData.index && jsonData.months) {
-            colM1 = jsonData.months.prev;
-            colM2 = jsonData.months.curr;
-            excelData = jsonData.index;
-            
-            const cutoff = jsonData.cutoff_date ? `s/d tgl ${jsonData.cutoff_date}` : (colM2 || 'Terbaru');
-            const badge = document.getElementById('scoUpdatedBadge');
-            if (badge) badge.textContent = `📅 ${cutoff}`;
-            if (sidebarCutoff) sidebarCutoff.textContent = `Periode: ${colM1 || 'M1'} vs ${colM2 || 'M2'}`;
+          if (jsonData) {
+            globalScoJson = jsonData;
+
+            // Populate Dropdown Periode
+            const periodSel = document.getElementById('periodSelect');
+            if (periodSel && jsonData.periods_list && jsonData.periods_list.length > 0) {
+              const currentVal = periodSel.value;
+              periodSel.innerHTML = '';
+              jsonData.periods_list.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.code;
+                opt.textContent = p.label + (p.is_latest ? ' ⚡' : '');
+                periodSel.appendChild(opt);
+              });
+              if (currentVal && jsonData.periods && jsonData.periods[currentVal]) {
+                periodSel.value = currentVal;
+              } else {
+                periodSel.value = jsonData.latest_period || jsonData.periods_list[0].code;
+              }
+            }
+
+            const activeCode = (periodSel && periodSel.value) ? periodSel.value : (jsonData.latest_period || '1026');
+            if (jsonData.periods && jsonData.periods[activeCode]) {
+              const pData = jsonData.periods[activeCode];
+              colM1 = pData.prev_name;
+              colM2 = pData.curr_name;
+              excelData = pData.index;
+
+              const cutoff = pData.cutoff_date ? `s/d tgl ${pData.cutoff_date}` : (colM2 || 'Terbaru');
+              const badge = document.getElementById('scoUpdatedBadge');
+              if (badge) badge.textContent = `📅 ${cutoff}`;
+              if (sidebarCutoff) sidebarCutoff.textContent = `Periode: ${colM1} vs ${colM2}`;
+            } else if (jsonData.index && jsonData.months) {
+              colM1 = jsonData.months.prev;
+              colM2 = jsonData.months.curr;
+              excelData = jsonData.index;
+
+              const cutoff = jsonData.cutoff_date ? `s/d tgl ${jsonData.cutoff_date}` : (colM2 || 'Terbaru');
+              const badge = document.getElementById('scoUpdatedBadge');
+              if (badge) badge.textContent = `📅 ${cutoff}`;
+              if (sidebarCutoff) sidebarCutoff.textContent = `Periode: ${colM1 || 'M1'} vs ${colM2 || 'M2'}`;
+            }
 
             if (statusDot) statusDot.className = 'status-dot';
             if (sidebarStatus) sidebarStatus.textContent = 'Data Terhubung';
@@ -1193,6 +1235,26 @@
         }
         console.error(error);
       }
+    }
+
+    // ── PERIOD SELECTION SWITCHER ──
+    function onPeriodChange(code) {
+      if (!globalScoJson || !globalScoJson.periods || !globalScoJson.periods[code]) return;
+      const pData = globalScoJson.periods[code];
+      colM1 = pData.prev_name;
+      colM2 = pData.curr_name;
+      excelData = pData.index;
+
+      const cutoff = pData.cutoff_date ? `s/d tgl ${pData.cutoff_date}` : (colM2 || 'Terbaru');
+      const badge = document.getElementById('scoUpdatedBadge');
+      if (badge) badge.textContent = `📅 ${cutoff}`;
+
+      const sidebarCutoff = document.getElementById('sidebarCutoffText');
+      if (sidebarCutoff) sidebarCutoff.textContent = `Periode: ${colM1} vs ${colM2}`;
+
+      renderCards();
+      renderTable();
+      renderChart();
     }
 
     function formatNumber(num) {

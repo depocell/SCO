@@ -1426,16 +1426,26 @@
 
   <!-- SALES SELECTOR BAR (BELOW HEADER) -->
   <div class="sales-bar">
-    <div class="sales-bar-inner">
-      <div class="sales-bar-label">
-        <i class="fa-solid fa-user-tie" style="color: var(--primary);"></i>
-        <span>Personil SCO</span>
+    <div class="sales-bar-inner" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <div class="sales-bar-label">
+          <i class="fa-solid fa-user-tie" style="color: var(--primary);"></i>
+          <span>SCO:</span>
+        </div>
+        <button class="sales-selector-btn" id="salesModalTrigger" title="Klik untuk ganti sales">
+          <div class="sales-avatar-badge" id="salesAvatarBadge">A</div>
+          <span class="name-label" id="salesNameBadge">Memuat...</span>
+          <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
+        </button>
       </div>
-      <button class="sales-selector-btn" id="salesModalTrigger" title="Klik untuk ganti sales">
-        <div class="sales-avatar-badge" id="salesAvatarBadge">A</div>
-        <span class="name-label" id="salesNameBadge">Memuat...</span>
-        <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
-      </button>
+
+      <!-- Periode Dropdown Filter -->
+      <div class="period-select-wrap" style="display: inline-flex; align-items: center; gap: 6px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 4px 8px; font-size: 12px;">
+        <i class="fa-solid fa-calendar-days" style="color: var(--primary); font-size: 12px;"></i>
+        <select id="periodSelect" onchange="onPeriodChange(this.value)" style="background: transparent; border: none; color: var(--text); font-size: 12px; font-weight: 700; cursor: pointer; outline: none; font-family: inherit;">
+          <option value="">Memuat periode...</option>
+        </select>
+      </div>
     </div>
   </div>
 
@@ -1931,40 +1941,60 @@
       }
     }
 
-    // ── PARSE JSON DATA ──
-    function parseJsonData(json) {
-      try {
-        const prevM = String(json.months.prev || 'AUG').toUpperCase();
-        const currM = String(json.months.curr || 'SEP').toUpperCase();
-        state.monthNames = { m2: prevM, m3: currM };
+    // ── GLOBAL DATA & MULTI-PERIOD LOGIC ──
+    let globalScoJson = null;
 
-        // 1. Process Tren Agen
-        const rawAgen = (json.tren_agen || []).map(d => {
-          const m2 = parseFloat(d[json.months.prev]) || 0;
-          const m3 = parseFloat(d[json.months.curr]) || 0;
-          const growth = d.Growth !== undefined ? parseFloat(d.Growth) : (m3 - m2);
-          const loc = d.LOCATION || '';
-          return {
-            sco: d['NAMA SCO'],
-            customer: d['NAMA CUSTOMER'],
-            location: loc,
-            mapsUrl: parseDmsToMaps(loc),
-            jadwal: d['JADWAL'] || 'Lainnya',
-            m2: m2,
-            m3: m3,
-            growth: growth
-          };
-        });
-        state.rawTrenAgen = rawAgen;
-        state.indexRows = json.index || [];
+    function applyPeriodData(periodCode) {
+      if (!globalScoJson) return;
+      const json = globalScoJson;
+      const pData = (json.periods && json.periods[periodCode]) ? json.periods[periodCode] : null;
 
-        const uniqueSales = Array.from(new Set(rawAgen.map(d => d.sco))).filter(Boolean);
-        if (uniqueSales.length > 0) {
-          state.salesList = ['ALL', ...uniqueSales];
+      const prevCode = pData ? pData.prev_code : null;
+      const currCode = periodCode;
+
+      const prevM = pData ? String(pData.prev_name).toUpperCase() : String(json.months.prev || 'AUG').toUpperCase();
+      const currM = pData ? String(pData.curr_name).toUpperCase() : String(json.months.curr || 'SEP').toUpperCase();
+      state.monthNames = { m2: prevM, m3: currM };
+
+      // 1. Process Tren Agen with monthly_avg mapping
+      const rawAgen = (json.tren_agen || []).map(d => {
+        let m2 = 0, m3 = 0;
+        if (d.monthly_avg) {
+          m2 = prevCode ? (parseFloat(d.monthly_avg[prevCode]) || 0) : 0;
+          m3 = currCode ? (parseFloat(d.monthly_avg[currCode]) || 0) : 0;
+        } else {
+          m2 = parseFloat(d[json.months.prev]) || 0;
+          m3 = parseFloat(d[json.months.curr]) || 0;
         }
+        const growth = m3 - m2;
+        const loc = d.LOCATION || '';
+        return {
+          sco: d['NAMA SCO'],
+          aid: d['AGEN ID'] || '',
+          customer: d['NAMA CUSTOMER'],
+          location: loc,
+          mapsUrl: parseDmsToMaps(loc),
+          jadwal: d['JADWAL'] || 'Lainnya',
+          limit: parseFloat(d['LIMIT']) || 0,
+          saldoAkhir: parseFloat(d['SALDO_AKHIR']) || 0,
+          status: d['STATUS'] || 'NON MM',
+          m2: m2,
+          m3: m3,
+          growth: growth
+        };
+      });
+      state.rawTrenAgen = rawAgen;
+      state.indexRows = pData ? pData.index : (json.index || []);
 
-        // 2. Process Tren Harian
-        const rawHarian = (json.tren_harian || []).map(h => {
+      const uniqueSales = Array.from(new Set(rawAgen.map(d => d.sco))).filter(Boolean);
+      if (uniqueSales.length > 0) {
+        state.salesList = ['ALL', ...uniqueSales];
+      }
+
+      // 2. Process Tren Harian - filter by month_code
+      const rawHarian = (json.tren_harian || [])
+        .filter(h => !currCode || h.month_code === currCode || !h.month_code)
+        .map(h => {
           const parts = String(h.tanggal || '').split('-');
           let dayOfMonth = 1;
           if (parts.length >= 3) {
@@ -1978,10 +2008,44 @@
             trx: Math.round(parseFloat(h.trx) || 0)
           };
         });
-        state.rawTrenHarian = rawHarian;
+      state.rawTrenHarian = rawHarian;
 
-        const cutoffBadge = json.cutoff_date ? ` (Cutoff: ${json.cutoff_date})` : '';
-        showStatus(`Data terbaru berhasil dimuat dari data_sco.json${cutoffBadge}`, 'info');
+      const cutoff = pData ? pData.cutoff_date : json.cutoff_date;
+      const cutoffBadge = cutoff ? ` (Cutoff: ${cutoff})` : '';
+      showStatus(`Periode ${currM} vs ${prevM} aktif${cutoffBadge}`, 'info');
+    }
+
+    function onPeriodChange(code) {
+      if (!globalScoJson) return;
+      applyPeriodData(code);
+      updateAllViews();
+    }
+
+    // ── PARSE JSON DATA ──
+    function parseJsonData(json) {
+      try {
+        globalScoJson = json;
+
+        // Populate Dropdown Periode
+        const periodSel = document.getElementById('periodSelect');
+        if (periodSel && json.periods_list && json.periods_list.length > 0) {
+          const currentVal = periodSel.value;
+          periodSel.innerHTML = '';
+          json.periods_list.forEach(p => {
+            const opt = document.createElement('option');
+            opt.value = p.code;
+            opt.textContent = p.label + (p.is_latest ? ' ⚡' : '');
+            periodSel.appendChild(opt);
+          });
+          if (currentVal && json.periods && json.periods[currentVal]) {
+            periodSel.value = currentVal;
+          } else {
+            periodSel.value = json.latest_period || json.periods_list[0].code;
+          }
+        }
+
+        const activeCode = (periodSel && periodSel.value) ? periodSel.value : (json.latest_period || '1026');
+        applyPeriodData(activeCode);
         updateAllViews();
       } catch (err) {
         console.error('Error parsing JSON:', err);
@@ -2421,6 +2485,7 @@
               <td class="col-cust">
                 <div class="cust-name-cell" data-name="${escapeHtml(c.customer)}" onclick="copyStoreName(this)" title="Sentuh / klik untuk salin nama toko">
                   <span>${escapeHtml(c.customer)}</span>
+                  ${c.status === 'MM' ? `<span class="badge-mm" style="background:#0284c7;color:#fff;font-size:10px;padding:2px 6px;border-radius:4px;font-weight:700;margin-left:6px;" title="Mitra Mandiri (MM) · Limit: Rp ${c.limit.toLocaleString('id-ID')}">MM</span>` : ''}
                   <span class="cust-copy-icon" title="Salin">📋</span>
                 </div>
               </td>
