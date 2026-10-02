@@ -2961,7 +2961,6 @@
               <td class="col-cust">
                 <div class="cust-name-cell" data-name="${escapeHtml(c.customer)}" onclick="copyStoreName(this)" title="Sentuh / klik untuk salin nama toko">
                   <span>${escapeHtml(c.customer)}</span>
-                  ${c.status === 'MM' ? `<span class="badge-mm" style="background:#0284c7;color:#fff;font-size:10px;padding:2px 6px;border-radius:4px;font-weight:700;margin-left:6px;" title="Mitra Mandiri (MM) · Limit: Rp ${c.limit.toLocaleString('id-ID')}">MM</span>` : ''}
                   <span class="cust-copy-icon" title="Salin">📋</span>
                 </div>
               </td>
