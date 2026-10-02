@@ -778,13 +778,11 @@
           <div class="sco-picker-group">
             <span class="sco-picker-label"><i class="fa-solid fa-user-check"></i> Filter SCO:</span>
             <select id="scoFilterSelect" class="sco-select" onchange="onScoChange(this.value)">
-              <option value="ALL">🌐 ALL (Semua SCO)</option>
               <option value="Abdul Harris">Abdul Harris (ICON)</option>
               <option value="Febri Kurniawan">Febri Kurniawan (PP)</option>
               <option value="Hupron">Hupron (BSD)</option>
               <option value="Khoirul Anan">Khoirul Anan (PRG)</option>
               <option value="Mas Komarjaya">Mas Komarjaya (PP)</option>
-              <option value="ONLINE">ONLINE</option>
             </select>
           </div>
 
@@ -859,7 +857,7 @@
                 <tr>
                   <th style="min-width: 85px;">Kode</th>
                   <th style="min-width: 170px;" class="text-left">Nama Reseller</th>
-                  <th style="min-width: 90px;" class="text-left">SCO</th>
+                  <th class="text-right" style="min-width: 95px;">Limit</th>
                   <th class="text-right" style="min-width: 85px;">% EW</th>
                   <th class="text-right" style="min-width: 80px;">EWALLET</th>
                   <th class="text-right" style="min-width: 75px;">TELCO</th>
@@ -930,7 +928,7 @@
                 <tr>
                   <th style="min-width: 85px;">Kode</th>
                   <th style="min-width: 170px;" class="text-left">Nama Reseller</th>
-                  <th style="min-width: 90px;" class="text-left">SCO</th>
+                  <th class="text-right" style="min-width: 95px;">Limit</th>
                   <th class="text-right" style="min-width: 85px;">Avg % EW</th>
                   <th class="text-right" style="min-width: 85px;">Tot Trx</th>
                   <th class="text-right" style="min-width: 85px;">Tot EW</th>
@@ -961,8 +959,12 @@
 
   <script>
     // ── STATE ──
+    const VALID_SCOS = ['Abdul Harris', 'Febri Kurniawan', 'Hupron', 'Khoirul Anan', 'Mas Komarjaya'];
+    const savedSco = localStorage.getItem('sco_reseller_selected_sco');
+    const initialSco = VALID_SCOS.includes(savedSco) ? savedSco : 'Abdul Harris';
+
     const state = {
-      selectedSco: localStorage.getItem('sco_reseller_selected_sco') || 'ALL',
+      selectedSco: initialSco,
       subTab: 'monthly',
       selectedMonth: '1026',
       searchMonthly: '',
@@ -1177,7 +1179,7 @@
 
       // Update KPI
       document.getElementById('kpiCount').textContent = formatNumber(totalResellers);
-      document.getElementById('kpiCountSub').textContent = state.selectedSco === 'ALL' ? 'Seluruh Reseller Aktif' : `Binaan ${state.selectedSco}`;
+      document.getElementById('kpiCountSub').textContent = `Binaan ${state.selectedSco}`;
       document.getElementById('kpiTrx').textContent = formatNumber(totalTrx);
       document.getElementById('kpiEw').textContent = formatNumber(totalEw);
       document.getElementById('kpiEwSub').textContent = `Dari ${formatNumber(totalTrx)} trx`;
@@ -1216,7 +1218,7 @@
         const pctBadge = isHigh
           ? `<span class="ew-badge-high">${pct.toFixed(0)}%</span>`
           : `<span class="ew-badge-normal">${pct.toFixed(0)}%</span>`;
-        const scoTag = r.sco && r.sco !== '-' ? `<span class="sco-tag-pill">${r.sco}</span>` : '<span class="sco-tag-pill">-</span>';
+        const limitDisplay = r.limit > 0 ? formatNumber(r.limit) : '-';
 
         return `
           <tr>
@@ -1225,7 +1227,7 @@
               <div>${r.name}</div>
               <div style="font-size: 10px; color: var(--text-light);">${r.group || ''}</div>
             </td>
-            <td class="text-left">${scoTag}</td>
+            <td class="text-right" style="font-weight: 600; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: ${r.limit > 0 ? 'var(--text-main)' : 'var(--text-light)'};">${limitDisplay}</td>
             <td class="text-right">${pctBadge}</td>
             <td class="text-right" style="font-weight: ${r.ewallet > 0 ? '700' : '400'}; color: ${r.ewallet > 0 ? 'var(--text-main)' : 'var(--text-light)'};">${formatNumber(r.ewallet || 0)}</td>
             <td class="text-right" style="color: var(--text-light);">${r.telco ? formatNumber(r.telco) : '-'}</td>
@@ -1268,7 +1270,7 @@
 
       // Update KPI
       document.getElementById('kpiYearlyCount').textContent = formatNumber(totalResellers);
-      document.getElementById('kpiYearlyCountSub').textContent = state.selectedSco === 'ALL' ? 'Seluruh Reseller 2026' : `Binaan ${state.selectedSco}`;
+      document.getElementById('kpiYearlyCountSub').textContent = `Binaan ${state.selectedSco}`;
       document.getElementById('kpiYearlyTrx').textContent = formatNumber(totalTrx);
       document.getElementById('kpiYearlyEw').textContent = formatNumber(totalEw);
       document.getElementById('kpiYearlyAvg').textContent = `${avgPct.toFixed(1)}%`;
@@ -1308,7 +1310,7 @@
         const avgBadge = isAvgHigh
           ? `<span class="ew-badge-high">${avg.toFixed(0)}%</span>`
           : `<span class="ew-badge-normal">${avg.toFixed(0)}%</span>`;
-        const scoTag = r.sco && r.sco !== '-' ? `<span class="sco-tag-pill">${r.sco}</span>` : '<span class="sco-tag-pill">-</span>';
+        const limitDisplay = r.limit > 0 ? formatNumber(r.limit) : '-';
 
         const mCells = monthKeys.map(k => {
           const mVal = (r.months || {})[k];
@@ -1330,7 +1332,7 @@
               <div>${r.name}</div>
               <div style="font-size: 10px; color: var(--text-light);">${r.group || ''}</div>
             </td>
-            <td class="text-left">${scoTag}</td>
+            <td class="text-right" style="font-weight: 600; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: ${r.limit > 0 ? 'var(--text-main)' : 'var(--text-light)'};">${limitDisplay}</td>
             <td class="text-right">${avgBadge}</td>
             <td class="text-right" style="font-weight: 700;">${formatNumber(r.total_trx || 0)}</td>
             <td class="text-right" style="color: var(--text-light);">${formatNumber(r.total_ewallet || 0)}</td>
