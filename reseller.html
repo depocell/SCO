@@ -756,8 +756,8 @@
           <i class="fa-solid fa-file-csv"></i>
           <span>Export CSV</span>
         </button>
-        <button class="action-btn" onclick="loadResellerData()" title="Segarkan Data">
-          <i class="fa-solid fa-arrows-rotate"></i>
+        <button class="action-btn" onclick="loadResellerData()" title="Segarkan Data" id="btnRefresh">
+          <i class="fa-solid fa-arrows-rotate" id="refreshIcon"></i>
           <span>Refresh</span>
         </button>
         <button class="action-btn" onclick="toggleTheme()" id="btnThemeToggle" title="Ganti Tema">
@@ -1016,6 +1016,16 @@
 
     // ── DATA LOADING ──
     async function loadResellerData() {
+      const btn = document.getElementById('btnRefresh');
+      const icon = document.getElementById('refreshIcon');
+      if (btn) btn.disabled = true;
+      if (icon) icon.className = 'fa-solid fa-spinner fa-spin';
+
+      const resetBtn = () => {
+        if (btn) btn.disabled = false;
+        if (icon) icon.className = 'fa-solid fa-arrows-rotate';
+      };
+
       const paths = [
         './data_reseller.json',
         'data_reseller.json',
@@ -1029,14 +1039,18 @@
             const json = await res.json();
             if (json && json.monthly && json.yearly) {
               state.data = json;
-              state.selectedMonth = json.latest_month || '1026';
+              if (!state.selectedMonth || !json.monthly[state.selectedMonth]) {
+                state.selectedMonth = json.latest_month || '1026';
+              }
               initMonthDropdown();
               renderViews();
+              resetBtn();
               return;
             }
           }
         } catch (e) {}
       }
+      resetBtn();
       console.warn('Gagal memuat data_reseller.json');
     }
 

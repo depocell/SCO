@@ -1028,8 +1028,8 @@
           <i class="fa-solid fa-moon" id="themeIcon"></i>
           <span>Dark Mode</span>
         </button>
-        <button class="action-btn" onclick="loadData()" title="Segarkan Data">
-          <i class="fa-solid fa-arrows-rotate"></i>
+        <button class="action-btn" onclick="loadData()" title="Segarkan Data" id="btnRefresh">
+          <i class="fa-solid fa-arrows-rotate" id="refreshIcon"></i>
           <span>Refresh</span>
         </button>
       </div>
@@ -1226,6 +1226,16 @@
 
     // ── DATA LOADING ──
     async function loadData() {
+      const btn = document.getElementById('btnRefresh');
+      const icon = document.getElementById('refreshIcon');
+      if (btn) btn.disabled = true;
+      if (icon) icon.className = 'fa-solid fa-spinner fa-spin';
+
+      const resetBtn = () => {
+        if (btn) btn.disabled = false;
+        if (icon) icon.className = 'fa-solid fa-arrows-rotate';
+      };
+
       const statusBox = document.getElementById('status');
       const statusMsg = document.getElementById('statusMsg');
       const statusDot = document.getElementById('statusDot');
@@ -1290,6 +1300,7 @@
             renderCards();
             renderTable();
             renderChart();
+            resetBtn();
             return;
           }
         }
@@ -1345,7 +1356,9 @@
         renderCards();
         renderTable();
         renderChart();
+        resetBtn();
       } catch (error) {
+        resetBtn();
         if (statusDot) statusDot.className = 'status-dot loading';
         if (sidebarStatus) sidebarStatus.textContent = 'Gagal Memuat';
         if (statusBox) {

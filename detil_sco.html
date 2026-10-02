@@ -1423,6 +1423,10 @@
     </div>
 
     <div class="header-actions">
+      <!-- Refresh Data -->
+      <button class="icon-btn" id="refreshBtn" onclick="manualRefreshData()" title="Segarkan Data">
+        <i class="fa-solid fa-arrows-rotate" id="refreshIcon" style="font-size: 14px;"></i>
+      </button>
       <!-- Theme Toggle -->
       <button class="icon-btn" id="themeBtn" title="Ganti Tema">
         <svg id="themeIcon" viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-3.03 0-5.5-2.47-5.5-5.5 0-1.82.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z"/></svg>
@@ -1881,6 +1885,25 @@
 
         salesOptionList.appendChild(item);
       });
+    }
+
+    // ── MANUAL REFRESH HANDLER ──
+    async function manualRefreshData() {
+      const btn = document.getElementById('refreshBtn');
+      const icon = document.getElementById('refreshIcon');
+      if (btn) btn.disabled = true;
+      if (icon) icon.className = 'fa-solid fa-spinner fa-spin';
+      showStatus('Memperbarui data...', 'info');
+
+      try {
+        await loadExcelData();
+        showStatus('Data berhasil disegarkan!', 'info');
+      } catch (err) {
+        showStatus('Gagal menyegarkan data: ' + err.message, 'error');
+      } finally {
+        if (btn) btn.disabled = false;
+        if (icon) icon.className = 'fa-solid fa-arrows-rotate';
+      }
     }
 
     // ── DATA LOADING (JSON OR EXCEL) ──
