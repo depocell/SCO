@@ -1,6 +1,74 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+
+<!-- AUTOMATIC EMBEDDED MODE IN PORTAL -->
+<style id="embedded-portal-style">
+html.is-embedded body, 
+body.is-embedded {
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+html.is-embedded .app-sidebar,
+body.is-embedded .app-sidebar,
+html.is-embedded .sidebar,
+body.is-embedded .sidebar,
+html.is-embedded aside,
+body.is-embedded aside,
+html.is-embedded #sidebar,
+body.is-embedded #sidebar,
+html.is-embedded .sidebar-backdrop,
+body.is-embedded .sidebar-backdrop,
+html.is-embedded .depas-navbar,
+body.is-embedded .depas-navbar,
+html.is-embedded .app-topbar,
+body.is-embedded .app-topbar,
+html.is-embedded .topbar,
+body.is-embedded .topbar,
+html.is-embedded .portal-back-btn,
+body.is-embedded .portal-back-btn,
+html.is-embedded .portal-btn,
+body.is-embedded .portal-btn,
+html.is-embedded .hub-header,
+body.is-embedded .hub-header {
+    display: none !important;
+}
+html.is-embedded .app-main,
+body.is-embedded .app-main,
+html.is-embedded .main-content,
+body.is-embedded .main-content,
+html.is-embedded .main-wrapper,
+body.is-embedded .main-wrapper,
+html.is-embedded .app-container,
+body.is-embedded .app-container,
+html.is-embedded .app-content,
+body.is-embedded .app-content {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    margin-top: 0 !important;
+    margin: 0 !important;
+    padding: 14px 22px 50px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: auto !important;
+}
+</style>
+<script id="embedded-portal-script">
+(function() {
+    if (window.self !== window.top) {
+        document.documentElement.classList.add('is-embedded');
+        if (document.body) {
+            document.body.classList.add('is-embedded');
+        } else {
+            document.addEventListener('DOMContentLoaded', function() {
+                if (document.body) document.body.classList.add('is-embedded');
+            });
+        }
+    }
+})();
+</script>
+
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>KPI & Insentif SCO • SCO Executive Suite</title>
@@ -762,6 +830,19 @@
       }
     }
   </style>
+
+<style>
+
+</style>
+<script>
+if (window.self !== window.top) {
+    document.documentElement.classList.add('is-embedded');
+    document.addEventListener('DOMContentLoaded', () => {
+        document.body.classList.add('is-embedded');
+    });
+}
+</script>
+
 </head>
 <body>
 
