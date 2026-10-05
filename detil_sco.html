@@ -1609,8 +1609,8 @@ if (window.self !== window.top) {
             <input type="text" id="searchInput" placeholder="Cari nama toko / ID customer..."/>
           </div>
           <select id="sortSelect" class="sort-select">
+            <option value="growth_asc" selected>Growth Terendah</option>
             <option value="growth_desc">Growth Tertinggi</option>
-            <option value="growth_asc">Growth Terendah</option>
             <option value="sep_desc">Avg Sep Tertinggi</option>
             <option value="aug_desc">Avg Aug Tertinggi</option>
             <option value="name_asc">Nama A - Z</option>
@@ -1781,7 +1781,7 @@ if (window.self !== window.top) {
       selectedSales: localStorage.getItem('sco_selected_sales') || 'ALL',
       selectedJadwal: 'ALL',
       searchQuery: '',
-      sortField: 'growth_desc',
+      sortField: 'growth_asc',
       rawTrenAgen: [],
       rawTrenHarian: [],
       indexRows: [],
