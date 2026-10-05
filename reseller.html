@@ -873,7 +873,7 @@ if (window.self !== window.top) {
               <i class="fa-solid fa-calendar-day"></i> % EWALLET Bulan Ini
             </button>
             <button id="btnSubYearly" class="subnav-btn" onclick="switchSubTab('yearly')">
-              <i class="fa-solid fa-chart-line"></i> % EWALLET Bulanan (Jan - Des)
+              <i class="fa-solid fa-chart-line"></i> % EWALLET 2026
             </button>
           </div>
         </div>
@@ -922,8 +922,8 @@ if (window.self !== window.top) {
             </div>
             <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
               <div class="filter-chips">
-                <button class="chip-btn active" data-filter="all" onclick="setMonthlyFilter('all')">Semua Reseller</button>
-                <button class="chip-btn high" data-filter="high" onclick="setMonthlyFilter('high')">Dominan EW (&ge; 50%)</button>
+                <button class="chip-btn" data-filter="all" onclick="setMonthlyFilter('all')">Semua Reseller</button>
+                <button class="chip-btn high active" data-filter="high" onclick="setMonthlyFilter('high')">Dominan EW (&ge; 50%)</button>
                 <button class="chip-btn normal" data-filter="normal" onclick="setMonthlyFilter('normal')">Normal (&lt; 50%)</button>
               </div>
               <div style="font-size: 12px; font-weight: 600; color: var(--text-muted);" id="rowInfoMonthly">
@@ -1050,7 +1050,7 @@ if (window.self !== window.top) {
       selectedMonth: '1026',
       searchMonthly: '',
       searchYearly: '',
-      filterMonthly: 'all',
+      filterMonthly: 'high',
       filterYearly: 'all',
       data: null
     };
@@ -1280,8 +1280,8 @@ if (window.self !== window.top) {
         rows = rows.filter(r => (r.pct_ewallet || 0) < 50);
       }
 
-      // 4. Sort by % EWALLET descending
-      rows.sort((a, b) => (b.pct_ewallet || 0) - (a.pct_ewallet || 0) || (b.grand_total || 0) - (a.grand_total || 0));
+      // 4. Sort by total transaksi descending, lalu % EWALLET descending
+      rows.sort((a, b) => (b.grand_total || 0) - (a.grand_total || 0) || (b.pct_ewallet || 0) - (a.pct_ewallet || 0));
 
       document.getElementById('rowInfoMonthly').textContent = `Menampilkan ${formatNumber(rows.length)} reseller`;
 
@@ -1370,8 +1370,8 @@ if (window.self !== window.top) {
         rows = rows.filter(r => (r.avg_pct_ewallet || 0) < 50);
       }
 
-      // 4. Sort
-      rows.sort((a, b) => (b.avg_pct_ewallet || 0) - (a.avg_pct_ewallet || 0) || (b.total_trx || 0) - (a.total_trx || 0));
+      // 4. Sort by total transaksi descending, lalu Avg % EW descending
+      rows.sort((a, b) => (b.total_trx || 0) - (a.total_trx || 0) || (b.avg_pct_ewallet || 0) - (a.avg_pct_ewallet || 0));
 
       document.getElementById('rowInfoYearly').textContent = `Menampilkan ${formatNumber(rows.length)} reseller`;
 
