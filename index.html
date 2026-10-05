@@ -106,7 +106,7 @@ body.is-embedded .app-content {
 
       /* Light Theme (Default) */
       --bg-body: #f8fafc;
-      --bg-sidebar: #2b3444;
+      --bg-sidebar: #ffffff;
       --bg-card: #ffffff;
       --bg-card-subtle: #f1f5f9;
       --border-color: #e2e8f0;
@@ -165,11 +165,12 @@ body.is-embedded .app-content {
       -webkit-font-smoothing: antialiased;
     }
 
-    /* ── SIDEBAR NAVIGATION ── */
+    /* ── SIDEBAR NAVIGATION (Light White / Grey Theme) ── */
     .app-sidebar {
       width: 270px;
       background: var(--bg-sidebar);
-      color: #e2e8f0;
+      border-right: 1px solid var(--border-color);
+      color: var(--text-main);
       display: flex;
       flex-direction: column;
       flex-shrink: 0;
@@ -179,22 +180,23 @@ body.is-embedded .app-content {
       left: 0;
       z-index: 100;
       transition: var(--transition);
-      box-shadow: 4px 0 20px rgba(0,0,0,0.15);
+      box-shadow: 2px 0 12px rgba(0,0,0,0.04);
     }
 
     .sidebar-header {
-      padding: 22px 20px;
-      border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding: 20px 20px;
+      border-bottom: 1px solid var(--border-color);
       display: flex;
       align-items: center;
       gap: 12px;
+      background: var(--bg-sidebar);
     }
 
     .brand-logo-img {
       height: 38px;
       max-width: 125px;
       object-fit: contain;
-      filter: drop-shadow(0 2px 6px rgba(0,0,0,0.3));
+      filter: none;
       flex-shrink: 0;
     }
 
@@ -220,13 +222,13 @@ body.is-embedded .app-content {
     .brand-title {
       font-size: 15px;
       font-weight: 800;
-      color: #ffffff;
+      color: var(--text-main);
       letter-spacing: -0.3px;
     }
 
     .brand-subtitle {
       font-size: 10px;
-      color: #94a3b8;
+      color: var(--text-muted);
       text-transform: uppercase;
       letter-spacing: 0.8px;
     }
@@ -244,7 +246,7 @@ body.is-embedded .app-content {
       font-size: 10px;
       text-transform: uppercase;
       letter-spacing: 1px;
-      color: #64748b;
+      color: var(--text-muted);
       font-weight: 700;
       padding: 12px 10px 4px;
     }
@@ -255,7 +257,7 @@ body.is-embedded .app-content {
       gap: 12px;
       padding: 11px 14px;
       border-radius: var(--radius-md);
-      color: #cbd5e1;
+      color: var(--text-main);
       text-decoration: none;
       font-size: 13px;
       font-weight: 600;
@@ -265,8 +267,8 @@ body.is-embedded .app-content {
     }
 
     .nav-item:hover {
-      background: rgba(255,255,255,0.06);
-      color: #ffffff;
+      background: var(--bg-card-subtle);
+      color: var(--brand-primary);
       transform: translateX(3px);
     }
 
@@ -287,13 +289,19 @@ body.is-embedded .app-content {
       font-size: 9px;
       padding: 2px 7px;
       border-radius: 999px;
-      background: rgba(255,255,255,0.2);
+      background: #e2e8f0;
+      color: #475569;
+    }
+
+    .nav-item.active .badge {
+      background: rgba(255,255,255,0.25);
+      color: #ffffff;
     }
 
     .sidebar-footer {
       padding: 16px 18px;
-      border-top: 1px solid rgba(255,255,255,0.08);
-      background: rgba(0,0,0,0.15);
+      border-top: 1px solid var(--border-color);
+      background: var(--bg-card-subtle);
       display: flex;
       flex-direction: column;
       gap: 6px;
@@ -305,7 +313,27 @@ body.is-embedded .app-content {
       align-items: center;
       gap: 8px;
       font-size: 11px;
-      color: #94a3b8;
+      color: var(--text-muted);
+    }
+
+    /* Dark theme overrides for sidebar */
+    body.dark-theme .app-sidebar {
+      border-right: 1px solid var(--border-color);
+    }
+    body.dark-theme .brand-title {
+      color: #f8fafc;
+    }
+    body.dark-theme .nav-item {
+      color: #cbd5e1;
+    }
+    body.dark-theme .nav-item:hover {
+      background: rgba(255,255,255,0.06);
+      color: #ffffff;
+    }
+    body.dark-theme .sidebar-header .brand-logo-img {
+      background: #ffffff;
+      padding: 2px 6px;
+      border-radius: 6px;
     }
 
     .status-dot {
