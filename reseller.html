@@ -859,6 +859,7 @@ if (window.self !== window.top) {
           <div class="sco-picker-group">
             <span class="sco-picker-label"><i class="fa-solid fa-user-check"></i> Filter SCO:</span>
             <select id="scoFilterSelect" class="sco-select" onchange="onScoChange(this.value)">
+              <option value="ALL">Semua SCO (Total)</option>
               <option value="Abdul Harris">Abdul Harris (ICON)</option>
               <option value="Febri Kurniawan">Febri Kurniawan (PP)</option>
               <option value="Hupron">Hupron (BSD)</option>
@@ -922,8 +923,8 @@ if (window.self !== window.top) {
             </div>
             <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
               <div class="filter-chips">
-                <button class="chip-btn" data-filter="all" onclick="setMonthlyFilter('all')">Semua Reseller</button>
-                <button class="chip-btn high active" data-filter="high" onclick="setMonthlyFilter('high')">Dominan EW (&ge; 50%)</button>
+                <button class="chip-btn active" data-filter="all" onclick="setMonthlyFilter('all')">Semua Reseller</button>
+                <button class="chip-btn high" data-filter="high" onclick="setMonthlyFilter('high')">Dominan EW (&ge; 50%)</button>
                 <button class="chip-btn normal" data-filter="normal" onclick="setMonthlyFilter('normal')">Normal (&lt; 50%)</button>
               </div>
               <div style="font-size: 12px; font-weight: 600; color: var(--text-muted);" id="rowInfoMonthly">
@@ -936,17 +937,14 @@ if (window.self !== window.top) {
             <table class="custom-table" id="tableMonthly">
               <thead>
                 <tr>
-                  <th style="min-width: 85px;">Kode</th>
-                  <th style="min-width: 170px;" class="text-left">Nama Reseller</th>
-                  <th class="text-right" style="min-width: 95px;">Limit</th>
-                  <th class="text-right" style="min-width: 85px;">% EW</th>
-                  <th class="text-right" style="min-width: 80px;">EWALLET</th>
-                  <th class="text-right" style="min-width: 75px;">TELCO</th>
-                  <th class="text-right" style="min-width: 75px;">PLN</th>
-                  <th class="text-right" style="min-width: 75px;">PPOB</th>
-                  <th class="text-right" style="min-width: 75px;">GAME</th>
-                  <th class="text-right" style="min-width: 75px;">STOK</th>
-                  <th class="text-right" style="min-width: 90px;">TOTAL</th>
+                  <th style="width: 45px;" class="text-center">#</th>
+                  <th style="min-width: 190px;" class="text-left">Reseller</th>
+                  <th style="min-width: 140px;" class="text-left">Cabang & SCO</th>
+                  <th style="min-width: 135px;" class="text-left">Jadwal & Limit</th>
+                  <th class="text-right" style="min-width: 95px;">Total Trx</th>
+                  <th class="text-right" style="min-width: 90px;">Trx EW</th>
+                  <th class="text-center" style="min-width: 90px;">% EW</th>
+                  <th style="min-width: 220px;" class="text-left">Komposisi Produk</th>
                 </tr>
               </thead>
               <tbody id="tbodyMonthly">
@@ -1007,10 +1005,11 @@ if (window.self !== window.top) {
             <table class="custom-table" id="tableYearly">
               <thead>
                 <tr>
-                  <th style="min-width: 85px;">Kode</th>
-                  <th style="min-width: 170px;" class="text-left">Nama Reseller</th>
+                  <th style="width: 45px;" class="text-center">#</th>
+                  <th style="min-width: 190px;" class="text-left">Reseller</th>
+                  <th style="min-width: 140px;" class="text-left">Cabang & SCO</th>
                   <th class="text-right" style="min-width: 95px;">Limit</th>
-                  <th class="text-right" style="min-width: 85px;">Avg % EW</th>
+                  <th class="text-center" style="min-width: 85px;">Avg % EW</th>
                   <th class="text-right" style="min-width: 85px;">Tot Trx</th>
                   <th class="text-right" style="min-width: 85px;">Tot EW</th>
                   <th class="text-center" style="min-width: 58px;">Jan</th>
@@ -1040,9 +1039,9 @@ if (window.self !== window.top) {
 
   <script>
     // ── STATE ──
-    const VALID_SCOS = ['Abdul Harris', 'Febri Kurniawan', 'Hupron', 'Khoirul Anan', 'Mas Komarjaya'];
+    const VALID_SCOS = ['ALL', 'Abdul Harris', 'Febri Kurniawan', 'Hupron', 'Khoirul Anan', 'Mas Komarjaya'];
     const savedSco = localStorage.getItem('sco_reseller_selected_sco');
-    const initialSco = VALID_SCOS.includes(savedSco) ? savedSco : 'Abdul Harris';
+    const initialSco = VALID_SCOS.includes(savedSco) ? savedSco : 'ALL';
 
     const state = {
       selectedSco: initialSco,
@@ -1050,7 +1049,7 @@ if (window.self !== window.top) {
       selectedMonth: '1026',
       searchMonthly: '',
       searchYearly: '',
-      filterMonthly: 'high',
+      filterMonthly: 'all',
       filterYearly: 'all',
       data: null
     };
@@ -1127,6 +1126,8 @@ if (window.self !== window.top) {
               if (!state.selectedMonth || !json.monthly[state.selectedMonth]) {
                 state.selectedMonth = json.latest_month || '1026';
               }
+              const scoSel = document.getElementById('scoFilterSelect');
+              if (scoSel) scoSel.value = state.selectedSco;
               initMonthDropdown();
               renderViews();
               resetBtn();
@@ -1260,7 +1261,7 @@ if (window.self !== window.top) {
 
       // Update KPI
       document.getElementById('kpiCount').textContent = formatNumber(totalResellers);
-      document.getElementById('kpiCountSub').textContent = `Binaan ${state.selectedSco}`;
+      document.getElementById('kpiCountSub').textContent = state.selectedSco === 'ALL' ? 'Semua Cabang & SCO' : `Binaan ${state.selectedSco}`;
       document.getElementById('kpiTrx').textContent = formatNumber(totalTrx);
       document.getElementById('kpiEw').textContent = formatNumber(totalEw);
       document.getElementById('kpiEwSub').textContent = `Dari ${formatNumber(totalTrx)} trx`;
@@ -1270,7 +1271,7 @@ if (window.self !== window.top) {
       // 2. Search
       if (state.searchMonthly) {
         const q = state.searchMonthly;
-        rows = rows.filter(r => (r.kode || '').toLowerCase().includes(q) || (r.name || '').toLowerCase().includes(q));
+        rows = rows.filter(r => (r.kode || '').toLowerCase().includes(q) || (r.name || '').toLowerCase().includes(q) || (r.cabang || '').toLowerCase().includes(q) || (r.sco || '').toLowerCase().includes(q));
       }
 
       // 3. Dominance Filter
@@ -1289,34 +1290,53 @@ if (window.self !== window.top) {
       if (!tbody) return;
 
       if (rows.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="11" class="text-center" style="padding: 24px; color: var(--text-light);">Tidak ada reseller yang cocok dengan filter.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center" style="padding: 28px; color: var(--text-light);">Tidak ada reseller yang cocok dengan filter.</td></tr>';
         return;
       }
 
-      const html = rows.map(r => {
+      const html = rows.map((r, idx) => {
         const pct = r.pct_ewallet || 0;
         const isHigh = pct >= 50;
         const pctBadge = isHigh
-          ? `<span class="ew-badge-high">${pct.toFixed(0)}%</span>`
-          : `<span class="ew-badge-normal">${pct.toFixed(0)}%</span>`;
-        const limitDisplay = r.limit > 0 ? formatNumber(r.limit) : '-';
+          ? `<span class="ew-badge-high">${pct.toFixed(1)}%</span>`
+          : `<span class="ew-badge-normal">${pct.toFixed(1)}%</span>`;
+        const limitDisplay = r.limit ? `Limit: Rp ${formatNumber(r.limit)}` : 'Limit: Rp 0';
+
+        // Komposisi produk tags
+        const compHtml = `
+          <div style="font-size: 11.5px; display: flex; gap: 5px; flex-wrap: wrap; align-items: center;">
+            <span style="color: #1d4ed8; font-weight: 600; background: rgba(29, 78, 216, 0.08); padding: 1.5px 6px; border-radius: 4px;">EW: ${formatNumber(r.ewallet || 0)}</span>
+            <span style="color: #15803d; font-weight: 600; background: rgba(21, 128, 61, 0.08); padding: 1.5px 6px; border-radius: 4px;">TEL: ${formatNumber(r.telco || 0)}</span>
+            <span style="color: #7e22ce; font-weight: 600; background: rgba(126, 34, 206, 0.08); padding: 1.5px 6px; border-radius: 4px;">PLN: ${formatNumber(r.token_pln || 0)}</span>
+            <span style="color: #a16207; font-weight: 600; background: rgba(161, 98, 7, 0.08); padding: 1.5px 6px; border-radius: 4px;">PP: ${formatNumber(r.ppob || 0)}</span>
+            ${(r.voucher_game || 0) > 0 ? `<span style="color: #b91c1c; font-weight: 600; background: rgba(185, 28, 28, 0.08); padding: 1.5px 6px; border-radius: 4px;">GM: ${formatNumber(r.voucher_game)}</span>` : ''}
+            ${(r.transfer_stok || 0) > 0 ? `<span style="color: #475569; font-weight: 600; background: rgba(71, 85, 105, 0.08); padding: 1.5px 6px; border-radius: 4px;">STK: ${formatNumber(r.transfer_stok)}</span>` : ''}
+          </div>
+        `;
 
         return `
           <tr>
-            <td style="font-weight: 700; color: var(--brand-primary);">${r.kode}</td>
-            <td class="text-left" style="font-weight: 600;">
-              <div>${r.name}</div>
-              <div style="font-size: 10px; color: var(--text-light);">${r.group || ''}</div>
+            <td class="text-center" style="color: var(--text-light); font-size: 11.5px; font-weight: 600;">${idx + 1}</td>
+            <td class="text-left">
+              <div style="font-weight: 700; color: var(--text-main); font-size: 13.5px; letter-spacing: -0.2px;">${r.kode}</div>
+              <div style="font-size: 11.5px; color: var(--text-muted); max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${r.name}">${r.name}</div>
             </td>
-            <td class="text-right" style="font-weight: 600; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: ${r.limit > 0 ? 'var(--text-main)' : 'var(--text-light)'};">${limitDisplay}</td>
-            <td class="text-right">${pctBadge}</td>
-            <td class="text-right" style="font-weight: ${r.ewallet > 0 ? '700' : '400'}; color: ${r.ewallet > 0 ? 'var(--text-main)' : 'var(--text-light)'};">${formatNumber(r.ewallet || 0)}</td>
-            <td class="text-right" style="color: var(--text-light);">${r.telco ? formatNumber(r.telco) : '-'}</td>
-            <td class="text-right" style="color: var(--text-light);">${r.token_pln ? formatNumber(r.token_pln) : '-'}</td>
-            <td class="text-right" style="color: var(--text-light);">${r.ppob ? formatNumber(r.ppob) : '-'}</td>
-            <td class="text-right" style="color: var(--text-light);">${r.voucher_game ? formatNumber(r.voucher_game) : '-'}</td>
-            <td class="text-right" style="color: var(--text-light);">${r.transfer_stok ? formatNumber(r.transfer_stok) : '-'}</td>
-            <td class="text-right" style="font-weight: 800; color: var(--text-main);">${formatNumber(r.grand_total || 0)}</td>
+            <td class="text-left">
+              <div style="display: flex; align-items: center; gap: 5px;">
+                <span class="badge" style="font-size: 10.5px; padding: 2px 7px; background: var(--brand-subtle); color: var(--brand-text); border-radius: 4px; font-weight: 700;">${r.cabang || '-'}</span>
+              </div>
+              <div style="font-size: 11px; color: var(--text-muted); margin-top: 3px;">
+                SCO: <strong style="color: var(--text-main); font-weight: 600;">${r.sco || '-'}</strong>
+              </div>
+            </td>
+            <td class="text-left">
+              <div style="font-size: 12px; font-weight: 600; color: var(--text-main);">${r.jadwal || '-'}</div>
+              <div style="font-size: 11px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace;">${limitDisplay}</div>
+            </td>
+            <td class="text-right font-semibold" style="font-size: 13.5px; color: var(--text-main); font-family: 'JetBrains Mono', monospace;">${formatNumber(r.grand_total || 0)}</td>
+            <td class="text-right font-semibold" style="font-size: 13.5px; color: #2563eb; font-family: 'JetBrains Mono', monospace;">${formatNumber(r.ewallet || 0)}</td>
+            <td class="text-center">${pctBadge}</td>
+            <td class="text-left">${compHtml}</td>
           </tr>
         `;
       }).join('');
@@ -1351,7 +1371,7 @@ if (window.self !== window.top) {
 
       // Update KPI
       document.getElementById('kpiYearlyCount').textContent = formatNumber(totalResellers);
-      document.getElementById('kpiYearlyCountSub').textContent = `Binaan ${state.selectedSco}`;
+      document.getElementById('kpiYearlyCountSub').textContent = state.selectedSco === 'ALL' ? 'Semua Cabang & SCO' : `Binaan ${state.selectedSco}`;
       document.getElementById('kpiYearlyTrx').textContent = formatNumber(totalTrx);
       document.getElementById('kpiYearlyEw').textContent = formatNumber(totalEw);
       document.getElementById('kpiYearlyAvg').textContent = `${avgPct.toFixed(1)}%`;
@@ -1360,7 +1380,7 @@ if (window.self !== window.top) {
       // 2. Search
       if (state.searchYearly) {
         const q = state.searchYearly;
-        rows = rows.filter(r => (r.kode || '').toLowerCase().includes(q) || (r.name || '').toLowerCase().includes(q));
+        rows = rows.filter(r => (r.kode || '').toLowerCase().includes(q) || (r.name || '').toLowerCase().includes(q) || (r.cabang || '').toLowerCase().includes(q) || (r.sco || '').toLowerCase().includes(q));
       }
 
       // 3. Dominance Filter
@@ -1379,19 +1399,19 @@ if (window.self !== window.top) {
       if (!tbody) return;
 
       if (rows.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="18" class="text-center" style="padding: 24px; color: var(--text-light);">Tidak ada reseller yang cocok dengan filter.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="19" class="text-center" style="padding: 28px; color: var(--text-light);">Tidak ada reseller yang cocok dengan filter.</td></tr>';
         return;
       }
 
       const monthKeys = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
 
-      const html = rows.map(r => {
+      const html = rows.map((r, idx) => {
         const avg = r.avg_pct_ewallet || 0;
         const isAvgHigh = avg >= 50;
         const avgBadge = isAvgHigh
-          ? `<span class="ew-badge-high">${avg.toFixed(0)}%</span>`
-          : `<span class="ew-badge-normal">${avg.toFixed(0)}%</span>`;
-        const limitDisplay = r.limit > 0 ? formatNumber(r.limit) : '-';
+          ? `<span class="ew-badge-high">${avg.toFixed(1)}%</span>`
+          : `<span class="ew-badge-normal">${avg.toFixed(1)}%</span>`;
+        const limitDisplay = r.limit ? formatNumber(r.limit) : '0';
 
         const mCells = monthKeys.map(k => {
           const mVal = (r.months || {})[k];
@@ -1408,15 +1428,23 @@ if (window.self !== window.top) {
 
         return `
           <tr>
-            <td style="font-weight: 700; color: var(--brand-primary);">${r.kode}</td>
-            <td class="text-left" style="font-weight: 600;">
-              <div>${r.name}</div>
-              <div style="font-size: 10px; color: var(--text-light);">${r.group || ''}</div>
+            <td class="text-center" style="color: var(--text-light); font-size: 11.5px; font-weight: 600;">${idx + 1}</td>
+            <td class="text-left">
+              <div style="font-weight: 700; color: var(--text-main); font-size: 13.5px; letter-spacing: -0.2px;">${r.kode}</div>
+              <div style="font-size: 11.5px; color: var(--text-muted); max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${r.name}">${r.name}</div>
             </td>
-            <td class="text-right" style="font-weight: 600; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: ${r.limit > 0 ? 'var(--text-main)' : 'var(--text-light)'};">${limitDisplay}</td>
-            <td class="text-right">${avgBadge}</td>
-            <td class="text-right" style="font-weight: 700;">${formatNumber(r.total_trx || 0)}</td>
-            <td class="text-right" style="color: var(--text-light);">${formatNumber(r.total_ewallet || 0)}</td>
+            <td class="text-left">
+              <div style="display: flex; align-items: center; gap: 5px;">
+                <span class="badge" style="font-size: 10.5px; padding: 2px 7px; background: var(--brand-subtle); color: var(--brand-text); border-radius: 4px; font-weight: 700;">${r.cabang || '-'}</span>
+              </div>
+              <div style="font-size: 11px; color: var(--text-muted); margin-top: 3px;">
+                SCO: <strong style="color: var(--text-main); font-weight: 600;">${r.sco || '-'}</strong>
+              </div>
+            </td>
+            <td class="text-right" style="font-weight: 600; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: ${r.limit ? 'var(--text-main)' : 'var(--text-light)'};">Rp ${limitDisplay}</td>
+            <td class="text-center">${avgBadge}</td>
+            <td class="text-right font-semibold" style="font-size: 13px; font-family: 'JetBrains Mono', monospace;">${formatNumber(r.total_trx || 0)}</td>
+            <td class="text-right font-semibold" style="font-size: 13px; color: #2563eb; font-family: 'JetBrains Mono', monospace;">${formatNumber(r.total_ewallet || 0)}</td>
             ${mCells}
           </tr>
         `;
@@ -1435,9 +1463,9 @@ if (window.self !== window.top) {
         if (state.selectedSco !== 'ALL') {
           rows = rows.filter(r => (r.sco || '').toLowerCase() === state.selectedSco.toLowerCase());
         }
-        let csv = 'Kode;Nama Reseller;Group;SCO;% EWALLET;EWALLET;TELCO;PLN;PPOB;GAME;STOK;TOTAL\r\n';
+        let csv = 'Kode;Nama Reseller;Group;Cabang;SCO;Jadwal;Limit;% EWALLET;EWALLET;TELCO;PLN;PPOB;GAME;STOK;TOTAL\r\n';
         rows.forEach(r => {
-          csv += `"${r.kode}";"${r.name}";"${r.group || ''}";"${r.sco || ''}";"${(r.pct_ewallet || 0).toFixed(1)}%";${r.ewallet || 0};${r.telco || 0};${r.token_pln || 0};${r.ppob || 0};${r.voucher_game || 0};${r.transfer_stok || 0};${r.grand_total || 0}\r\n`;
+          csv += `"${r.kode}";"${r.name}";"${r.group || ''}";"${r.cabang || ''}";"${r.sco || ''}";"${r.jadwal || ''}";${r.limit || 0};"${(r.pct_ewallet || 0).toFixed(1)}%";${r.ewallet || 0};${r.telco || 0};${r.token_pln || 0};${r.ppob || 0};${r.voucher_game || 0};${r.transfer_stok || 0};${r.grand_total || 0}\r\n`;
         });
         downloadBlob(csv, `Analisa_Reseller_${state.selectedMonth}_${state.selectedSco}.csv`);
       } else {
