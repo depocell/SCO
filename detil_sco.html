@@ -1473,6 +1473,11 @@ if (window.self !== window.top) {
         <span>KPI & Insentif SCO</span>
         <span class="badge" style="background: #8b5cf6; color: #fff;">KPI</span>
       </a>
+      <a class="nav-item-side" href="kpi_dso.html">
+        <i class="fa-solid fa-award"></i>
+        <span>KPI & Insentif DSO</span>
+        <span class="badge" style="background: #f59e0b; color: #fff;">DSO</span>
+      </a>
       <a class="nav-item-side" href="reseller.html">
         <i class="fa-solid fa-chart-pie"></i>
         <span>Analisa Reseller</span>
@@ -2037,8 +2042,14 @@ if (window.self !== window.top) {
         const loc = d.LOCATION || '';
         return {
           sco: d['NAMA SCO'],
-          aid: d['AGEN ID'] || '',
-          customer: (!d['NAMA CUSTOMER'] || String(d['NAMA CUSTOMER']).trim().toLowerCase() === 'nan') ? (d['AGEN ID'] || '') : d['NAMA CUSTOMER'],
+          aid: (d['AGEN ID'] || d['aid'] || '').trim(),
+          customer: (() => {
+            const raw = (!d['NAMA CUSTOMER'] || String(d['NAMA CUSTOMER']).trim().toLowerCase() === 'nan') ? '' : String(d['NAMA CUSTOMER']).trim();
+            const aid = (d['AGEN ID'] || d['aid'] || '').trim();
+            if (!raw) return aid;
+            if (aid && !raw.toLowerCase().includes(aid.toLowerCase())) return `${aid} - ${raw}`;
+            return raw;
+          })(),
           location: loc,
           mapsUrl: parseDmsToMaps(loc),
           jadwal: d['JADWAL'] || 'Lainnya',
