@@ -799,78 +799,19 @@
     const filtered = getFilteredProfilAgents(allAgents);
     const paged = filtered.slice(0, state.profilPageLimit);
 
-    // Summary KPIs across filtered agents
+    // Counts for quick filter buttons
     const totalAgents = filtered.length;
     let countUp = 0;
     let countDown = 0;
-    let sumOkt = 0;
 
     filtered.forEach(a => {
       const vOkt = a.monthly_avg ? (parseFloat(a.monthly_avg['1026']) || 0) : 0;
       const vSep = a.monthly_avg ? (parseFloat(a.monthly_avg['0926']) || 0) : 0;
       if (vOkt >= vSep) countUp++;
       else countDown++;
-      sumOkt += vOkt;
     });
 
-    const avgOkt = totalAgents > 0 ? (sumOkt / totalAgents) : 0;
-
     container.innerHTML = `
-      <!-- 4 SUMMARY CARDS FOR PROFIL TREN -->
-      <div class="metrics-grid">
-        <div class="metric-card" style="--card-accent: var(--primary);">
-          <div class="metric-header">
-            <span class="metric-label">TOTAL AGEN REAL SCO</span>
-            <div class="metric-icon-box" style="background: var(--primary-light); color: var(--primary);">
-              <i class="fa-solid fa-store"></i>
-            </div>
-          </div>
-          <div class="metric-value">${totalAgents.toLocaleString('id-ID')} <span style="font-size:12px; font-weight:600; color:var(--text-muted);">Toko</span></div>
-          <div class="metric-subtext">
-            <span>Dari total <strong>${totalRealScoAgents.toLocaleString('id-ID')}</strong> agen real SCO</span>
-          </div>
-        </div>
-
-        <div class="metric-card" style="--card-accent: var(--success);">
-          <div class="metric-header">
-            <span class="metric-label">TREN NAIK MoM (OKT ≥ SEP)</span>
-            <div class="metric-icon-box" style="background: rgba(16, 185, 129, 0.15); color: var(--success);">
-              <i class="fa-solid fa-arrow-trend-up"></i>
-            </div>
-          </div>
-          <div class="metric-value" style="color:var(--success-text);">${countUp.toLocaleString('id-ID')} <span style="font-size:12px; font-weight:600; color:var(--text-muted);">Toko</span></div>
-          <div class="metric-subtext">
-            <span>${totalAgents > 0 ? ((countUp / totalAgents) * 100).toFixed(1) : 0}% bertumbuh</span>
-          </div>
-        </div>
-
-        <div class="metric-card" style="--card-accent: var(--danger);">
-          <div class="metric-header">
-            <span class="metric-label">TREN TURUN MoM (OKT &lt; SEP)</span>
-            <div class="metric-icon-box" style="background: rgba(239, 68, 68, 0.15); color: var(--danger);">
-              <i class="fa-solid fa-arrow-trend-down"></i>
-            </div>
-          </div>
-          <div class="metric-value" style="color:var(--danger-text);">${countDown.toLocaleString('id-ID')} <span style="font-size:12px; font-weight:600; color:var(--text-muted);">Toko</span></div>
-          <div class="metric-subtext">
-            <span>${totalAgents > 0 ? ((countDown / totalAgents) * 100).toFixed(1) : 0}% koreksi harian</span>
-          </div>
-        </div>
-
-        <div class="metric-card" style="--card-accent: #f59e0b;">
-          <div class="metric-header">
-            <span class="metric-label">RATA-RATA DAILY TRX (OKT)</span>
-            <div class="metric-icon-box" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b);">
-              <i class="fa-solid fa-chart-simple"></i>
-            </div>
-          </div>
-          <div class="metric-value">${fmtNumber(avgOkt, 1)} <span style="font-size:12px; font-weight:600; color:var(--text-muted);">trx/hari</span></div>
-          <div class="metric-subtext">
-            <span>Rerata transaksi harian toko terfilter</span>
-          </div>
-        </div>
-      </div>
-
       <!-- FILTER CONTROLS CARD -->
       <div class="content-card">
         <div class="card-header">
