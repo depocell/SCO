@@ -607,6 +607,21 @@ body {
   color: var(--text-main);
 }
 
+.data-table tbody tr.row-total td {
+  background: var(--bg-subtle);
+  font-weight: 800;
+  border-top: 1.5px solid var(--border-color);
+  border-bottom: 1.5px solid var(--border-color);
+  color: var(--primary);
+}
+
+.data-table tbody tr.row-subtotal td {
+  background: var(--bg-subtle);
+  font-weight: 700;
+  border-top: 1px dashed var(--border-color);
+  border-bottom: 1px dashed var(--border-color);
+}
+
 .num {
   text-align: right;
   font-family: var(--font-mono);

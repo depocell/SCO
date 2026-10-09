@@ -280,7 +280,7 @@
     }
   }
 
-  // ── VIEW 1: RINGKASAN PERFORMA (MoM) ──
+  // ── VIEW 1: RINGKASAN PERFORMA (DAILY TRX MoM) ──
   function renderRingkasanView(container) {
     if (!state.data || !state.data.periods) return;
     const period = state.data.periods[state.selectedPeriod] || state.data.periods[state.data.latest_period];
@@ -290,81 +290,81 @@
     }
 
     const indexRows = period.index || [];
-    const totalRow = indexRows.find(r => r.SCO === 'TOTAL') || {
-      curr: indexRows.reduce((a, b) => a + (b.curr || 0), 0),
-      prev: indexRows.reduce((a, b) => a + (b.prev || 0), 0),
-      Growth: 0,
-      '%': 0
-    };
 
-    if (!totalRow.Growth) {
-      totalRow.Growth = totalRow.curr - totalRow.prev;
-      totalRow['%'] = totalRow.prev ? (totalRow.Growth / totalRow.prev) : 0;
+    // 4 Key Row Groups for Daily Trx Cards
+    const rowTotSco = indexRows.find(r => {
+      const s = String(r['SCO'] || '').trim().toLowerCase();
+      return s === 'total sco';
+    }) || { prev: 0, curr: 0, Growth: 0, '%': 0 };
+
+    const rowTotNon = indexRows.find(r => {
+      const s = String(r['SCO'] || '').trim().toLowerCase();
+      return s === 'total non sco' || s === 'total non-sco';
+    }) || { prev: 0, curr: 0, Growth: 0, '%': 0 };
+
+    const rowOnline = indexRows.find(r => {
+      const s = String(r['SCO'] || '').trim().toLowerCase();
+      return s === 'online';
+    }) || { prev: 0, curr: 0, Growth: 0, '%': 0 };
+
+    const rowGrand = indexRows.find(r => {
+      const s = String(r['SCO'] || '').trim().toLowerCase();
+      return s === 'grand total' || s === 'total';
+    }) || { prev: 0, curr: 0, Growth: 0, '%': 0 };
+
+    function makeKpiCard(title, icon, row, colorAccent, iconBg, iconColor) {
+      const valCurr = row.curr || 0;
+      const valPrev = row.prev || 0;
+      const growth = (row['Growth'] !== undefined && row['Growth'] !== '')
+        ? Number(row['Growth'])
+        : (valCurr - valPrev);
+      const pct = (row['%'] !== undefined && row['%'] !== '')
+        ? (Number(row['%']) * 100)
+        : (valPrev > 0 ? (growth / valPrev * 100) : 0);
+      const isPos = pct >= 0;
+
+      return `
+        <div class="metric-card" style="--card-accent: ${colorAccent};">
+          <div class="metric-header">
+            <span class="metric-label">${title}</span>
+            <div class="metric-icon-box" style="background: ${iconBg}; color: ${iconColor};">
+              <i class="${icon}"></i>
+            </div>
+          </div>
+          <div class="metric-value">
+            ${fmtNumber(valCurr, 1)} <span style="font-size:12px; font-weight:600; color:var(--text-muted); font-family:var(--font);">trx/hari</span>
+          </div>
+          <div class="metric-subtext">
+            <span>${period.prev_name}: <strong>${fmtNumber(valPrev, 1)}</strong></span>
+            <span class="badge ${isPos ? 'badge-success' : 'badge-danger'}" style="margin-left:auto;">
+              ${isPos ? '+' : ''}${fmtNumber(pct, 1)}%
+            </span>
+          </div>
+        </div>
+      `;
     }
 
-    const growthPct = totalRow['%'] * 100;
-    const isGrowthPositive = growthPct >= 0;
-    const scoAgents = indexRows.filter(r => r.SCO !== 'TOTAL');
+    // Individual SCO persons for chart & actions
+    const scoPersons = indexRows.filter(r => {
+      const s = String(r['SCO'] || '').trim().toLowerCase();
+      return !s.includes('total') && s !== 'online' && s !== 'non sco' && s !== '';
+    });
 
     container.innerHTML = `
-      <!-- METRIC CARDS -->
+      <!-- 4 KPI CARDS: DAILY TRX (SCO, NON SCO, ONLINE, TOTAL) -->
       <div class="metrics-grid">
-        <div class="metric-card" style="--card-accent: var(--primary);">
-          <div class="metric-header">
-            <span class="metric-label">Rata-rata Transaksi (${period.curr_name})</span>
-            <div class="metric-icon-box"><i class="fa-solid fa-chart-simple"></i></div>
-          </div>
-          <div class="metric-value">${fmtNumber(totalRow.curr)}</div>
-          <div class="metric-subtext">
-            <span>Cutoff ${period.days_curr} hari (${period.curr_name} 2026)</span>
-          </div>
-        </div>
-
-        <div class="metric-card" style="--card-accent: #64748b;">
-          <div class="metric-header">
-            <span class="metric-label">Rata-rata Transaksi (${period.prev_name})</span>
-            <div class="metric-icon-box"><i class="fa-solid fa-clock-rotate-left"></i></div>
-          </div>
-          <div class="metric-value">${fmtNumber(totalRow.prev)}</div>
-          <div class="metric-subtext">
-            <span>Cutoff ${period.days_prev} hari (${period.prev_name} 2026)</span>
-          </div>
-        </div>
-
-        <div class="metric-card" style="--card-accent: ${isGrowthPositive ? 'var(--success)' : 'var(--danger)'};">
-          <div class="metric-header">
-            <span class="metric-label">Pertumbuhan MoM</span>
-            <div class="metric-icon-box"><i class="fa-solid fa-${isGrowthPositive ? 'arrow-trend-up' : 'arrow-trend-down'}"></i></div>
-          </div>
-          <div class="metric-value" style="color: ${isGrowthPositive ? 'var(--success-text)' : 'var(--danger-text)'};">
-            ${isGrowthPositive ? '+' : ''}${fmtNumber(growthPct, 1)}%
-          </div>
-          <div class="metric-subtext">
-            <span class="badge ${isGrowthPositive ? 'badge-success' : 'badge-danger'}">
-              ${isGrowthPositive ? '+' : ''}${fmtNumber(totalRow.Growth)} trx
-            </span>
-            <span>vs bulan sebelumnya</span>
-          </div>
-        </div>
-
-        <div class="metric-card" style="--card-accent: var(--purple);">
-          <div class="metric-header">
-            <span class="metric-label">Personil SCO Aktif</span>
-            <div class="metric-icon-box"><i class="fa-solid fa-user-group"></i></div>
-          </div>
-          <div class="metric-value">${scoAgents.length}</div>
-          <div class="metric-subtext">
-            <span>Dari 4 Kantor Cabang</span>
-          </div>
-        </div>
+        ${makeKpiCard('TOTAL SCO (DAILY TRX)', 'fa-solid fa-user-check', rowTotSco, 'var(--primary)', 'var(--primary-light)', 'var(--primary)')}
+        ${makeKpiCard('TOTAL NON SCO (DAILY TRX)', 'fa-solid fa-users', rowTotNon, '#8b5cf6', 'rgba(139, 92, 246, 0.15)', '#8b5cf6')}
+        ${makeKpiCard('ONLINE (DAILY TRX)', 'fa-solid fa-globe', rowOnline, 'var(--success)', 'rgba(16, 185, 129, 0.15)', 'var(--success)')}
+        ${makeKpiCard('GRAND TOTAL (DAILY TRX)', 'fa-solid fa-chart-pie', rowGrand, '#f59e0b', 'rgba(245, 158, 11, 0.15)', '#f59e0b')}
       </div>
 
-      <!-- CHART SECTION -->
+      <!-- CHART SECTION: DAILY TRX PER SCO -->
       <div class="content-card">
         <div class="card-header">
           <div class="card-title">
             <i class="fa-solid fa-chart-column" style="color:var(--primary);"></i>
-            Perbandingan Transaksi Rata-Rata SCO (${period.prev_name} vs ${period.curr_name})
+            Perbandingan Daily Transaction SCO (${period.prev_name} vs ${period.curr_name}) (trx/hari)
           </div>
         </div>
         <div class="card-body" style="height: 340px; position: relative;">
@@ -372,14 +372,14 @@
         </div>
       </div>
 
-      <!-- TABLE SECTION -->
+      <!-- TABLE SECTION: DAILY TRX REKAP -->
       <div class="content-card">
         <div class="card-header">
           <div class="card-title">
             <i class="fa-solid fa-table-list" style="color:var(--primary);"></i>
-            Rekap Indeks MoM Per SCO
+            Rekap Daily Transaction (${period.prev_name} vs ${period.curr_name})
           </div>
-          <button class="action-btn btn-secondary" onclick="window.exportTableCSV('table-mom-sco', 'Rekap_MoM_SCO_${period.code}.csv')">
+          <button class="action-btn btn-secondary" onclick="window.exportTableCSV('table-mom-sco', 'Rekap_Daily_Trx_${period.code}.csv')">
             <i class="fa-solid fa-file-csv"></i> Unduh CSV
           </button>
         </div>
@@ -388,68 +388,82 @@
             <thead>
               <tr>
                 <th class="center" style="width:40px;">No</th>
-                <th>Nama SCO</th>
+                <th>SCO / Kategori</th>
                 <th>Cabang</th>
-                <th class="num">${period.prev_name} (Lalu)</th>
-                <th class="num" style="color:var(--primary); font-weight:800;">${period.curr_name} (Ini)</th>
-                <th class="num">Growth</th>
-                <th class="num">Growth %</th>
-                <th class="center">Aksi</th>
+                <th class="num">${period.prev_name} (Daily Lalu)</th>
+                <th class="num" style="color:var(--primary); font-weight:800;">${period.curr_name} (Daily Ini)</th>
+                <th class="num">Growth (Daily)</th>
+                <th class="center" style="width:110px;">Growth (%)</th>
+                <th class="center" style="width:90px;">Aksi</th>
               </tr>
             </thead>
             <tbody>
-              ${scoAgents.map((r, i) => {
-                const rowGrowth = (r['%'] || 0) * 100;
-                const pos = rowGrowth >= 0;
+              ${indexRows.map((r, i) => {
+                const s = String(r['SCO'] || '').trim().toLowerCase();
+                const isGrand = s === 'grand total' || s === 'total';
+                const isTotal = s.includes('total');
+                const isOnline = s === 'online';
+                const isNonSco = s === 'non sco';
+                const isPerson = !isTotal && !isOnline && !isNonSco && s !== '';
+
+                let trClass = '';
+                if (isGrand) trClass = 'class="row-total"';
+                else if (isTotal) trClass = 'class="row-subtotal"';
+
+                const valPrev = r.prev || 0;
+                const valCurr = r.curr || 0;
+                const growth = (r['Growth'] !== undefined && r['Growth'] !== '')
+                  ? Number(r['Growth'])
+                  : (valCurr - valPrev);
+                const pct = (r['%'] !== undefined && r['%'] !== '')
+                  ? (Number(r['%']) * 100)
+                  : (valPrev > 0 ? (growth / valPrev * 100) : 0);
+                const isPos = pct >= 0;
+
                 return `
-                  <tr>
-                    <td class="center">${i + 1}</td>
-                    <td style="font-weight:700;">${r.SCO}</td>
-                    <td><span class="badge badge-info">${r.CABANG || '-'}</span></td>
-                    <td class="num">${fmtNumber(r.prev)}</td>
-                    <td class="num" style="font-weight:800; color:var(--primary);">${fmtNumber(r.curr)}</td>
-                    <td class="num">${pos ? '+' : ''}${fmtNumber(r.Growth)}</td>
-                    <td class="num">
-                      <span class="badge ${pos ? 'badge-success' : 'badge-danger'}">
-                        ${pos ? '+' : ''}${fmtNumber(rowGrowth, 1)}%
+                  <tr ${trClass}>
+                    <td class="center" style="font-weight:${isTotal || isGrand ? '800' : '500'};">${isTotal || isGrand ? '•' : i + 1}</td>
+                    <td style="font-weight:${isTotal || isGrand ? '800' : '700'}; color:${isGrand ? 'var(--primary)' : 'inherit'};">
+                      ${r.SCO || '-'}
+                    </td>
+                    <td>${r.CABANG ? `<span class="badge badge-info">${r.CABANG}</span>` : '-'}</td>
+                    <td class="num">${fmtNumber(valPrev, 1)}</td>
+                    <td class="num" style="font-weight:800; color:var(--primary);">${fmtNumber(valCurr, 1)}</td>
+                    <td class="num" style="color:${isPos ? 'var(--success-text)' : 'var(--danger-text)'};">
+                      ${isPos ? '+' : ''}${fmtNumber(growth, 1)}
+                    </td>
+                    <td class="center">
+                      <span class="badge ${isPos ? 'badge-success' : 'badge-danger'}">
+                        ${isPos ? '+' : ''}${fmtNumber(pct, 1)}%
                       </span>
                     </td>
                     <td class="center">
-                      <button class="action-btn btn-secondary" style="padding:4px 8px; font-size:11.5px;" onclick="window.filterToAgentDetail('${r.SCO}')">
-                        <i class="fa-solid fa-arrow-right"></i> Agen
-                      </button>
+                      ${isPerson ? `
+                        <button class="action-btn btn-secondary" style="padding:4px 8px; font-size:11px;" onclick="window.filterToAgentDetail('${r.SCO}')">
+                          <i class="fa-solid fa-arrow-right"></i> Agen
+                        </button>
+                      ` : ''}
                     </td>
                   </tr>`;
               }).join('')}
             </tbody>
-            <tfoot>
-              <tr>
-                <td colspan="3">GRAND TOTAL</td>
-                <td class="num">${fmtNumber(totalRow.prev)}</td>
-                <td class="num" style="color:var(--primary);">${fmtNumber(totalRow.curr)}</td>
-                <td class="num">${growthPct >= 0 ? '+' : ''}${fmtNumber(totalRow.Growth)}</td>
-                <td class="num">
-                  <span class="badge ${growthPct >= 0 ? 'badge-success' : 'badge-danger'}">
-                    ${growthPct >= 0 ? '+' : ''}${fmtNumber(growthPct, 1)}%
-                  </span>
-                </td>
-                <td></td>
-              </tr>
-            </tfoot>
           </table>
         </div>
       </div>
     `;
 
-    renderTrendChart(scoAgents, period);
+    renderTrendChart(scoPersons, period);
   }
 
-  function renderTrendChart(scoAgents, period) {
-    if (!scoAgents) {
+  function renderTrendChart(scoPersons, period) {
+    if (!scoPersons) {
       if (!state.data || !state.data.periods) return;
       const p = state.data.periods[state.selectedPeriod];
       if (!p || !p.index) return;
-      scoAgents = p.index.filter(r => r.SCO !== 'TOTAL');
+      scoPersons = p.index.filter(r => {
+        const s = String(r['SCO'] || '').trim().toLowerCase();
+        return !s.includes('total') && s !== 'online' && s !== 'non sco' && s !== '';
+      });
       period = p;
     }
 
@@ -465,11 +479,11 @@
     const textColor = isDark ? '#94a3b8' : '#64748b';
     const gridColor = isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.06)';
 
-    // Sort by current sales descending
-    const sorted = [...scoAgents].sort((a, b) => (b.curr || 0) - (a.curr || 0));
-    const labels = sorted.map(s => s.SCO.split(' ')[0]);
-    const prevData = sorted.map(s => Math.round(s.prev || 0));
-    const currData = sorted.map(s => Math.round(s.curr || 0));
+    // Sort by current daily trx descending
+    const sorted = [...scoPersons].sort((a, b) => (b.curr || 0) - (a.curr || 0));
+    const labels = sorted.map(s => s.SCO.split(' ')[0] + (s.CABANG ? ` (${s.CABANG})` : ''));
+    const prevData = sorted.map(s => Number((s.prev || 0).toFixed(1)));
+    const currData = sorted.map(s => Number((s.curr || 0).toFixed(1)));
 
     trendChartInstance = new Chart(canvas, {
       type: 'bar',
@@ -477,13 +491,13 @@
         labels: labels,
         datasets: [
           {
-            label: `${period.prev_name} (Lalu)`,
+            label: `${period.prev_name} (Daily Lalu)`,
             data: prevData,
             backgroundColor: isDark ? 'rgba(148, 163, 184, 0.4)' : '#cbd5e1',
             borderRadius: 6,
           },
           {
-            label: `${period.curr_name} (Ini)`,
+            label: `${period.curr_name} (Daily Ini)`,
             data: currData,
             backgroundColor: '#0284c7',
             borderRadius: 6,
@@ -501,7 +515,7 @@
           tooltip: {
             callbacks: {
               title: (items) => sorted[items[0].dataIndex].SCO,
-              label: (context) => ` ${context.dataset.label}: ${context.parsed.y.toLocaleString('id-ID')} trx`
+              label: (context) => ` ${context.dataset.label}: ${context.parsed.y.toLocaleString('id-ID')} trx/hari`
             }
           }
         },
@@ -512,7 +526,11 @@
           },
           y: {
             grid: { color: gridColor },
-            ticks: { color: textColor, font: { family: 'JetBrains Mono', size: 11 } }
+            ticks: {
+              color: textColor,
+              font: { family: 'JetBrains Mono', size: 11 },
+              callback: (val) => val.toLocaleString('id-ID')
+            }
           }
         }
       }
@@ -1223,9 +1241,6 @@
               <span class="badge badge-info" id="header-cutoff-badge" style="font-size:11px;">
                 Cutoff: -
               </span>
-              <button class="icon-btn" onclick="window.downloadCurrentViewPng()" title="Download Laporan Gambar (Potret HD)">
-                <i class="fa-solid fa-camera"></i>
-              </button>
               <button class="icon-btn" onclick="window.toggleQuickTheme()" title="Ubah Tema Terang/Gelap">
                 <i id="btn-header-theme-icon" class="fa-solid fa-moon"></i>
               </button>
@@ -1261,38 +1276,6 @@
   window.setPeriod = function (code) {
     state.selectedPeriod = code;
     renderCurrentRoute();
-  };
-
-  window.downloadCurrentViewPng = async function () {
-    const container = document.getElementById('view-container');
-    if (!container) return;
-    if (typeof html2canvas === 'undefined') {
-      showToast('Library html2canvas belum dimuat.', 'triangle-exclamation');
-      return;
-    }
-    showToast('Sedang membuat screenshot HD...', 'camera');
-    try {
-      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-      const canvas = await html2canvas(container, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: isDark ? '#0b1120' : '#ffffff',
-        windowWidth: 1080
-      });
-      const now = new Date();
-      const dateStr = now.toISOString().split('T')[0];
-      const routeName = (state.currentRoute || '#ringkasan').replace('#', '');
-      const filename = `Laporan_SCO_${routeName}_${dateStr}.png`;
-      const link = document.createElement('a');
-      link.download = filename;
-      link.href = canvas.toDataURL('image/png');
-      link.click();
-      showToast(`Gambar diunduh: ${filename}`, 'download');
-    } catch (err) {
-      console.error(err);
-      showToast('Gagal mengunduh gambar laporan', 'triangle-exclamation');
-    }
   };
 
   // ── INIT ──
