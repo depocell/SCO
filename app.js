@@ -318,10 +318,7 @@
       const growth = (row['Growth'] !== undefined && row['Growth'] !== '')
         ? Number(row['Growth'])
         : (valCurr - valPrev);
-      const pct = (row['%'] !== undefined && row['%'] !== '')
-        ? (Number(row['%']) * 100)
-        : (valPrev > 0 ? (growth / valPrev * 100) : 0);
-      const isPos = pct >= 0;
+      const isPos = growth >= 0;
 
       return `
         <div class="metric-card" style="--card-accent: ${colorAccent};">
@@ -336,8 +333,8 @@
           </div>
           <div class="metric-subtext">
             <span>${period.prev_name}: <strong>${fmtNumber(valPrev, 1)}</strong></span>
-            <span class="badge ${isPos ? 'badge-success' : 'badge-danger'}" style="margin-left:auto;">
-              ${isPos ? '+' : ''}${fmtNumber(pct, 1)}%
+            <span class="badge ${isPos ? 'badge-success' : 'badge-danger'}" style="margin-left:auto;" title="Pertumbuhan Harian">
+              ${isPos ? '+' : ''}${fmtNumber(growth, 1)}
             </span>
           </div>
         </div>
@@ -393,7 +390,6 @@
                 <th class="num">${period.prev_name} (Daily Lalu)</th>
                 <th class="num" style="color:var(--primary); font-weight:800;">${period.curr_name} (Daily Ini)</th>
                 <th class="num">Growth (Daily)</th>
-                <th class="center" style="width:110px;">Growth (%)</th>
                 <th class="center" style="width:90px;">Aksi</th>
               </tr>
             </thead>
@@ -415,10 +411,7 @@
                 const growth = (r['Growth'] !== undefined && r['Growth'] !== '')
                   ? Number(r['Growth'])
                   : (valCurr - valPrev);
-                const pct = (r['%'] !== undefined && r['%'] !== '')
-                  ? (Number(r['%']) * 100)
-                  : (valPrev > 0 ? (growth / valPrev * 100) : 0);
-                const isPos = pct >= 0;
+                const isPos = growth >= 0;
 
                 return `
                   <tr ${trClass}>
@@ -429,13 +422,8 @@
                     <td>${r.CABANG ? `<span class="badge badge-info">${r.CABANG}</span>` : '-'}</td>
                     <td class="num">${fmtNumber(valPrev, 1)}</td>
                     <td class="num" style="font-weight:800; color:var(--primary);">${fmtNumber(valCurr, 1)}</td>
-                    <td class="num" style="color:${isPos ? 'var(--success-text)' : 'var(--danger-text)'};">
+                    <td class="num" style="color:${isPos ? 'var(--success-text)' : 'var(--danger-text)'}; font-weight:700;">
                       ${isPos ? '+' : ''}${fmtNumber(growth, 1)}
-                    </td>
-                    <td class="center">
-                      <span class="badge ${isPos ? 'badge-success' : 'badge-danger'}">
-                        ${isPos ? '+' : ''}${fmtNumber(pct, 1)}%
-                      </span>
                     </td>
                     <td class="center">
                       ${isPerson ? `
