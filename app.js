@@ -239,6 +239,24 @@
     renderCurrentRoute();
   }
 
+  // ── DRAWER HELPERS ──
+  function openDrawer() {
+    const sidebar = document.getElementById('app-sidebar');
+    const backdrop = document.getElementById('sidebar-backdrop');
+    if (sidebar) sidebar.classList.add('open');
+    if (backdrop) backdrop.classList.add('active');
+  }
+
+  function closeDrawer() {
+    const sidebar = document.getElementById('app-sidebar');
+    const backdrop = document.getElementById('sidebar-backdrop');
+    if (sidebar) sidebar.classList.remove('open');
+    if (backdrop) backdrop.classList.remove('active');
+  }
+
+  window.openDrawer = openDrawer;
+  window.closeDrawer = closeDrawer;
+
   // ── ROUTER ──
   function handleRoute() {
     const hash = window.location.hash || '#ringkasan';
@@ -2035,11 +2053,18 @@
   };
 
   // ── INIT ──
-  window.addEventListener('DOMContentLoaded', () => {
+  function init() {
     applyTheme(state.theme);
     window.addEventListener('hashchange', handleRoute);
+    handleRoute();
     loadData();
-  });
+  }
+
+  if (document.readyState === 'loading') {
+    window.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
 
   // Listen to system theme change if 'system' selected
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
