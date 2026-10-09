@@ -24,7 +24,6 @@
     profilTrendFilter: 'ALL',
     profilPageLimit: 100,
     theme: localStorage.getItem('sco_theme') || localStorage.getItem('theme_preference') || 'system',
-    defaultSales: localStorage.getItem('sco_default_sales') || 'ALL',
   };
 
   let trendChartInstance = null;
@@ -217,9 +216,6 @@
             // Set initial period to latest
             if (json.periods_list && json.periods_list.length > 0) {
               state.selectedPeriod = json.latest_period || json.periods_list[0].code;
-            }
-            if (state.defaultSales && state.defaultSales !== 'ALL') {
-              state.selectedSales = state.defaultSales;
             }
             loaded = true;
             break;
@@ -1097,11 +1093,10 @@
 
   function getFilteredAgents(allAgents) {
     const scoList = getCleanScoList(allAgents);
-    const defaultSco = (state.defaultSales && scoList.includes(state.defaultSales)) ? state.defaultSales : scoList[0];
 
     // Ensure selectedSales points to a valid SCO
     if (!state.selectedSales || !scoList.includes(state.selectedSales)) {
-      state.selectedSales = defaultSco;
+      state.selectedSales = scoList[0] || '';
     }
 
     let filtered = allAgents.filter(a => a.sco === state.selectedSales);
@@ -1266,11 +1261,10 @@
 
     // Clean SCO personil list (only actual SCOs)
     const scoList = getCleanScoList(allAgents);
-    const defaultSco = (state.defaultSales && scoList.includes(state.defaultSales)) ? state.defaultSales : scoList[0];
 
     // Ensure selectedSales points to a valid SCO
     if (!state.selectedSales || !scoList.includes(state.selectedSales)) {
-      state.selectedSales = defaultSco;
+      state.selectedSales = scoList[0] || '';
     }
 
     // Schedule counts for current SCO selection
@@ -1716,12 +1710,6 @@
 
   // ── VIEW 5: PENGATURAN (SETTINGS) ──
   function renderSettingsView(container) {
-    // Unique list of SCO names for default profile setting
-    let scoList = [];
-    if (state.data && state.data.tren_agen) {
-      scoList = getCleanScoList(state.data.tren_agen);
-    }
-
     container.innerHTML = `
       <!-- THEME SETTINGS -->
       <div class="settings-section">
@@ -1741,19 +1729,6 @@
             <i class="fa-solid fa-display" style="color:#8b5cf6;"></i>
             <span>Ikuti Sistem</span>
           </div>
-        </div>
-      </div>
-
-      <!-- DEFAULT PROFILE -->
-      <div class="settings-section">
-        <h3><i class="fa-solid fa-user-gear" style="color:var(--primary);"></i> Profil SCO Default</h3>
-        <p class="settings-desc">Pilih nama Anda agar saat membuka menu <strong>Detail Performa Agen</strong> otomatis memfilter toko Anda.</p>
-        
-        <div style="max-width: 380px;">
-          <select class="form-select" id="settings-default-sales" onchange="window.setDefaultSalesConfig(this.value)" style="width:100%; padding: 10px 14px; font-size: 14px;">
-            <option value="ALL">Tidak ada (Tampilkan Semua Toko)</option>
-            ${scoList.map(s => `<option value="${s}" ${s === state.defaultSales ? 'selected' : ''}>${s}</option>`).join('')}
-          </select>
         </div>
       </div>
 
@@ -1793,12 +1768,6 @@
   window.setThemeConfig = function (themeName) {
     applyTheme(themeName);
     renderSettingsView(document.getElementById('view-container'));
-  };
-
-  window.setDefaultSalesConfig = function (salesName) {
-    state.defaultSales = salesName;
-    localStorage.setItem('sco_default_sales', salesName);
-    showToast(`Profil default disimpan: ${salesName}`, 'user-check');
   };
 
   window.refreshDataAndCache = function () {
@@ -2032,6 +2001,9 @@
 
   // ── INIT ──
   function init() {
+    try {
+      localStorage.removeItem('sco_default_sales');
+    } catch (e) {}
     applyTheme(state.theme);
     window.addEventListener('hashchange', handleRoute);
     handleRoute();
