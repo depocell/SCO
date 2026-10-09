@@ -19,7 +19,6 @@
     kpiDsoMonth: 'ALL',
     kpiDsoPerson: 'ALL',
     profilSales: 'ALL',
-    profilCabang: 'ALL',
     profilSearch: '',
     profilSort: 'curr_desc',
     profilTrendFilter: 'ALL',
@@ -661,16 +660,13 @@
 
   function getFilteredProfilAgents(allAgents) {
     if (!allAgents) return [];
-    let list = allAgents;
+    const cleanScoList = getCleanScoList(allAgents);
+    // Baseline: strictly real SCO only (no NON SCO, no ONLINE)
+    let list = allAgents.filter(a => cleanScoList.includes(a.sco));
 
     // Filter SCO
     if (state.profilSales && state.profilSales !== 'ALL') {
       list = list.filter(a => String(a.sco || '').trim() === state.profilSales);
-    }
-
-    // Filter Cabang
-    if (state.profilCabang && state.profilCabang !== 'ALL') {
-      list = list.filter(a => String(a.cabang || '').trim() === state.profilCabang);
     }
 
     // Search Query
@@ -802,12 +798,10 @@
     }
 
     const allAgents = state.data.tren_agen;
+    const cleanScoList = getCleanScoList(allAgents);
+    const totalRealScoAgents = allAgents.filter(a => cleanScoList.includes(a.sco)).length;
     const filtered = getFilteredProfilAgents(allAgents);
     const paged = filtered.slice(0, state.profilPageLimit);
-
-    // Dynamic Lists for Filters
-    const allScoList = Array.from(new Set(allAgents.map(a => String(a.sco || '').trim()).filter(Boolean))).sort();
-    const cabangList = Array.from(new Set(allAgents.map(a => String(a.cabang || '').trim()).filter(Boolean))).sort();
 
     // Summary KPIs across filtered agents
     const totalAgents = filtered.length;
@@ -830,14 +824,14 @@
       <div class="metrics-grid">
         <div class="metric-card" style="--card-accent: var(--primary);">
           <div class="metric-header">
-            <span class="metric-label">TOTAL AGEN TERFILTER</span>
+            <span class="metric-label">TOTAL AGEN REAL SCO</span>
             <div class="metric-icon-box" style="background: var(--primary-light); color: var(--primary);">
               <i class="fa-solid fa-store"></i>
             </div>
           </div>
           <div class="metric-value">${totalAgents.toLocaleString('id-ID')} <span style="font-size:12px; font-weight:600; color:var(--text-muted);">Toko</span></div>
           <div class="metric-subtext">
-            <span>Dari total <strong>${allAgents.length.toLocaleString('id-ID')}</strong> agen</span>
+            <span>Dari total <strong>${totalRealScoAgents.toLocaleString('id-ID')}</strong> agen real SCO</span>
           </div>
         </div>
 
@@ -893,22 +887,13 @@
           </button>
         </div>
         <div class="card-body">
-          <div class="detail-filter-grid">
+          <div class="detail-filter-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
             <!-- Filter SCO -->
             <div class="filter-group">
-              <label class="filter-label">Kategori / SCO</label>
+              <label class="filter-label">Petugas SCO</label>
               <select class="form-select" onchange="window.setProfilSales(this.value)">
-                <option value="ALL" ${state.profilSales === 'ALL' ? 'selected' : ''}>Semua SCO & Kategori</option>
-                ${allScoList.map(s => `<option value="${s}" ${s === state.profilSales ? 'selected' : ''}>${s}</option>`).join('')}
-              </select>
-            </div>
-
-            <!-- Filter Cabang -->
-            <div class="filter-group">
-              <label class="filter-label">Cabang Wilayah</label>
-              <select class="form-select" onchange="window.setProfilCabang(this.value)">
-                <option value="ALL" ${state.profilCabang === 'ALL' ? 'selected' : ''}>Semua Cabang</option>
-                ${cabangList.map(c => `<option value="${c}" ${c === state.profilCabang ? 'selected' : ''}>${c}</option>`).join('')}
+                <option value="ALL" ${state.profilSales === 'ALL' ? 'selected' : ''}>Semua Petugas SCO (${totalRealScoAgents} Toko)</option>
+                ${cleanScoList.map(s => `<option value="${s}" ${s === state.profilSales ? 'selected' : ''}>${s}</option>`).join('')}
               </select>
             </div>
 
@@ -965,7 +950,7 @@
         <div class="card-header">
           <div class="card-title">
             <i class="fa-solid fa-chart-line" style="color:var(--primary);"></i>
-            Histori & Tren Daily Transaksi Agen (Januari – Oktober 2026)
+            Histori & Tren Daily Transaksi Agen Real SCO (Januari – Oktober 2026)
           </div>
           <span class="badge badge-info">
             Menampilkan ${paged.length.toLocaleString('id-ID')} dari ${filtered.length.toLocaleString('id-ID')} Agen
@@ -1025,12 +1010,6 @@
     renderCurrentRoute();
   };
 
-  window.setProfilCabang = function (val) {
-    state.profilCabang = val;
-    state.profilPageLimit = 100;
-    renderCurrentRoute();
-  };
-
   window.setProfilSearch = function (val) {
     state.profilSearch = val;
     state.profilPageLimit = 100;
@@ -1060,7 +1039,6 @@
 
   window.resetProfilFilters = function () {
     state.profilSales = 'ALL';
-    state.profilCabang = 'ALL';
     state.profilSearch = '';
     state.profilSort = 'curr_desc';
     state.profilTrendFilter = 'ALL';
