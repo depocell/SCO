@@ -311,6 +311,64 @@ body {
   backdrop-filter: blur(8px);
 }
 
+/* ── SUB-HEADER PERIOD BAR ── */
+.sub-header-bar {
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-color);
+  padding: 10px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.sub-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 240px;
+}
+
+.sub-header-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+}
+
+.sub-header-select {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 7px 14px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  outline: none;
+  transition: var(--transition);
+  min-width: 220px;
+}
+
+.sub-header-select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.sub-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .header-left {
   display: flex;
   align-items: center;
@@ -432,10 +490,10 @@ body {
   margin: 0 auto;
 }
 
-/* ── METRIC CARDS GRID ── */
+/* ── METRIC CARDS GRID (2 BERJAJAR) ── */
 .metrics-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 16px;
   margin-bottom: 24px;
 }
@@ -1025,6 +1083,25 @@ body {
   .app-header {
     padding: 0 16px;
     height: 58px;
+  }
+  .sub-header-bar {
+    padding: 10px 16px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .sub-header-left {
+    min-width: 100%;
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+  .sub-header-select {
+    width: 100%;
+  }
+  .sub-header-right {
+    justify-content: flex-start;
   }
   .view-container {
     padding: 16px 12px;

@@ -279,6 +279,7 @@
 
   function updateHeader() {
     const titleEl = document.getElementById('header-title-text');
+    const periodBar = document.getElementById('sub-header-bar');
     const periodSelect = document.getElementById('header-period-select');
     const headerBadge = document.getElementById('header-cutoff-badge');
 
@@ -296,14 +297,14 @@
       headerBadge.textContent = `Cutoff: ${state.data.cutoff_date || '-'}`;
     }
 
-    if (periodSelect && state.data && state.data.periods_list) {
+    if (periodBar && periodSelect && state.data && state.data.periods_list) {
       if (state.currentRoute === '#ringkasan' || state.currentRoute === '#detail') {
-        periodSelect.style.display = 'inline-block';
+        periodBar.style.display = 'flex';
         periodSelect.innerHTML = state.data.periods_list.map(p =>
           `<option value="${p.code}" ${p.code === state.selectedPeriod ? 'selected' : ''}>${p.label}</option>`
         ).join('');
       } else {
-        periodSelect.style.display = 'none';
+        periodBar.style.display = 'none';
       }
     }
   }
@@ -404,9 +405,6 @@
             <i class="fa-solid fa-table-list" style="color:var(--primary);"></i>
             Rekap Daily Transaction (${period.prev_name} vs ${period.curr_name})
           </div>
-          <button class="action-btn btn-secondary" onclick="window.exportTableCSV('table-mom-sco', 'Rekap_Daily_Trx_${period.code}.csv')">
-            <i class="fa-solid fa-file-csv"></i> Unduh CSV
-          </button>
         </div>
         <div class="table-responsive">
           <table class="data-table" id="table-mom-sco">
@@ -415,9 +413,9 @@
                 <th class="center" style="width:40px;">No</th>
                 <th>SCO / Kategori</th>
                 <th>Cabang</th>
-                <th class="num">${period.prev_name} (Daily Lalu)</th>
-                <th class="num" style="color:var(--primary); font-weight:800;">${period.curr_name} (Daily Ini)</th>
-                <th class="num">Growth (Daily)</th>
+                <th class="num">${period.prev_name}</th>
+                <th class="num" style="color:var(--primary); font-weight:800;">${period.curr_name}</th>
+                <th class="num">Growth</th>
                 <th class="center" style="width:90px;">Aksi</th>
               </tr>
             </thead>
@@ -507,13 +505,13 @@
         labels: labels,
         datasets: [
           {
-            label: `${period.prev_name} (Daily Lalu)`,
+            label: `${period.prev_name}`,
             data: prevData,
             backgroundColor: isDark ? 'rgba(148, 163, 184, 0.4)' : '#cbd5e1',
             borderRadius: 6,
           },
           {
-            label: `${period.curr_name} (Daily Ini)`,
+            label: `${period.curr_name}`,
             data: currData,
             backgroundColor: '#0284c7',
             borderRadius: 6,
@@ -820,9 +818,9 @@
               <tr>
                 <th class="center" style="width: 50px;">No</th>
                 <th>ID & Nama Toko</th>
-                <th class="num" style="width: 140px;">${escapeHtml(months.prev)} (Daily Lalu)</th>
-                <th class="num" style="width: 140px;">${escapeHtml(months.curr)} (Daily Ini)</th>
-                <th class="num" style="width: 120px;">Growth (+/-)</th>
+                <th class="num" style="width: 140px;">${escapeHtml(months.prev)}</th>
+                <th class="num" style="width: 140px;">${escapeHtml(months.curr)}</th>
+                <th class="num" style="width: 120px;">Growth</th>
                 <th class="center" style="width: 90px;">Aksi</th>
               </tr>
             </thead>
@@ -945,9 +943,6 @@
               <option value="ALL" ${state.kpiScoPerson === 'ALL' ? 'selected' : ''}>Semua Personil</option>
               ${persons.map(p => `<option value="${p}" ${p === state.kpiScoPerson ? 'selected' : ''}>${p}</option>`).join('')}
             </select>
-            <button class="action-btn btn-secondary" onclick="window.exportTableCSV('table-kpi-sco', 'KPI_Insentif_SCO.csv')">
-              <i class="fa-solid fa-file-csv"></i> CSV
-            </button>
           </div>
         </div>
 
@@ -1076,9 +1071,6 @@
               <option value="ALL" ${state.kpiDsoPerson === 'ALL' ? 'selected' : ''}>Semua Personil</option>
               ${persons.map(p => `<option value="${p}" ${p === state.kpiDsoPerson ? 'selected' : ''}>${p}</option>`).join('')}
             </select>
-            <button class="action-btn btn-secondary" onclick="window.exportTableCSV('table-kpi-dso', 'KPI_Insentif_DSO.csv')">
-              <i class="fa-solid fa-file-csv"></i> CSV
-            </button>
           </div>
         </div>
 
@@ -1367,16 +1359,28 @@
             </div>
 
             <div class="header-right">
-              <select class="header-select" id="header-period-select" onchange="window.setPeriod(this.value)" style="display:none;">
-              </select>
-              <span class="badge badge-info" id="header-cutoff-badge" style="font-size:11px;">
-                Cutoff: -
-              </span>
               <button class="icon-btn" onclick="window.toggleQuickTheme()" title="Ubah Tema Terang/Gelap">
                 <i id="btn-header-theme-icon" class="fa-solid fa-moon"></i>
               </button>
             </div>
           </header>
+
+          <!-- SUB-HEADER BAR (PILIHAN BULAN / PERIODE DI BAWAH HEADER) -->
+          <div class="sub-header-bar" id="sub-header-bar" style="display:none;">
+            <div class="sub-header-left">
+              <span class="sub-header-label">
+                <i class="fa-solid fa-calendar-days" style="color:var(--primary);"></i>
+                Pilih Periode:
+              </span>
+              <select class="sub-header-select" id="header-period-select" onchange="window.setPeriod(this.value)">
+              </select>
+            </div>
+            <div class="sub-header-right">
+              <span class="badge badge-info" id="header-cutoff-badge" style="font-size:11.5px; padding: 4px 10px; border-radius: 999px;">
+                Cutoff: -
+              </span>
+            </div>
+          </div>
 
           <!-- VIEW CONTAINER -->
           <main class="view-container app-main" id="view-container">
