@@ -49,6 +49,30 @@
     }
   }
 
+  function formatBulan(str) {
+    if (!str) return '-';
+    const s = String(str).trim();
+    const iso = s.match(/^(\d{4})-(\d{2})/);
+    if (iso) {
+      const yr = parseInt(iso[1], 10);
+      const mo = parseInt(iso[2], 10) - 1;
+      const names = [
+        'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+      ];
+      if (mo >= 0 && mo < 12) {
+        return `${names[mo]} ${yr}`;
+      }
+    }
+    try {
+      const d = new Date(str);
+      if (!isNaN(d.getTime())) {
+        return d.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+      }
+    } catch {}
+    return str;
+  }
+
   function parseDmsToMaps(str) {
     if (!str || typeof str !== 'string') return null;
     const m = str.match(/(\d+)[^\d]+(\d+)[^\d]+([\d.]+)[^\d]*([NSns])\s*(\d+)[^\d]+(\d+)[^\d]+([\d.]+)[^\d]*([EWew])/);
@@ -559,6 +583,54 @@
   };
 
   // ── VIEW 2: DETAIL PERFORMA AGEN (TABEL RINGKAS) ──
+  function getActivePeriodAgents() {
+    if (!state.data || !state.data.tren_agen) return [];
+    const periodCode = state.selectedPeriod || state.data.latest_period || '1026';
+    const pData = (state.data.periods && state.data.periods[periodCode]) ? state.data.periods[periodCode] : null;
+
+    const currCode = periodCode;
+    const prevCode = pData ? pData.prev_code : null;
+
+    return state.data.tren_agen.map(a => {
+      let m2 = 0;
+      let m3 = 0;
+      if (a.monthly_avg) {
+        m2 = prevCode ? (parseFloat(a.monthly_avg[prevCode]) || 0) : 0;
+        m3 = currCode ? (parseFloat(a.monthly_avg[currCode]) || 0) : 0;
+      } else {
+        m2 = Number(a.avg_prev || 0);
+        m3 = Number(a.avg_curr || 0);
+      }
+      const diff = m3 - m2;
+      const growthPct = m2 > 0 ? (diff / m2) : 0;
+
+      return {
+        ...a,
+        avg_prev: m2,
+        avg_curr: m3,
+        diff: diff,
+        growth: growthPct
+      };
+    });
+  }
+
+  function getPeriodMonthLabels() {
+    const periodCode = state.selectedPeriod || (state.data && state.data.latest_period) || '1026';
+    const pData = (state.data && state.data.periods && state.data.periods[periodCode]) ? state.data.periods[periodCode] : null;
+    
+    function parseCodeToMonth(code) {
+      if (!code || code.length !== 4) return '';
+      const mo = code.substring(0, 2);
+      const yr = '20' + code.substring(2, 4);
+      return formatBulan(`${yr}-${mo}-01`);
+    }
+
+    const prevLabel = (pData && pData.prev_code) ? parseCodeToMonth(pData.prev_code) : (pData ? pData.prev_name : 'Lalu');
+    const currLabel = (pData && pData.code) ? parseCodeToMonth(pData.code) : (pData ? pData.curr_name : 'Ini');
+
+    return { prev: prevLabel, curr: currLabel };
+  }
+
   function getFilteredAgents(allAgents) {
     const scoList = getCleanScoList(allAgents);
     const defaultSco = (state.defaultSales && scoList.includes(state.defaultSales)) ? state.defaultSales : scoList[0];
@@ -693,7 +765,7 @@
       return;
     }
 
-    const allAgents = state.data.tren_agen;
+    const allAgents = getActivePeriodAgents();
     const filtered = getFilteredAgents(allAgents);
     const pagedAgents = filtered.slice(0, state.detailPageLimit);
 
@@ -725,8 +797,8 @@
       return;
     }
 
-    const allAgents = state.data.tren_agen;
-    const months = state.data.months || { prev: 'Lalu', curr: 'Ini' };
+    const allAgents = getActivePeriodAgents();
+    const months = getPeriodMonthLabels();
 
     // Clean SCO personil list (only actual SCOs)
     const scoList = getCleanScoList(allAgents);
@@ -892,13 +964,20 @@
     const months = Array.from(new Set(allKpi.map(k => k.bulan))).sort().reverse();
     const persons = Array.from(new Set(allKpi.map(k => k.nama))).sort();
 
-    let filtered = allKpi;
+    let filtered = [...allKpi];
     if (state.kpiScoMonth !== 'ALL') {
       filtered = filtered.filter(k => k.bulan === state.kpiScoMonth);
     }
     if (state.kpiScoPerson !== 'ALL') {
       filtered = filtered.filter(k => k.nama === state.kpiScoPerson);
     }
+
+    // Sort by bulan DESC (terbaru di atas), lalu score DESC
+    filtered.sort((a, b) => {
+      const cmpBulan = (b.bulan || '').localeCompare(a.bulan || '');
+      if (cmpBulan !== 0) return cmpBulan;
+      return (b.score || 0) - (a.score || 0);
+    });
 
     const avgScore = filtered.length > 0 ? (filtered.reduce((a, b) => a + (b.score || 0), 0) / filtered.length) : 0;
     const totInsentif = filtered.reduce((a, b) => a + (b.insentif || 0), 0);
@@ -922,7 +1001,7 @@
           </div>
           <div class="metric-value" style="color:var(--success-text);">${fmtRupiah(totInsentif)}</div>
           <div class="metric-subtext">
-            <span>Periode: <strong>${state.kpiScoMonth === 'ALL' ? 'Semua Bulan (Jan - Sep 2026)' : fmtDateIndo(state.kpiScoMonth)}</strong></span>
+            <span>Periode: <strong>${state.kpiScoMonth === 'ALL' ? 'Semua Bulan (Januari - September 2026)' : formatBulan(state.kpiScoMonth)}</strong></span>
           </div>
         </div>
       </div>
@@ -937,7 +1016,7 @@
           <div style="display: flex; gap: 8px; flex-wrap: wrap;">
             <select class="form-select" onchange="window.setKpiScoMonth(this.value)">
               <option value="ALL" ${state.kpiScoMonth === 'ALL' ? 'selected' : ''}>Semua Bulan (${allKpi.length} Data)</option>
-              ${months.map(m => `<option value="${m}" ${m === state.kpiScoMonth ? 'selected' : ''}>${fmtDateIndo(m)}</option>`).join('')}
+              ${months.map(m => `<option value="${m}" ${m === state.kpiScoMonth ? 'selected' : ''}>${formatBulan(m)}</option>`).join('')}
             </select>
             <select class="form-select" onchange="window.setKpiScoPerson(this.value)">
               <option value="ALL" ${state.kpiScoPerson === 'ALL' ? 'selected' : ''}>Semua Personil</option>
@@ -972,7 +1051,7 @@
                 return `
                   <tr>
                     <td class="center">${idx + 1}</td>
-                    <td style="white-space:nowrap;">${fmtDateIndo(k.bulan)}</td>
+                    <td style="white-space:nowrap;">${formatBulan(k.bulan)}</td>
                     <td style="font-weight:700;">${k.nama}</td>
                     <td class="num">${k.pjp || 0}</td>
                     <td class="num">${fmtNumber(k.pct_visit, 1)}%</td>
@@ -1020,13 +1099,20 @@
     const months = Array.from(new Set(allDso.map(k => k.bulan))).sort().reverse();
     const persons = Array.from(new Set(allDso.map(k => k.nama))).sort();
 
-    let filtered = allDso;
+    let filtered = [...allDso];
     if (state.kpiDsoMonth !== 'ALL') {
       filtered = filtered.filter(k => k.bulan === state.kpiDsoMonth);
     }
     if (state.kpiDsoPerson !== 'ALL') {
       filtered = filtered.filter(k => k.nama === state.kpiDsoPerson);
     }
+
+    // Sort by bulan DESC (terbaru di atas), lalu score DESC
+    filtered.sort((a, b) => {
+      const cmpBulan = (b.bulan || '').localeCompare(a.bulan || '');
+      if (cmpBulan !== 0) return cmpBulan;
+      return (b.score || 0) - (a.score || 0);
+    });
 
     const avgScore = filtered.length > 0 ? (filtered.reduce((a, b) => a + (b.score || 0), 0) / filtered.length) : 0;
     const totInsentif = filtered.reduce((a, b) => a + (b.insentif || 0), 0);
@@ -1050,7 +1136,7 @@
           </div>
           <div class="metric-value" style="color:var(--success-text);">${fmtRupiah(totInsentif)}</div>
           <div class="metric-subtext">
-            <span>Periode: <strong>${state.kpiDsoMonth === 'ALL' ? 'Semua Bulan (Nov 2025 - Sep 2026)' : fmtDateIndo(state.kpiDsoMonth)}</strong></span>
+            <span>Periode: <strong>${state.kpiDsoMonth === 'ALL' ? 'Semua Bulan (November 2025 - September 2026)' : formatBulan(state.kpiDsoMonth)}</strong></span>
           </div>
         </div>
       </div>
@@ -1065,7 +1151,7 @@
           <div style="display: flex; gap: 8px; flex-wrap: wrap;">
             <select class="form-select" onchange="window.setKpiDsoMonth(this.value)">
               <option value="ALL" ${state.kpiDsoMonth === 'ALL' ? 'selected' : ''}>Semua Bulan (${allDso.length} Data)</option>
-              ${months.map(m => `<option value="${m}" ${m === state.kpiDsoMonth ? 'selected' : ''}>${fmtDateIndo(m)}</option>`).join('')}
+              ${months.map(m => `<option value="${m}" ${m === state.kpiDsoMonth ? 'selected' : ''}>${formatBulan(m)}</option>`).join('')}
             </select>
             <select class="form-select" onchange="window.setKpiDsoPerson(this.value)">
               <option value="ALL" ${state.kpiDsoPerson === 'ALL' ? 'selected' : ''}>Semua Personil</option>
@@ -1115,7 +1201,7 @@
               ${filtered.map((d, idx) => `
                 <tr>
                   <td class="center">${idx + 1}</td>
-                  <td style="white-space:nowrap;">${fmtDateIndo(d.bulan)}</td>
+                  <td style="white-space:nowrap;">${formatBulan(d.bulan)}</td>
                   <td style="font-weight:700;">${d.nama}</td>
                   <!-- New Member -->
                   <td class="num">${fmtNumber(d.tgt_new_member, 0)}</td>
