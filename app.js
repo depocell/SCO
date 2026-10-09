@@ -11,8 +11,9 @@
     selectedPeriod: null,
     selectedSales: 'ALL',
     selectedJadwal: 'ALL',
+    detailSort: 'growth_desc',
     searchQuery: '',
-    detailPageLimit: 50,
+    detailPageLimit: 100,
     kpiScoMonth: 'ALL',
     kpiScoPerson: 'ALL',
     kpiDsoMonth: 'ALL',
@@ -63,6 +64,21 @@
       return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cleanStr)}`;
     }
     return null;
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function escapeAttr(str) {
+    if (!str) return '';
+    return String(str).replace(/'/g, "\\'").replace(/"/g, '&quot;');
   }
 
   function showToast(message, icon = 'check-circle') {
@@ -530,22 +546,8 @@
     window.location.hash = '#detail';
   };
 
-  // ── VIEW 2: DETAIL PERFORMA AGEN ──
-  function renderDetailView(container) {
-    if (!state.data || !state.data.tren_agen) {
-      container.innerHTML = `<div class="empty-state"><p>Data agen belum tersedia.</p></div>`;
-      return;
-    }
-
-    const allAgents = state.data.tren_agen;
-    const months = state.data.months || { prev: 'Lalu', curr: 'Ini' };
-
-    // Get unique SCO list for select
-    const scoSet = new Set();
-    allAgents.forEach(a => { if (a.sco) scoSet.add(a.sco); });
-    const scoList = Array.from(scoSet).sort();
-
-    // Filtering
+  // ── VIEW 2: DETAIL PERFORMA AGEN (TABEL RINGKAS) ──
+  function getFilteredAgents(allAgents) {
     let filtered = allAgents;
 
     if (state.selectedSales !== 'ALL') {
@@ -569,167 +571,290 @@
     }
 
     if (state.searchQuery) {
-      const q = state.searchQuery.toLowerCase();
+      const q = state.searchQuery.toLowerCase().trim();
       filtered = filtered.filter(a =>
         (a.name || '').toLowerCase().includes(q) ||
         (a.aid || '').toLowerCase().includes(q) ||
-        (a.cabang || '').toLowerCase().includes(q) ||
-        (a.jadwal || '').toLowerCase().includes(q)
+        (a.cabang || '').toLowerCase().includes(q)
       );
     }
 
+    // Sort
+    filtered = [...filtered].sort((a, b) => {
+      const diffA = a.diff !== undefined ? Number(a.diff) : ((a.avg_curr || 0) - (a.avg_prev || 0));
+      const diffB = b.diff !== undefined ? Number(b.diff) : ((b.avg_curr || 0) - (b.avg_prev || 0));
+      const currA = Number(a.avg_curr || 0);
+      const currB = Number(b.avg_curr || 0);
+
+      if (state.detailSort === 'growth_desc') {
+        return diffB - diffA;
+      } else if (state.detailSort === 'growth_asc') {
+        return diffA - diffB;
+      } else if (state.detailSort === 'curr_desc') {
+        return currB - currA;
+      } else if (state.detailSort === 'curr_asc') {
+        return currA - currB;
+      } else if (state.detailSort === 'name_asc') {
+        return (a.name || '').localeCompare(b.name || '');
+      }
+      return diffB - diffA;
+    });
+
+    return filtered;
+  }
+
+  function renderDetailTableRows(agents) {
+    if (!agents || agents.length === 0) {
+      return `
+        <tr>
+          <td colspan="6" class="center" style="padding: 40px 20px; color: var(--text-muted);">
+            <i class="fa-solid fa-store-slash" style="font-size: 32px; opacity: 0.5; margin-bottom: 10px; display: block;"></i>
+            <div style="font-size: 14px; font-weight: 600;">Tidak ada toko yang sesuai dengan pencarian atau filter.</div>
+          </td>
+        </tr>`;
+    }
+
+    return agents.map((a, idx) => {
+      const mapsUrl = parseDmsToMaps(a.location);
+      const diff = Number(a.diff !== undefined ? a.diff : ((a.avg_curr || 0) - (a.avg_prev || 0)));
+      const isPos = diff > 0.001;
+      const isNeg = diff < -0.001;
+      const diffSign = isPos ? '+' : '';
+      const growthColor = isPos ? 'var(--success-text)' : (isNeg ? 'var(--danger-text)' : 'var(--text-muted)');
+
+      return `
+        <tr>
+          <td class="center" style="color:var(--text-muted); font-size:12px; font-weight:600;">${idx + 1}</td>
+          <td>
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+              <div style="min-width: 0;">
+                <div style="font-weight: 700; color: var(--text-main); font-size: 13px; line-height: 1.35;">${escapeHtml(a.name)}</div>
+                <div style="font-size: 11px; font-family: var(--font-mono); color: var(--primary); font-weight: 600; margin-top: 2px;">
+                  ${escapeHtml(a.aid)}
+                </div>
+              </div>
+              <button class="btn-copy-mini" title="Salin Nama Toko" onclick="window.copyText('${escapeAttr(a.name)}', 'Nama Toko')">
+                <i class="fa-regular fa-copy"></i>
+              </button>
+            </div>
+          </td>
+          <td class="num">${fmtNumber(a.avg_prev, 1)}</td>
+          <td class="num" style="font-weight: 700; color: var(--primary);">${fmtNumber(a.avg_curr, 1)}</td>
+          <td class="num">
+            <span style="font-weight: 700; color: ${growthColor};">
+              ${diffSign}${fmtNumber(diff, 1)}
+            </span>
+          </td>
+          <td class="center">
+            ${mapsUrl ? `
+              <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer" class="btn-table-maps" title="Buka Google Maps">
+                <i class="fa-solid fa-location-dot"></i> Maps
+              </a>
+            ` : `<span style="color:var(--text-muted); font-size:12px;">-</span>`}
+          </td>
+        </tr>`;
+    }).join('');
+  }
+
+  function renderDetailPagination(totalCount) {
+    if (totalCount <= state.detailPageLimit) return '';
+    return `
+      <div style="display: flex; justify-content: center; gap: 10px; margin-top: 16px; margin-bottom: 24px; flex-wrap: wrap;">
+        <button class="action-btn btn-primary" onclick="window.loadMoreAgents()" style="padding: 9px 20px;">
+          <i class="fa-solid fa-angles-down"></i> Muat Lebih Banyak (+100 Toko)
+        </button>
+        <button class="action-btn btn-secondary" onclick="window.loadAllAgents()" style="padding: 9px 18px;">
+          <i class="fa-solid fa-table-list"></i> Tampilkan Semua (${totalCount} Toko)
+        </button>
+      </div>`;
+  }
+
+  function updateDetailTableData() {
+    if (!state.data || !state.data.tren_agen) return;
+    const tbody = document.getElementById('detail-table-tbody');
+    if (!tbody) {
+      renderDetailView(document.getElementById('view-container'));
+      return;
+    }
+
+    const allAgents = state.data.tren_agen;
+    const filtered = getFilteredAgents(allAgents);
+    const pagedAgents = filtered.slice(0, state.detailPageLimit);
+
+    tbody.innerHTML = renderDetailTableRows(pagedAgents);
+
+    const counterText = document.getElementById('detail-counter-text');
+    if (counterText) {
+      counterText.innerHTML = `Menampilkan <strong style="color:var(--text-main);">${Math.min(filtered.length, state.detailPageLimit)}</strong> dari <strong style="color:var(--text-main);">${filtered.length}</strong> Toko`;
+    }
+
+    const resetWrapper = document.getElementById('detail-reset-btn-wrapper');
+    if (resetWrapper) {
+      const hasFilter = state.selectedSales !== 'ALL' || state.selectedJadwal !== 'ALL' || state.searchQuery;
+      resetWrapper.innerHTML = hasFilter ? `
+        <button class="action-btn btn-secondary" style="padding: 4px 10px; font-size: 12px;" onclick="window.resetDetailFilters()">
+          <i class="fa-solid fa-xmark"></i> Reset Semua Filter
+        </button>` : '';
+    }
+
+    const paginationWrapper = document.getElementById('detail-pagination-wrapper');
+    if (paginationWrapper) {
+      paginationWrapper.innerHTML = renderDetailPagination(filtered.length);
+    }
+  }
+
+  function renderDetailView(container) {
+    if (!state.data || !state.data.tren_agen) {
+      container.innerHTML = `<div class="empty-state"><p>Data agen belum tersedia.</p></div>`;
+      return;
+    }
+
+    const allAgents = state.data.tren_agen;
+    const months = state.data.months || { prev: 'Lalu', curr: 'Ini' };
+
+    // Unique SCO personil list
+    const scoSet = new Set();
+    allAgents.forEach(a => { if (a.sco) scoSet.add(a.sco); });
+    const scoList = Array.from(scoSet).sort();
+
     // Schedule counts for current SCO selection
-    const baseListForPills = state.selectedSales === 'ALL' ? allAgents : allAgents.filter(a => a.sco === state.selectedSales);
-    const countAll = baseListForPills.length;
-    const countSK = baseListForPills.filter(a => (a.jadwal || '').toLowerCase().includes('senin') || (a.jadwal || '').toLowerCase().includes('kamis')).length;
-    const countSJ = baseListForPills.filter(a => (a.jadwal || '').toLowerCase().includes('selasa') || (a.jadwal || '').toLowerCase().includes('jumat') || (a.jadwal || '').toLowerCase().includes("jum'at")).length;
-    const countRS = baseListForPills.filter(a => (a.jadwal || '').toLowerCase().includes('rabu') || (a.jadwal || '').toLowerCase().includes('sabtu')).length;
+    const baseListForCounts = state.selectedSales === 'ALL' ? allAgents : allAgents.filter(a => a.sco === state.selectedSales);
+    const countAll = baseListForCounts.length;
+    const countSK = baseListForCounts.filter(a => (a.jadwal || '').toLowerCase().includes('senin') || (a.jadwal || '').toLowerCase().includes('kamis')).length;
+    const countSJ = baseListForCounts.filter(a => (a.jadwal || '').toLowerCase().includes('selasa') || (a.jadwal || '').toLowerCase().includes('jumat') || (a.jadwal || '').toLowerCase().includes("jum'at")).length;
+    const countRS = baseListForCounts.filter(a => (a.jadwal || '').toLowerCase().includes('rabu') || (a.jadwal || '').toLowerCase().includes('sabtu')).length;
     const countLain = countAll - (countSK + countSJ + countRS);
 
+    const filtered = getFilteredAgents(allAgents);
     const pagedAgents = filtered.slice(0, state.detailPageLimit);
 
     container.innerHTML = `
-      <!-- CONTROLS & FILTER BAR -->
+      <!-- FILTER CARD -->
       <div class="content-card" style="margin-bottom: 16px;">
         <div class="card-body" style="padding: 16px 20px;">
-          <div class="filter-bar" style="margin-bottom: 12px;">
-            <div style="min-width: 200px;">
+          <div class="detail-filter-grid">
+            <div>
+              <label class="filter-label"><i class="fa-solid fa-user-tie"></i> Personil SCO</label>
               <select class="form-select" id="detail-sco-select" onchange="window.setDetailSales(this.value)" style="width: 100%;">
-                <option value="ALL">Semua Personil SCO (${allAgents.length} toko)</option>
-                ${scoList.map(name => `<option value="${name}" ${name === state.selectedSales ? 'selected' : ''}>${name}</option>`).join('')}
+                <option value="ALL">Semua Personil SCO (${allAgents.length} Toko)</option>
+                ${scoList.map(name => `<option value="${escapeAttr(name)}" ${name === state.selectedSales ? 'selected' : ''}>${escapeHtml(name)}</option>`).join('')}
               </select>
             </div>
             
-            <div class="search-box">
-              <i class="fa-solid fa-magnifying-glass"></i>
-              <input type="text" class="form-input" id="detail-search-input" placeholder="Cari nama toko, ID agen, cabang..." value="${state.searchQuery}" oninput="window.setDetailSearch(this.value)">
+            <div>
+              <label class="filter-label"><i class="fa-regular fa-calendar-check"></i> Jadwal PJP</label>
+              <select class="form-select" id="detail-jadwal-select" onchange="window.setDetailJadwal(this.value)" style="width: 100%;">
+                <option value="ALL" ${state.selectedJadwal === 'ALL' ? 'selected' : ''}>Semua Jadwal (${countAll})</option>
+                <option value="Senin,Kamis" ${state.selectedJadwal === 'Senin,Kamis' ? 'selected' : ''}>Senin - Kamis (${countSK})</option>
+                <option value="Selasa,Jumat" ${state.selectedJadwal === 'Selasa,Jumat' ? 'selected' : ''}>Selasa - Jum'at (${countSJ})</option>
+                <option value="Rabu,Sabtu" ${state.selectedJadwal === 'Rabu,Sabtu' ? 'selected' : ''}>Rabu - Sabtu (${countRS})</option>
+                <option value="Lainnya" ${state.selectedJadwal === 'Lainnya' ? 'selected' : ''}>Lainnya (${countLain > 0 ? countLain : 0})</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="filter-label"><i class="fa-solid fa-arrow-down-wide-short"></i> Urutan</label>
+              <select class="form-select" id="detail-sort-select" onchange="window.setDetailSort(this.value)" style="width: 100%;">
+                <option value="growth_desc" ${state.detailSort === 'growth_desc' ? 'selected' : ''}>🔥 Growth Tertinggi (+)</option>
+                <option value="growth_asc" ${state.detailSort === 'growth_asc' ? 'selected' : ''}>📉 Growth Terendah (-)</option>
+                <option value="curr_desc" ${state.detailSort === 'curr_desc' ? 'selected' : ''}>💰 Daily Ini Tertinggi</option>
+                <option value="curr_asc" ${state.detailSort === 'curr_asc' ? 'selected' : ''}>🪙 Daily Ini Terendah</option>
+                <option value="name_asc" ${state.detailSort === 'name_asc' ? 'selected' : ''}>🔤 Nama Toko (A-Z)</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="filter-label"><i class="fa-solid fa-magnifying-glass"></i> Cari Toko</label>
+              <div class="search-box" style="width: 100%;">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" class="form-input" id="detail-search-input" placeholder="Nama toko / ID agen..." value="${escapeAttr(state.searchQuery)}" oninput="window.setDetailSearch(this.value)" style="width: 100%;">
+              </div>
             </div>
           </div>
-
-          <!-- JADWAL PILLS -->
-          <div class="pill-group">
-            <button class="filter-pill ${state.selectedJadwal === 'ALL' ? 'active' : ''}" onclick="window.setDetailJadwal('ALL')">
-              Semua Jadwal (${countAll})
-            </button>
-            <button class="filter-pill ${state.selectedJadwal === 'Senin,Kamis' ? 'active' : ''}" onclick="window.setDetailJadwal('Senin,Kamis')">
-              Senin - Kamis (${countSK})
-            </button>
-            <button class="filter-pill ${state.selectedJadwal === 'Selasa,Jumat' ? 'active' : ''}" onclick="window.setDetailJadwal('Selasa,Jumat')">
-              Selasa - Jum'at (${countSJ})
-            </button>
-            <button class="filter-pill ${state.selectedJadwal === 'Rabu,Sabtu' ? 'active' : ''}" onclick="window.setDetailJadwal('Rabu,Sabtu')">
-              Rabu - Sabtu (${countRS})
-            </button>
-            <button class="filter-pill ${state.selectedJadwal === 'Lainnya' ? 'active' : ''}" onclick="window.setDetailJadwal('Lainnya')">
-              Lainnya (${countLain > 0 ? countLain : 0})
-            </button>
-          </div>
         </div>
       </div>
 
-      <!-- COUNTER -->
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding: 0 4px;">
-        <span style="font-size: 13px; font-weight: 600; color: var(--text-muted);">
+      <!-- COUNTER & RESET BAR -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 0 4px; flex-wrap: wrap; gap: 8px;">
+        <span style="font-size: 13px; font-weight: 600; color: var(--text-muted);" id="detail-counter-text">
           Menampilkan <strong style="color:var(--text-main);">${Math.min(filtered.length, state.detailPageLimit)}</strong> dari <strong style="color:var(--text-main);">${filtered.length}</strong> Toko
         </span>
-        ${state.selectedSales !== 'ALL' ? `
-          <button class="action-btn btn-secondary" style="padding: 4px 10px; font-size: 12px;" onclick="window.setDetailSales('ALL')">
-            <i class="fa-solid fa-xmark"></i> Reset Filter SCO
-          </button>` : ''}
+        <div id="detail-reset-btn-wrapper">
+          ${(state.selectedSales !== 'ALL' || state.selectedJadwal !== 'ALL' || state.searchQuery) ? `
+            <button class="action-btn btn-secondary" style="padding: 4px 10px; font-size: 12px;" onclick="window.resetDetailFilters()">
+              <i class="fa-solid fa-xmark"></i> Reset Semua Filter
+            </button>` : ''}
+        </div>
       </div>
 
-      <!-- AGENT CARDS GRID -->
-      ${filtered.length === 0 ? `
-        <div class="empty-state">
-          <i class="fa-solid fa-store-slash"></i>
-          <p>Tidak ada toko yang sesuai dengan pencarian atau filter.</p>
+      <!-- AGENTS TABLE CARD -->
+      <div class="content-card" style="margin-bottom: 20px;">
+        <div class="table-responsive">
+          <table class="data-table" id="table-detail-agen">
+            <thead>
+              <tr>
+                <th class="center" style="width: 50px;">No</th>
+                <th>ID & Nama Toko</th>
+                <th class="num" style="width: 140px;">${escapeHtml(months.prev)} (Daily Lalu)</th>
+                <th class="num" style="width: 140px;">${escapeHtml(months.curr)} (Daily Ini)</th>
+                <th class="num" style="width: 120px;">Growth (+/-)</th>
+                <th class="center" style="width: 90px;">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="detail-table-tbody">
+              ${renderDetailTableRows(pagedAgents)}
+            </tbody>
+          </table>
         </div>
-      ` : `
-        <div class="agent-grid">
-          ${pagedAgents.map(a => {
-            const mapsUrl = parseDmsToMaps(a.location);
-            const growth = (a.growth || 0) * 100;
-            const isPos = growth >= 0;
-            return `
-              <div class="store-card">
-                <div class="store-card-header">
-                  <div>
-                    <div class="store-title">${a.name}</div>
-                    <div class="store-id">${a.aid}</div>
-                  </div>
-                  <span class="badge ${a.status === '1' ? 'badge-success' : 'badge-warning'}">
-                    ${a.status === '1' ? 'Aktif' : 'Non-aktif'}
-                  </span>
-                </div>
+      </div>
 
-                <div class="store-meta">
-                  <span class="badge badge-info"><i class="fa-solid fa-user-tie"></i> ${a.sco || 'NON SCO'}</span>
-                  <span class="badge badge-purple"><i class="fa-solid fa-building"></i> ${a.cabang || '-'}</span>
-                  ${a.jadwal ? `<span class="badge badge-warning"><i class="fa-regular fa-calendar-check"></i> ${a.jadwal}</span>` : ''}
-                </div>
-
-                <div class="store-stats">
-                  <div class="stat-item">
-                    <span class="stat-label">${months.prev} (Lalu)</span>
-                    <span class="stat-val">${fmtNumber(a.avg_prev)}</span>
-                  </div>
-                  <div class="stat-item">
-                    <span class="stat-label" style="color:var(--primary); font-weight:700;">${months.curr} (Ini)</span>
-                    <span class="stat-val" style="color:var(--primary);">${fmtNumber(a.avg_curr)}</span>
-                  </div>
-                  <div class="stat-item">
-                    <span class="stat-label">Growth</span>
-                    <span class="stat-val" style="color:${isPos ? 'var(--success-text)' : 'var(--danger-text)'};">
-                      ${isPos ? '+' : ''}${fmtNumber(growth, 1)}%
-                    </span>
-                  </div>
-                </div>
-
-                <div class="store-actions">
-                  <button class="btn-card-action" onclick="window.copyText('${a.name.replace(/'/g, "\\'")}', 'Nama Toko')">
-                    <i class="fa-regular fa-copy"></i> Salin Nama
-                  </button>
-                  ${mapsUrl ? `
-                    <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer" class="btn-card-action btn-card-maps">
-                      <i class="fa-solid fa-location-dot"></i> Maps
-                    </a>` : ''}
-                </div>
-              </div>`;
-          }).join('')}
-        </div>
-
-        ${filtered.length > state.detailPageLimit ? `
-          <div style="text-align: center; margin-top: 24px;">
-            <button class="action-btn btn-primary" onclick="window.loadMoreAgents()" style="padding: 10px 24px;">
-              <i class="fa-solid fa-angles-down"></i> Muat Lebih Banyak (+50 Toko)
-            </button>
-          </div>
-        ` : ''}
-      `}
+      <!-- PAGINATION BUTTONS -->
+      <div id="detail-pagination-wrapper">
+        ${renderDetailPagination(filtered.length)}
+      </div>
     `;
   }
 
   window.setDetailSales = function (val) {
     state.selectedSales = val;
-    state.detailPageLimit = 50;
-    renderCurrentRoute();
+    state.detailPageLimit = 100;
+    renderDetailView(document.getElementById('view-container'));
   };
 
   window.setDetailJadwal = function (val) {
     state.selectedJadwal = val;
-    state.detailPageLimit = 50;
-    renderCurrentRoute();
+    state.detailPageLimit = 100;
+    updateDetailTableData();
+  };
+
+  window.setDetailSort = function (val) {
+    state.detailSort = val;
+    state.detailPageLimit = 100;
+    updateDetailTableData();
   };
 
   window.setDetailSearch = function (val) {
     state.searchQuery = val;
-    state.detailPageLimit = 50;
+    state.detailPageLimit = 100;
+    updateDetailTableData();
+  };
+
+  window.resetDetailFilters = function () {
+    state.selectedSales = 'ALL';
+    state.selectedJadwal = 'ALL';
+    state.searchQuery = '';
+    state.detailPageLimit = 100;
     renderDetailView(document.getElementById('view-container'));
   };
 
   window.loadMoreAgents = function () {
-    state.detailPageLimit += 50;
-    renderDetailView(document.getElementById('view-container'));
+    state.detailPageLimit += 100;
+    updateDetailTableData();
+  };
+
+  window.loadAllAgents = function () {
+    state.detailPageLimit = 99999;
+    updateDetailTableData();
   };
 
   // ── VIEW 3: KPI & INSENTIF SCO ──
