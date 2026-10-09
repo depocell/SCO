@@ -554,9 +554,7 @@
   }
 
   window.filterToAgentDetail = function (scoName) {
-    if (!scoName || String(scoName).toLowerCase().includes('total')) {
-      state.selectedSales = 'ALL_SCO';
-    } else {
+    if (scoName) {
       state.selectedSales = scoName;
     }
     window.location.hash = '#detail';
@@ -568,17 +566,11 @@
     const defaultSco = (state.defaultSales && scoList.includes(state.defaultSales)) ? state.defaultSales : scoList[0];
 
     // Ensure selectedSales points to a valid SCO
-    if (!state.selectedSales || state.selectedSales === 'ALL' || (!scoList.includes(state.selectedSales) && state.selectedSales !== 'ALL_SCO')) {
+    if (!state.selectedSales || !scoList.includes(state.selectedSales)) {
       state.selectedSales = defaultSco;
     }
 
-    let filtered = allAgents;
-
-    if (state.selectedSales === 'ALL_SCO') {
-      filtered = filtered.filter(a => scoList.includes(a.sco));
-    } else {
-      filtered = filtered.filter(a => a.sco === state.selectedSales);
-    }
+    let filtered = allAgents.filter(a => a.sco === state.selectedSales);
 
     if (state.selectedJadwal !== 'ALL') {
       const j = state.selectedJadwal.toLowerCase();
@@ -743,22 +735,18 @@
     const defaultSco = (state.defaultSales && scoList.includes(state.defaultSales)) ? state.defaultSales : scoList[0];
 
     // Ensure selectedSales points to a valid SCO
-    if (!state.selectedSales || state.selectedSales === 'ALL' || (!scoList.includes(state.selectedSales) && state.selectedSales !== 'ALL_SCO')) {
+    if (!state.selectedSales || !scoList.includes(state.selectedSales)) {
       state.selectedSales = defaultSco;
     }
 
     // Schedule counts for current SCO selection
-    const baseListForCounts = state.selectedSales === 'ALL_SCO'
-      ? allAgents.filter(a => scoList.includes(a.sco))
-      : allAgents.filter(a => a.sco === state.selectedSales);
+    const baseListForCounts = allAgents.filter(a => a.sco === state.selectedSales);
 
     const countAll = baseListForCounts.length;
     const countSK = baseListForCounts.filter(a => (a.jadwal || '').toLowerCase().includes('senin') || (a.jadwal || '').toLowerCase().includes('kamis')).length;
     const countSJ = baseListForCounts.filter(a => (a.jadwal || '').toLowerCase().includes('selasa') || (a.jadwal || '').toLowerCase().includes('jumat') || (a.jadwal || '').toLowerCase().includes("jum'at")).length;
     const countRS = baseListForCounts.filter(a => (a.jadwal || '').toLowerCase().includes('rabu') || (a.jadwal || '').toLowerCase().includes('sabtu')).length;
     const countLain = countAll - (countSK + countSJ + countRS);
-
-    const totalScoStores = allAgents.filter(a => scoList.includes(a.sco)).length;
 
     const filtered = getFilteredAgents(allAgents);
     const pagedAgents = filtered.slice(0, state.detailPageLimit);
@@ -775,7 +763,6 @@
                   const cnt = allAgents.filter(a => a.sco === name).length;
                   return `<option value="${escapeAttr(name)}" ${name === state.selectedSales ? 'selected' : ''}>${escapeHtml(name)} (${cnt} Toko)</option>`;
                 }).join('')}
-                <option value="ALL_SCO" ${state.selectedSales === 'ALL_SCO' ? 'selected' : ''}>Semua Personil SCO (${totalScoStores} Toko)</option>
               </select>
             </div>
             
