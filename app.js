@@ -1266,6 +1266,69 @@
     renderCurrentRoute();
   };
 
+  window.captureReportCanvas = async function () {
+    const targetEl = document.getElementById('view-container') || document.querySelector('.app-main') || document.body;
+    const html2canvasFn = window.html2canvas || (window.parent && window.parent.html2canvas);
+    if (!html2canvasFn) {
+      throw new Error('Library html2canvas belum siap.');
+    }
+
+    if (document.fonts && document.fonts.ready) {
+      try { await document.fonts.ready; } catch (e) {}
+    }
+
+    const isDark = (document.documentElement.getAttribute('data-theme') === 'dark') || document.body.classList.contains('dark-theme');
+    const bgColor = isDark ? '#0b1120' : '#ffffff';
+
+    return await html2canvasFn(targetEl, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      logging: false,
+      backgroundColor: bgColor,
+      windowWidth: 1080,
+      onclone: (clonedDoc) => {
+        clonedDoc.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+        if (isDark) clonedDoc.body.classList.add('dark-theme');
+        else clonedDoc.body.classList.remove('dark-theme');
+
+        const cloneTarget = clonedDoc.getElementById('view-container') || clonedDoc.querySelector('.app-main');
+        if (cloneTarget) {
+          cloneTarget.style.width = '1000px';
+          cloneTarget.style.maxWidth = '1000px';
+          cloneTarget.style.margin = '0 auto';
+          cloneTarget.style.padding = '24px';
+          cloneTarget.style.boxSizing = 'border-box';
+          cloneTarget.style.background = bgColor;
+
+          // Header Laporan Eksklusif untuk WhatsApp
+          const reportHeader = clonedDoc.createElement('div');
+          reportHeader.style.cssText = `margin-bottom: 24px; padding-bottom: 14px; border-bottom: 2px solid ${isDark ? '#334155' : '#e2e8f0'}; display: flex; justify-content: space-between; align-items: flex-end;`;
+          reportHeader.innerHTML = `
+            <div>
+              <div style="font-size: 20px; font-weight: 800; color: ${isDark ? '#f8fafc' : '#0f172a'}; letter-spacing: -0.3px;">
+                SCO EXECUTIVE REPORT
+              </div>
+              <div style="font-size: 13px; color: ${isDark ? '#94a3b8' : '#64748b'}; margin-top: 3px; font-weight: 500;">
+                Monitoring Transaksi Harian MoM &amp; Performa Agen
+              </div>
+            </div>
+            <div style="text-align: right;">
+              <span style="font-size: 12px; font-weight: 700; color: ${isDark ? '#38bdf8' : '#0284c7'}; font-family: 'JetBrains Mono', monospace; background: ${isDark ? 'rgba(56, 189, 248, 0.15)' : '#e0f2fe'}; padding: 4px 10px; border-radius: 6px;">
+                Cutoff: ${state.data?.cutoff_date || '-'}
+              </span>
+            </div>
+          `;
+          cloneTarget.insertBefore(reportHeader, cloneTarget.firstChild);
+
+          // Sembunyikan elemen navigasi / tombol aksi interaktif pada foto rekap
+          clonedDoc.querySelectorAll('#table-mom-sco th:last-child, #table-mom-sco td:last-child').forEach(el => el.style.display = 'none');
+          clonedDoc.querySelectorAll('button, .action-btn, .sidebar-backdrop').forEach(el => el.style.display = 'none');
+        }
+      }
+    });
+  };
+
   // ── INIT ──
   window.addEventListener('DOMContentLoaded', () => {
     applyTheme(state.theme);

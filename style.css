@@ -91,8 +91,15 @@
   padding: 0;
 }
 
+body, input, select, textarea, button, table, th, td {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
+}
+
+.num, .metric-value, .store-id, code, pre {
+  font-family: 'JetBrains Mono', 'Roboto Mono', Consolas, Monaco, monospace !important;
+}
+
 body {
-  font-family: var(--font);
   background-color: var(--bg-app);
   color: var(--text-main);
   min-height: 100vh;
