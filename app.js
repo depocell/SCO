@@ -18,6 +18,12 @@
     kpiScoPerson: 'ALL',
     kpiDsoMonth: 'ALL',
     kpiDsoPerson: 'ALL',
+    profilSales: 'ALL',
+    profilCabang: 'ALL',
+    profilSearch: '',
+    profilSort: 'curr_desc',
+    profilTrendFilter: 'ALL',
+    profilPageLimit: 100,
     theme: localStorage.getItem('sco_theme') || localStorage.getItem('theme_preference') || 'system',
     defaultSales: localStorage.getItem('sco_default_sales') || 'ALL',
   };
@@ -236,7 +242,7 @@
   // ── ROUTER ──
   function handleRoute() {
     const hash = window.location.hash || '#ringkasan';
-    const validRoutes = ['#ringkasan', '#detail', '#kpi-sco', '#kpi-dso', '#settings'];
+    const validRoutes = ['#ringkasan', '#profil-agen', '#detail', '#kpi-sco', '#kpi-dso', '#settings'];
     state.currentRoute = validRoutes.includes(hash) ? hash : '#ringkasan';
 
     // Update nav links active state
@@ -284,6 +290,9 @@
       case '#ringkasan':
         renderRingkasanView(container);
         break;
+      case '#profil-agen':
+        renderProfilAgenView(container);
+        break;
       case '#detail':
         renderDetailView(container);
         break;
@@ -309,6 +318,7 @@
 
     const titles = {
       '#ringkasan': '<i class="fa-solid fa-chart-line" style="color:var(--primary);"></i> Ringkasan Performa',
+      '#profil-agen': '<i class="fa-solid fa-store" style="color:var(--primary);"></i> Profil Tren Agen',
       '#detail': '<i class="fa-solid fa-users" style="color:var(--primary);"></i> Detail Performa Agen',
       '#kpi-sco': '<i class="fa-solid fa-bullseye" style="color:var(--primary);"></i> KPI & Insentif SCO',
       '#kpi-dso': '<i class="fa-solid fa-award" style="color:var(--primary);"></i> KPI & Insentif DSO',
@@ -580,6 +590,464 @@
       state.selectedSales = scoName;
     }
     window.location.hash = '#detail';
+  };
+
+  // ── VIEW: PROFIL TREN AGEN (HISTORI DAILY TRX JAN - OKT & SPARKLINE) ──
+  const PROFIL_MONTHS = [
+    { code: '0126', label: 'Jan' },
+    { code: '0226', label: 'Feb' },
+    { code: '0326', label: 'Mar' },
+    { code: '0426', label: 'Apr' },
+    { code: '0526', label: 'Mei' },
+    { code: '0626', label: 'Jun' },
+    { code: '0726', label: 'Jul' },
+    { code: '0826', label: 'Agu' },
+    { code: '0926', label: 'Sep' },
+    { code: '1026', label: 'Okt' },
+  ];
+
+  function generateSparklineSvg(values, width = 74, height = 22) {
+    if (!values || values.length === 0) return '';
+    const pad = 2;
+    const w = width - pad * 2;
+    const h = height - pad * 2;
+
+    const validVals = values.map(v => (v !== null && v !== undefined && !isNaN(v)) ? Number(v) : 0);
+    const min = Math.min(...validVals);
+    const max = Math.max(...validVals);
+    const range = max - min;
+
+    const lastVal = validVals[validVals.length - 1];
+    const prevVal = validVals.length > 1 ? validVals[validVals.length - 2] : lastVal;
+    const isUp = lastVal >= prevVal;
+    const color = isUp ? '#10b981' : '#ef4444';
+
+    const n = validVals.length;
+    let points = [];
+    for (let i = 0; i < n; i++) {
+      const x = pad + (n > 1 ? (i / (n - 1)) * w : w / 2);
+      const y = range === 0 ? pad + h / 2 : pad + h - ((validVals[i] - min) / range) * h;
+      points.push({ x: Number(x.toFixed(1)), y: Number(y.toFixed(1)) });
+    }
+
+    const polyPoints = points.map(p => `${p.x},${p.y}`).join(' ');
+    const lastPoint = points[points.length - 1];
+
+    return `
+      <svg class="sparkline-svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" aria-hidden="true">
+        <polyline fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" points="${polyPoints}" />
+        <circle cx="${lastPoint.x}" cy="${lastPoint.y}" r="2.5" fill="${color}" />
+      </svg>
+    `;
+  }
+
+  function getFilteredProfilAgents(allAgents) {
+    if (!allAgents) return [];
+    let list = allAgents;
+
+    // Filter SCO
+    if (state.profilSales && state.profilSales !== 'ALL') {
+      list = list.filter(a => String(a.sco || '').trim() === state.profilSales);
+    }
+
+    // Filter Cabang
+    if (state.profilCabang && state.profilCabang !== 'ALL') {
+      list = list.filter(a => String(a.cabang || '').trim() === state.profilCabang);
+    }
+
+    // Search Query
+    if (state.profilSearch) {
+      const q = state.profilSearch.toLowerCase().trim();
+      list = list.filter(a =>
+        String(a.name || '').toLowerCase().includes(q) ||
+        String(a.aid || '').toLowerCase().includes(q) ||
+        String(a.sco || '').toLowerCase().includes(q) ||
+        String(a.cabang || '').toLowerCase().includes(q)
+      );
+    }
+
+    // Trend Filter
+    if (state.profilTrendFilter === 'UP') {
+      list = list.filter(a => {
+        const vOkt = a.monthly_avg ? (parseFloat(a.monthly_avg['1026']) || 0) : 0;
+        const vSep = a.monthly_avg ? (parseFloat(a.monthly_avg['0926']) || 0) : 0;
+        return vOkt >= vSep;
+      });
+    } else if (state.profilTrendFilter === 'DOWN') {
+      list = list.filter(a => {
+        const vOkt = a.monthly_avg ? (parseFloat(a.monthly_avg['1026']) || 0) : 0;
+        const vSep = a.monthly_avg ? (parseFloat(a.monthly_avg['0926']) || 0) : 0;
+        return vOkt < vSep;
+      });
+    } else if (state.profilTrendFilter === 'ACTIVE_TOP') {
+      list = list.filter(a => {
+        const vOkt = a.monthly_avg ? (parseFloat(a.monthly_avg['1026']) || 0) : 0;
+        return vOkt >= 50;
+      });
+    }
+
+    // Sorting
+    list = [...list].sort((a, b) => {
+      const aOkt = a.monthly_avg ? (parseFloat(a.monthly_avg['1026']) || 0) : 0;
+      const bOkt = b.monthly_avg ? (parseFloat(b.monthly_avg['1026']) || 0) : 0;
+      const aSep = a.monthly_avg ? (parseFloat(a.monthly_avg['0926']) || 0) : 0;
+      const bSep = b.monthly_avg ? (parseFloat(b.monthly_avg['0926']) || 0) : 0;
+      const aDiff = aOkt - aSep;
+      const bDiff = bOkt - bSep;
+      const aJan = a.monthly_avg ? (parseFloat(a.monthly_avg['0126']) || 0) : 0;
+      const bJan = b.monthly_avg ? (parseFloat(b.monthly_avg['0126']) || 0) : 0;
+
+      if (state.profilSort === 'curr_desc') return bOkt - aOkt;
+      if (state.profilSort === 'curr_asc') return aOkt - bOkt;
+      if (state.profilSort === 'diff_desc') return bDiff - aDiff;
+      if (state.profilSort === 'diff_asc') return aDiff - bDiff;
+      if (state.profilSort === 'jan_desc') return bJan - aJan;
+      if (state.profilSort === 'name_asc') return String(a.name || '').localeCompare(String(b.name || ''));
+      return bOkt - aOkt;
+    });
+
+    return list;
+  }
+
+  function renderProfilTableRows(agents) {
+    if (!agents || agents.length === 0) {
+      return `
+        <tr>
+          <td colspan="14" class="center" style="padding: 40px 20px; color: var(--text-muted);">
+            <i class="fa-solid fa-store-slash" style="font-size: 32px; opacity: 0.5; margin-bottom: 10px; display: block;"></i>
+            <div style="font-size: 14px; font-weight: 600;">Tidak ada toko yang sesuai dengan kriteria pencarian atau filter.</div>
+          </td>
+        </tr>`;
+    }
+
+    return agents.map((a, idx) => {
+      const mapsUrl = parseDmsToMaps(a.location);
+      const vals = PROFIL_MONTHS.map(m => (a.monthly_avg && a.monthly_avg[m.code] !== undefined) ? Number(a.monthly_avg[m.code]) : 0);
+      const maxVal = Math.max(...vals);
+      const valOkt = vals[9];
+      const valSep = vals[8];
+      const diffMoM = valOkt - valSep;
+      const isPos = diffMoM >= 0;
+      const sparkSvg = generateSparklineSvg(vals, 74, 22);
+
+      return `
+        <tr>
+          <td class="center" style="color:var(--text-muted); font-size:12px; font-weight:600;">${idx + 1}</td>
+          <td>
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; min-width: 230px;">
+              <div style="min-width: 0;">
+                <div style="font-weight: 700; color: var(--text-main); font-size: 13px; line-height: 1.35;">${escapeHtml(a.name)}</div>
+                <div style="display:flex; align-items:center; gap:6px; margin-top:2px; flex-wrap:wrap;">
+                  <span style="font-size: 11px; font-family: var(--font-mono); color: var(--primary); font-weight: 600;">${escapeHtml(a.aid)}</span>
+                  <span class="badge badge-purple" style="font-size: 10px; padding: 1px 6px;">${escapeHtml(a.cabang || '-')}</span>
+                  <span style="font-size: 11px; color: var(--text-muted);">${escapeHtml(a.sco || '-')}</span>
+                </div>
+              </div>
+              <div style="flex-shrink: 0; text-align: right;" title="Tren Daily Jan - Okt 2026">
+                ${sparkSvg}
+              </div>
+            </div>
+          </td>
+          ${vals.map((v, i) => {
+            const isLatest = i === 9;
+            const isPeak = v === maxVal && maxVal > 0;
+            if (isLatest) {
+              return `<td class="num" style="font-weight: 800; color: var(--primary); font-size: 13px;">${fmtNumber(v, 1)}</td>`;
+            }
+            return `<td class="num"><span class="${isPeak ? 'val-peak' : ''}" title="${isPeak ? 'Puncak Tertinggi' : ''}">${fmtNumber(v, 1)}</span></td>`;
+          }).join('')}
+          <td class="num">
+            <span class="badge ${isPos ? 'badge-success' : 'badge-danger'}">
+              ${isPos ? '+' : ''}${fmtNumber(diffMoM, 1)}
+            </span>
+          </td>
+          <td class="center">
+            <div style="display:inline-flex; align-items:center; gap:4px;">
+              <button class="btn-copy-mini" title="Salin ID Toko" onclick="window.copyText('${escapeAttr(a.aid)}', 'ID Agen')">
+                <i class="fa-regular fa-copy"></i>
+              </button>
+              ${mapsUrl ? `
+                <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer" class="btn-table-maps" title="Buka Google Maps">
+                  <i class="fa-solid fa-location-dot"></i>
+                </a>
+              ` : ''}
+            </div>
+          </td>
+        </tr>`;
+    }).join('');
+  }
+
+  function renderProfilAgenView(container) {
+    if (!state.data || !state.data.tren_agen) {
+      container.innerHTML = `<div class="empty-state"><p>Data profil agen tidak tersedia.</p></div>`;
+      return;
+    }
+
+    const allAgents = state.data.tren_agen;
+    const filtered = getFilteredProfilAgents(allAgents);
+    const paged = filtered.slice(0, state.profilPageLimit);
+
+    // Dynamic Lists for Filters
+    const allScoList = Array.from(new Set(allAgents.map(a => String(a.sco || '').trim()).filter(Boolean))).sort();
+    const cabangList = Array.from(new Set(allAgents.map(a => String(a.cabang || '').trim()).filter(Boolean))).sort();
+
+    // Summary KPIs across filtered agents
+    const totalAgents = filtered.length;
+    let countUp = 0;
+    let countDown = 0;
+    let sumOkt = 0;
+
+    filtered.forEach(a => {
+      const vOkt = a.monthly_avg ? (parseFloat(a.monthly_avg['1026']) || 0) : 0;
+      const vSep = a.monthly_avg ? (parseFloat(a.monthly_avg['0926']) || 0) : 0;
+      if (vOkt >= vSep) countUp++;
+      else countDown++;
+      sumOkt += vOkt;
+    });
+
+    const avgOkt = totalAgents > 0 ? (sumOkt / totalAgents) : 0;
+
+    container.innerHTML = `
+      <!-- 4 SUMMARY CARDS FOR PROFIL TREN -->
+      <div class="metrics-grid">
+        <div class="metric-card" style="--card-accent: var(--primary);">
+          <div class="metric-header">
+            <span class="metric-label">TOTAL AGEN TERFILTER</span>
+            <div class="metric-icon-box" style="background: var(--primary-light); color: var(--primary);">
+              <i class="fa-solid fa-store"></i>
+            </div>
+          </div>
+          <div class="metric-value">${totalAgents.toLocaleString('id-ID')} <span style="font-size:12px; font-weight:600; color:var(--text-muted);">Toko</span></div>
+          <div class="metric-subtext">
+            <span>Dari total <strong>${allAgents.length.toLocaleString('id-ID')}</strong> agen</span>
+          </div>
+        </div>
+
+        <div class="metric-card" style="--card-accent: var(--success);">
+          <div class="metric-header">
+            <span class="metric-label">TREN NAIK MoM (OKT ≥ SEP)</span>
+            <div class="metric-icon-box" style="background: rgba(16, 185, 129, 0.15); color: var(--success);">
+              <i class="fa-solid fa-arrow-trend-up"></i>
+            </div>
+          </div>
+          <div class="metric-value" style="color:var(--success-text);">${countUp.toLocaleString('id-ID')} <span style="font-size:12px; font-weight:600; color:var(--text-muted);">Toko</span></div>
+          <div class="metric-subtext">
+            <span>${totalAgents > 0 ? ((countUp / totalAgents) * 100).toFixed(1) : 0}% bertumbuh</span>
+          </div>
+        </div>
+
+        <div class="metric-card" style="--card-accent: var(--danger);">
+          <div class="metric-header">
+            <span class="metric-label">TREN TURUN MoM (OKT &lt; SEP)</span>
+            <div class="metric-icon-box" style="background: rgba(239, 68, 68, 0.15); color: var(--danger);">
+              <i class="fa-solid fa-arrow-trend-down"></i>
+            </div>
+          </div>
+          <div class="metric-value" style="color:var(--danger-text);">${countDown.toLocaleString('id-ID')} <span style="font-size:12px; font-weight:600; color:var(--text-muted);">Toko</span></div>
+          <div class="metric-subtext">
+            <span>${totalAgents > 0 ? ((countDown / totalAgents) * 100).toFixed(1) : 0}% koreksi harian</span>
+          </div>
+        </div>
+
+        <div class="metric-card" style="--card-accent: #f59e0b;">
+          <div class="metric-header">
+            <span class="metric-label">RATA-RATA DAILY TRX (OKT)</span>
+            <div class="metric-icon-box" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b);">
+              <i class="fa-solid fa-chart-simple"></i>
+            </div>
+          </div>
+          <div class="metric-value">${fmtNumber(avgOkt, 1)} <span style="font-size:12px; font-weight:600; color:var(--text-muted);">trx/hari</span></div>
+          <div class="metric-subtext">
+            <span>Rerata transaksi harian toko terfilter</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- FILTER CONTROLS CARD -->
+      <div class="content-card">
+        <div class="card-header">
+          <div class="card-title">
+            <i class="fa-solid fa-filter" style="color:var(--primary);"></i>
+            Filter & Pencarian Profil Agen
+          </div>
+          <button class="action-btn btn-secondary" onclick="window.resetProfilFilters()" style="padding:4px 10px; font-size:12px;">
+            <i class="fa-solid fa-arrow-rotate-left"></i> Reset Filter
+          </button>
+        </div>
+        <div class="card-body">
+          <div class="detail-filter-grid">
+            <!-- Filter SCO -->
+            <div class="filter-group">
+              <label class="filter-label">Kategori / SCO</label>
+              <select class="form-select" onchange="window.setProfilSales(this.value)">
+                <option value="ALL" ${state.profilSales === 'ALL' ? 'selected' : ''}>Semua SCO & Kategori</option>
+                ${allScoList.map(s => `<option value="${s}" ${s === state.profilSales ? 'selected' : ''}>${s}</option>`).join('')}
+              </select>
+            </div>
+
+            <!-- Filter Cabang -->
+            <div class="filter-group">
+              <label class="filter-label">Cabang Wilayah</label>
+              <select class="form-select" onchange="window.setProfilCabang(this.value)">
+                <option value="ALL" ${state.profilCabang === 'ALL' ? 'selected' : ''}>Semua Cabang</option>
+                ${cabangList.map(c => `<option value="${c}" ${c === state.profilCabang ? 'selected' : ''}>${c}</option>`).join('')}
+              </select>
+            </div>
+
+            <!-- Sort By -->
+            <div class="filter-group">
+              <label class="filter-label">Urutkan Berdasarkan</label>
+              <select class="form-select" onchange="window.setProfilSort(this.value)">
+                <option value="curr_desc" ${state.profilSort === 'curr_desc' ? 'selected' : ''}>Okt 2026 Tertinggi (Default)</option>
+                <option value="curr_asc" ${state.profilSort === 'curr_asc' ? 'selected' : ''}>Okt 2026 Terendah</option>
+                <option value="diff_desc" ${state.profilSort === 'diff_desc' ? 'selected' : ''}>Kenaikan Terbesar (Okt vs Sep)</option>
+                <option value="diff_asc" ${state.profilSort === 'diff_asc' ? 'selected' : ''}>Penurunan Terbesar (Okt vs Sep)</option>
+                <option value="jan_desc" ${state.profilSort === 'jan_desc' ? 'selected' : ''}>Jan 2026 Tertinggi</option>
+                <option value="name_asc" ${state.profilSort === 'name_asc' ? 'selected' : ''}>Nama Agen (A - Z)</option>
+              </select>
+            </div>
+
+            <!-- Search Input -->
+            <div class="filter-group">
+              <label class="filter-label">Cari Nama / ID Toko</label>
+              <div class="search-input-wrap">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <input
+                  type="text"
+                  class="search-input"
+                  placeholder="Ketik nama toko atau ID agen..."
+                  value="${escapeHtml(state.profilSearch)}"
+                  oninput="window.setProfilSearch(this.value)"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- QUICK FILTER TREN BUTTONS -->
+          <div class="quick-filter-bar">
+            <span style="font-size:12px; font-weight:700; color:var(--text-muted); margin-right:4px;">Filter Cepat:</span>
+            <button class="quick-filter-btn ${state.profilTrendFilter === 'ALL' ? 'active' : ''}" onclick="window.setProfilTrendFilter('ALL')">
+              Semua Tren (${totalAgents})
+            </button>
+            <button class="quick-filter-btn ${state.profilTrendFilter === 'UP' ? 'active' : ''}" onclick="window.setProfilTrendFilter('UP')">
+              <i class="fa-solid fa-arrow-trend-up" style="color:var(--success);"></i> Tren Naik MoM (${countUp})
+            </button>
+            <button class="quick-filter-btn ${state.profilTrendFilter === 'DOWN' ? 'active' : ''}" onclick="window.setProfilTrendFilter('DOWN')">
+              <i class="fa-solid fa-arrow-trend-down" style="color:var(--danger);"></i> Tren Turun MoM (${countDown})
+            </button>
+            <button class="quick-filter-btn ${state.profilTrendFilter === 'ACTIVE_TOP' ? 'active' : ''}" onclick="window.setProfilTrendFilter('ACTIVE_TOP')">
+              <i class="fa-solid fa-star" style="color:#f59e0b;"></i> Top Aktif (≥ 50 trx/hari)
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TABLE SECTION: HISTORI 10 BULAN & SPARKLINE -->
+      <div class="content-card">
+        <div class="card-header">
+          <div class="card-title">
+            <i class="fa-solid fa-chart-line" style="color:var(--primary);"></i>
+            Histori & Tren Daily Transaksi Agen (Januari – Oktober 2026)
+          </div>
+          <span class="badge badge-info">
+            Menampilkan ${paged.length.toLocaleString('id-ID')} dari ${filtered.length.toLocaleString('id-ID')} Agen
+          </span>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table" id="table-profil-agen">
+            <thead>
+              <tr>
+                <th class="center" style="width:40px;">No</th>
+                <th style="min-width:240px;">Nama Agen &amp; Tren Line</th>
+                <th class="num">Jan</th>
+                <th class="num">Feb</th>
+                <th class="num">Mar</th>
+                <th class="num">Apr</th>
+                <th class="num">Mei</th>
+                <th class="num">Jun</th>
+                <th class="num">Jul</th>
+                <th class="num">Agu</th>
+                <th class="num">Sep</th>
+                <th class="num" style="color:var(--primary); font-weight:800;">Okt</th>
+                <th class="num" style="min-width:70px;">MoM Δ</th>
+                <th class="center" style="width:70px;">Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${renderProfilTableRows(paged)}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- LOAD MORE BAR -->
+        <div style="padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; border-top: 1px solid var(--border-color); background: var(--bg-hover);">
+          <div style="font-size: 13px; color: var(--text-muted);">
+            Menampilkan <strong>${paged.length.toLocaleString('id-ID')}</strong> dari total <strong>${filtered.length.toLocaleString('id-ID')}</strong> agen yang sesuai
+          </div>
+          <div style="display: flex; gap: 8px;">
+            ${filtered.length > state.profilPageLimit ? `
+              <button class="action-btn btn-secondary" onclick="window.loadMoreProfilAgents()">
+                <i class="fa-solid fa-plus"></i> Muat 100 Lagi
+              </button>
+              <button class="action-btn btn-secondary" onclick="window.loadAllProfilAgents()">
+                Tampilkan Semua (${filtered.length.toLocaleString('id-ID')})
+              </button>
+            ` : `
+              <span class="badge badge-success" style="padding:6px 12px;">Semua data telah ditampilkan</span>
+            `}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  window.setProfilSales = function (val) {
+    state.profilSales = val;
+    state.profilPageLimit = 100;
+    renderCurrentRoute();
+  };
+
+  window.setProfilCabang = function (val) {
+    state.profilCabang = val;
+    state.profilPageLimit = 100;
+    renderCurrentRoute();
+  };
+
+  window.setProfilSearch = function (val) {
+    state.profilSearch = val;
+    state.profilPageLimit = 100;
+    renderCurrentRoute();
+  };
+
+  window.setProfilSort = function (val) {
+    state.profilSort = val;
+    renderCurrentRoute();
+  };
+
+  window.setProfilTrendFilter = function (val) {
+    state.profilTrendFilter = val;
+    state.profilPageLimit = 100;
+    renderCurrentRoute();
+  };
+
+  window.loadMoreProfilAgents = function () {
+    state.profilPageLimit += 100;
+    renderCurrentRoute();
+  };
+
+  window.loadAllProfilAgents = function () {
+    state.profilPageLimit = 999999;
+    renderCurrentRoute();
+  };
+
+  window.resetProfilFilters = function () {
+    state.profilSales = 'ALL';
+    state.profilCabang = 'ALL';
+    state.profilSearch = '';
+    state.profilSort = 'curr_desc';
+    state.profilTrendFilter = 'ALL';
+    state.profilPageLimit = 100;
+    renderCurrentRoute();
   };
 
   // ── VIEW 2: DETAIL PERFORMA AGEN (TABEL RINGKAS) ──
@@ -1399,6 +1867,10 @@
             <a href="#ringkasan" class="nav-link">
               <i class="fa-solid fa-chart-line"></i>
               <span>Ringkasan Performa</span>
+            </a>
+            <a href="#profil-agen" class="nav-link">
+              <i class="fa-solid fa-store"></i>
+              <span>Profil Tren Agen</span>
             </a>
             <a href="#detail" class="nav-link">
               <i class="fa-solid fa-users"></i>
