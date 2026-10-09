@@ -81,6 +81,18 @@
     return String(str).replace(/'/g, "\\'").replace(/"/g, '&quot;');
   }
 
+  function getCleanScoList(allAgents) {
+    const scoSet = new Set();
+    (allAgents || []).forEach(a => {
+      const s = String(a.sco || '').trim();
+      const lower = s.toLowerCase();
+      if (s && lower !== 'non sco' && lower !== 'online' && !lower.includes('total')) {
+        scoSet.add(s);
+      }
+    });
+    return Array.from(scoSet).sort();
+  }
+
   function showToast(message, icon = 'check-circle') {
     let container = document.getElementById('toast-container');
     if (!container) {
@@ -542,15 +554,29 @@
   }
 
   window.filterToAgentDetail = function (scoName) {
-    state.selectedSales = scoName;
+    if (!scoName || String(scoName).toLowerCase().includes('total')) {
+      state.selectedSales = 'ALL_SCO';
+    } else {
+      state.selectedSales = scoName;
+    }
     window.location.hash = '#detail';
   };
 
   // ── VIEW 2: DETAIL PERFORMA AGEN (TABEL RINGKAS) ──
   function getFilteredAgents(allAgents) {
+    const scoList = getCleanScoList(allAgents);
+    const defaultSco = (state.defaultSales && scoList.includes(state.defaultSales)) ? state.defaultSales : scoList[0];
+
+    // Ensure selectedSales points to a valid SCO
+    if (!state.selectedSales || state.selectedSales === 'ALL' || (!scoList.includes(state.selectedSales) && state.selectedSales !== 'ALL_SCO')) {
+      state.selectedSales = defaultSco;
+    }
+
     let filtered = allAgents;
 
-    if (state.selectedSales !== 'ALL') {
+    if (state.selectedSales === 'ALL_SCO') {
+      filtered = filtered.filter(a => scoList.includes(a.sco));
+    } else {
       filtered = filtered.filter(a => a.sco === state.selectedSales);
     }
 
@@ -690,10 +716,10 @@
 
     const resetWrapper = document.getElementById('detail-reset-btn-wrapper');
     if (resetWrapper) {
-      const hasFilter = state.selectedSales !== 'ALL' || state.selectedJadwal !== 'ALL' || state.searchQuery;
+      const hasFilter = state.selectedJadwal !== 'ALL' || state.searchQuery || state.detailSort !== 'growth_desc';
       resetWrapper.innerHTML = hasFilter ? `
         <button class="action-btn btn-secondary" style="padding: 4px 10px; font-size: 12px;" onclick="window.resetDetailFilters()">
-          <i class="fa-solid fa-xmark"></i> Reset Semua Filter
+          <i class="fa-solid fa-xmark"></i> Reset Filter
         </button>` : '';
     }
 
@@ -712,18 +738,27 @@
     const allAgents = state.data.tren_agen;
     const months = state.data.months || { prev: 'Lalu', curr: 'Ini' };
 
-    // Unique SCO personil list
-    const scoSet = new Set();
-    allAgents.forEach(a => { if (a.sco) scoSet.add(a.sco); });
-    const scoList = Array.from(scoSet).sort();
+    // Clean SCO personil list (only actual SCOs)
+    const scoList = getCleanScoList(allAgents);
+    const defaultSco = (state.defaultSales && scoList.includes(state.defaultSales)) ? state.defaultSales : scoList[0];
+
+    // Ensure selectedSales points to a valid SCO
+    if (!state.selectedSales || state.selectedSales === 'ALL' || (!scoList.includes(state.selectedSales) && state.selectedSales !== 'ALL_SCO')) {
+      state.selectedSales = defaultSco;
+    }
 
     // Schedule counts for current SCO selection
-    const baseListForCounts = state.selectedSales === 'ALL' ? allAgents : allAgents.filter(a => a.sco === state.selectedSales);
+    const baseListForCounts = state.selectedSales === 'ALL_SCO'
+      ? allAgents.filter(a => scoList.includes(a.sco))
+      : allAgents.filter(a => a.sco === state.selectedSales);
+
     const countAll = baseListForCounts.length;
     const countSK = baseListForCounts.filter(a => (a.jadwal || '').toLowerCase().includes('senin') || (a.jadwal || '').toLowerCase().includes('kamis')).length;
     const countSJ = baseListForCounts.filter(a => (a.jadwal || '').toLowerCase().includes('selasa') || (a.jadwal || '').toLowerCase().includes('jumat') || (a.jadwal || '').toLowerCase().includes("jum'at")).length;
     const countRS = baseListForCounts.filter(a => (a.jadwal || '').toLowerCase().includes('rabu') || (a.jadwal || '').toLowerCase().includes('sabtu')).length;
     const countLain = countAll - (countSK + countSJ + countRS);
+
+    const totalScoStores = allAgents.filter(a => scoList.includes(a.sco)).length;
 
     const filtered = getFilteredAgents(allAgents);
     const pagedAgents = filtered.slice(0, state.detailPageLimit);
@@ -736,8 +771,11 @@
             <div>
               <label class="filter-label"><i class="fa-solid fa-user-tie"></i> Personil SCO</label>
               <select class="form-select" id="detail-sco-select" onchange="window.setDetailSales(this.value)" style="width: 100%;">
-                <option value="ALL">Semua Personil SCO (${allAgents.length} Toko)</option>
-                ${scoList.map(name => `<option value="${escapeAttr(name)}" ${name === state.selectedSales ? 'selected' : ''}>${escapeHtml(name)}</option>`).join('')}
+                ${scoList.map(name => {
+                  const cnt = allAgents.filter(a => a.sco === name).length;
+                  return `<option value="${escapeAttr(name)}" ${name === state.selectedSales ? 'selected' : ''}>${escapeHtml(name)} (${cnt} Toko)</option>`;
+                }).join('')}
+                <option value="ALL_SCO" ${state.selectedSales === 'ALL_SCO' ? 'selected' : ''}>Semua Personil SCO (${totalScoStores} Toko)</option>
               </select>
             </div>
             
@@ -780,9 +818,9 @@
           Menampilkan <strong style="color:var(--text-main);">${Math.min(filtered.length, state.detailPageLimit)}</strong> dari <strong style="color:var(--text-main);">${filtered.length}</strong> Toko
         </span>
         <div id="detail-reset-btn-wrapper">
-          ${(state.selectedSales !== 'ALL' || state.selectedJadwal !== 'ALL' || state.searchQuery) ? `
+          ${(state.selectedJadwal !== 'ALL' || state.searchQuery || state.detailSort !== 'growth_desc') ? `
             <button class="action-btn btn-secondary" style="padding: 4px 10px; font-size: 12px;" onclick="window.resetDetailFilters()">
-              <i class="fa-solid fa-xmark"></i> Reset Semua Filter
+              <i class="fa-solid fa-xmark"></i> Reset Filter
             </button>` : ''}
         </div>
       </div>
@@ -840,9 +878,9 @@
   };
 
   window.resetDetailFilters = function () {
-    state.selectedSales = 'ALL';
     state.selectedJadwal = 'ALL';
     state.searchQuery = '';
+    state.detailSort = 'growth_desc';
     state.detailPageLimit = 100;
     renderDetailView(document.getElementById('view-container'));
   };
@@ -1152,9 +1190,7 @@
     // Unique list of SCO names for default profile setting
     let scoList = [];
     if (state.data && state.data.tren_agen) {
-      const set = new Set();
-      state.data.tren_agen.forEach(a => { if (a.sco) set.add(a.sco); });
-      scoList = Array.from(set).sort();
+      scoList = getCleanScoList(state.data.tren_agen);
     }
 
     container.innerHTML = `
