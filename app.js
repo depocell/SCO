@@ -744,11 +744,6 @@
     const months = Array.from(new Set(allKpi.map(k => k.bulan))).sort().reverse();
     const persons = Array.from(new Set(allKpi.map(k => k.nama))).sort();
 
-    // Default month to latest available
-    if (state.kpiScoMonth === 'ALL' && months.length > 0) {
-      state.kpiScoMonth = months[0];
-    }
-
     let filtered = allKpi;
     if (state.kpiScoMonth !== 'ALL') {
       filtered = filtered.filter(k => k.bulan === state.kpiScoMonth);
@@ -769,7 +764,7 @@
             <div class="metric-icon-box"><i class="fa-solid fa-star"></i></div>
           </div>
           <div class="metric-value">${fmtNumber(avgScore, 1)} pts</div>
-          <div class="metric-subtext"><span>Dari ${filtered.length} Personil SCO</span></div>
+          <div class="metric-subtext"><span>Dari ${filtered.length} Data Penilaian</span></div>
         </div>
 
         <div class="metric-card" style="--card-accent: var(--success);">
@@ -778,7 +773,9 @@
             <div class="metric-icon-box"><i class="fa-solid fa-money-bill-wave"></i></div>
           </div>
           <div class="metric-value" style="color:var(--success-text);">${fmtRupiah(totInsentif)}</div>
-          <div class="metric-subtext"><span>Periode ${fmtDateIndo(state.kpiScoMonth)}</span></div>
+          <div class="metric-subtext">
+            <span>Periode: <strong>${state.kpiScoMonth === 'ALL' ? 'Semua Bulan (Jan - Sep 2026)' : fmtDateIndo(state.kpiScoMonth)}</strong></span>
+          </div>
         </div>
       </div>
 
@@ -791,11 +788,11 @@
           </div>
           <div style="display: flex; gap: 8px; flex-wrap: wrap;">
             <select class="form-select" onchange="window.setKpiScoMonth(this.value)">
-              <option value="ALL">Semua Bulan</option>
+              <option value="ALL" ${state.kpiScoMonth === 'ALL' ? 'selected' : ''}>Semua Bulan (${allKpi.length} Data)</option>
               ${months.map(m => `<option value="${m}" ${m === state.kpiScoMonth ? 'selected' : ''}>${fmtDateIndo(m)}</option>`).join('')}
             </select>
             <select class="form-select" onchange="window.setKpiScoPerson(this.value)">
-              <option value="ALL">Semua Personil</option>
+              <option value="ALL" ${state.kpiScoPerson === 'ALL' ? 'selected' : ''}>Semua Personil</option>
               ${persons.map(p => `<option value="${p}" ${p === state.kpiScoPerson ? 'selected' : ''}>${p}</option>`).join('')}
             </select>
             <button class="action-btn btn-secondary" onclick="window.exportTableCSV('table-kpi-sco', 'KPI_Insentif_SCO.csv')">
@@ -878,10 +875,6 @@
     const months = Array.from(new Set(allDso.map(k => k.bulan))).sort().reverse();
     const persons = Array.from(new Set(allDso.map(k => k.nama))).sort();
 
-    if (state.kpiDsoMonth === 'ALL' && months.length > 0) {
-      state.kpiDsoMonth = months[0];
-    }
-
     let filtered = allDso;
     if (state.kpiDsoMonth !== 'ALL') {
       filtered = filtered.filter(k => k.bulan === state.kpiDsoMonth);
@@ -902,7 +895,7 @@
             <div class="metric-icon-box"><i class="fa-solid fa-trophy"></i></div>
           </div>
           <div class="metric-value">${fmtNumber(avgScore, 1)} pts</div>
-          <div class="metric-subtext"><span>Dari ${filtered.length} Personil DSO</span></div>
+          <div class="metric-subtext"><span>Dari ${filtered.length} Data Penilaian</span></div>
         </div>
 
         <div class="metric-card" style="--card-accent: var(--success);">
@@ -911,7 +904,9 @@
             <div class="metric-icon-box"><i class="fa-solid fa-hand-holding-dollar"></i></div>
           </div>
           <div class="metric-value" style="color:var(--success-text);">${fmtRupiah(totInsentif)}</div>
-          <div class="metric-subtext"><span>Periode ${fmtDateIndo(state.kpiDsoMonth)}</span></div>
+          <div class="metric-subtext">
+            <span>Periode: <strong>${state.kpiDsoMonth === 'ALL' ? 'Semua Bulan (Nov 2025 - Sep 2026)' : fmtDateIndo(state.kpiDsoMonth)}</strong></span>
+          </div>
         </div>
       </div>
 
@@ -924,11 +919,11 @@
           </div>
           <div style="display: flex; gap: 8px; flex-wrap: wrap;">
             <select class="form-select" onchange="window.setKpiDsoMonth(this.value)">
-              <option value="ALL">Semua Bulan</option>
+              <option value="ALL" ${state.kpiDsoMonth === 'ALL' ? 'selected' : ''}>Semua Bulan (${allDso.length} Data)</option>
               ${months.map(m => `<option value="${m}" ${m === state.kpiDsoMonth ? 'selected' : ''}>${fmtDateIndo(m)}</option>`).join('')}
             </select>
             <select class="form-select" onchange="window.setKpiDsoPerson(this.value)">
-              <option value="ALL">Semua Personil</option>
+              <option value="ALL" ${state.kpiDsoPerson === 'ALL' ? 'selected' : ''}>Semua Personil</option>
               ${persons.map(p => `<option value="${p}" ${p === state.kpiDsoPerson ? 'selected' : ''}>${p}</option>`).join('')}
             </select>
             <button class="action-btn btn-secondary" onclick="window.exportTableCSV('table-kpi-dso', 'KPI_Insentif_DSO.csv')">
