@@ -20,7 +20,7 @@
     kpiDsoPerson: 'ALL',
     profilSales: 'ALL',
     profilSearch: '',
-    profilSort: 'curr_desc',
+    profilSort: 'diff_asc',
     profilTrendFilter: 'ALL',
     profilPageLimit: 100,
     theme: localStorage.getItem('sco_theme') || localStorage.getItem('theme_preference') || 'system',
@@ -707,13 +707,13 @@
       const aJan = a.monthly_avg ? (parseFloat(a.monthly_avg['0126']) || 0) : 0;
       const bJan = b.monthly_avg ? (parseFloat(b.monthly_avg['0126']) || 0) : 0;
 
+      if (state.profilSort === 'diff_asc') return aDiff - bDiff;
+      if (state.profilSort === 'diff_desc') return bDiff - aDiff;
       if (state.profilSort === 'curr_desc') return bOkt - aOkt;
       if (state.profilSort === 'curr_asc') return aOkt - bOkt;
-      if (state.profilSort === 'diff_desc') return bDiff - aDiff;
-      if (state.profilSort === 'diff_asc') return aDiff - bDiff;
       if (state.profilSort === 'jan_desc') return bJan - aJan;
       if (state.profilSort === 'name_asc') return String(a.name || '').localeCompare(String(b.name || ''));
-      return bOkt - aOkt;
+      return aDiff - bDiff;
     });
 
     return list;
@@ -838,10 +838,10 @@
             <div class="filter-group">
               <label class="filter-label">Urutkan Berdasarkan</label>
               <select class="form-select" onchange="window.setProfilSort(this.value)">
-                <option value="curr_desc" ${state.profilSort === 'curr_desc' ? 'selected' : ''}>Okt 2026 Tertinggi (Default)</option>
-                <option value="curr_asc" ${state.profilSort === 'curr_asc' ? 'selected' : ''}>Okt 2026 Terendah</option>
-                <option value="diff_desc" ${state.profilSort === 'diff_desc' ? 'selected' : ''}>Kenaikan Terbesar (Okt vs Sep)</option>
-                <option value="diff_asc" ${state.profilSort === 'diff_asc' ? 'selected' : ''}>Penurunan Terbesar (Okt vs Sep)</option>
+                <option value="diff_asc" ${state.profilSort === 'diff_asc' ? 'selected' : ''}>📉 Growth Terendah / Penurunan (Default)</option>
+                <option value="diff_desc" ${state.profilSort === 'diff_desc' ? 'selected' : ''}>🔥 Growth Tertinggi / Kenaikan</option>
+                <option value="curr_desc" ${state.profilSort === 'curr_desc' ? 'selected' : ''}>💰 Okt 2026 Tertinggi</option>
+                <option value="curr_asc" ${state.profilSort === 'curr_asc' ? 'selected' : ''}>🪙 Okt 2026 Terendah</option>
                 <option value="jan_desc" ${state.profilSort === 'jan_desc' ? 'selected' : ''}>Jan 2026 Tertinggi</option>
                 <option value="name_asc" ${state.profilSort === 'name_asc' ? 'selected' : ''}>Nama Agen (A - Z)</option>
               </select>
@@ -955,6 +955,7 @@
 
   window.setProfilSort = function (val) {
     state.profilSort = val;
+    state.profilPageLimit = 100;
     renderCurrentRoute();
   };
 
@@ -977,7 +978,7 @@
   window.resetProfilFilters = function () {
     state.profilSales = 'ALL';
     state.profilSearch = '';
-    state.profilSort = 'curr_desc';
+    state.profilSort = 'diff_asc';
     state.profilTrendFilter = 'ALL';
     state.profilPageLimit = 100;
     renderCurrentRoute();
