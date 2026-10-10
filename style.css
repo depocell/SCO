@@ -785,10 +785,16 @@ body {
   align-items: flex-end;
 }
 
-.detail-filter-grid .form-select {
+.detail-filter-grid .form-select,
+.detail-filter-grid .form-input {
   height: 38px;
   width: 100%;
   box-sizing: border-box;
+}
+
+.detail-filter-grid .form-input {
+  cursor: text;
+  font-weight: 500;
 }
 
 .filter-label {

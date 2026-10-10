@@ -1354,10 +1354,7 @@
 
             <div>
               <label class="filter-label"><i class="fa-solid fa-magnifying-glass"></i> Cari Toko</label>
-              <div class="search-box" style="width: 100%;">
-                <i class="fa-solid fa-magnifying-glass"></i>
-                <input type="text" class="form-input" id="detail-search-input" placeholder="Nama toko / ID agen..." value="${escapeAttr(state.searchQuery)}" oninput="window.setDetailSearch(this.value)" style="width: 100%;">
-              </div>
+              <input type="text" class="form-input" id="detail-search-input" placeholder="Nama toko / ID agen..." value="${escapeAttr(state.searchQuery)}" oninput="window.setDetailSearch(this.value)" style="width: 100%;">
             </div>
           </div>
         </div>
