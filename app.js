@@ -787,6 +787,79 @@
     }).join('');
   }
 
+  function updateProfilTableData() {
+    if (!state.data || !state.data.tren_agen) return;
+    const tbody = document.getElementById('profil-table-tbody');
+    if (!tbody) {
+      renderProfilAgenView(document.getElementById('view-container'));
+      return;
+    }
+
+    const allAgents = state.data.tren_agen;
+    const filtered = getFilteredProfilAgents(allAgents);
+    const paged = filtered.slice(0, state.profilPageLimit);
+
+    // Counts for quick filter buttons
+    const totalAgents = filtered.length;
+    let countUp = 0;
+    let countDown = 0;
+
+    filtered.forEach(a => {
+      const vOkt = a.monthly_avg ? (parseFloat(a.monthly_avg['1026']) || 0) : 0;
+      const vSep = a.monthly_avg ? (parseFloat(a.monthly_avg['0926']) || 0) : 0;
+      if (vOkt >= vSep) countUp++;
+      else countDown++;
+    });
+
+    tbody.innerHTML = renderProfilTableRows(paged);
+
+    const badge = document.getElementById('profil-badge-counter');
+    if (badge) {
+      badge.textContent = `Menampilkan ${paged.length.toLocaleString('id-ID')} dari ${filtered.length.toLocaleString('id-ID')} Agen`;
+    }
+
+    const qfAll = document.getElementById('profil-qf-all');
+    if (qfAll) qfAll.textContent = `Semua Tren (${totalAgents})`;
+    const qfUp = document.getElementById('profil-qf-up');
+    if (qfUp) qfUp.innerHTML = `<i class="fa-solid fa-arrow-trend-up" style="color:var(--success);"></i> Tren Naik MoM (${countUp})`;
+    const qfDown = document.getElementById('profil-qf-down');
+    if (qfDown) qfDown.innerHTML = `<i class="fa-solid fa-arrow-trend-down" style="color:var(--danger);"></i> Tren Turun MoM (${countDown})`;
+
+    document.querySelectorAll('.profil-qf-btn').forEach(btn => {
+      if (btn.getAttribute('data-filter') === state.profilTrendFilter) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+
+    const loadmoreWrapper = document.getElementById('profil-loadmore-wrapper');
+    if (loadmoreWrapper) {
+      loadmoreWrapper.innerHTML = `
+        <div style="font-size: 13px; color: var(--text-muted);">
+          Menampilkan <strong>${paged.length.toLocaleString('id-ID')}</strong> dari total <strong>${filtered.length.toLocaleString('id-ID')}</strong> agen yang sesuai
+        </div>
+        <div style="display: flex; gap: 8px;">
+          ${filtered.length > state.profilPageLimit ? `
+            <button class="action-btn btn-secondary" onclick="window.loadMoreProfilAgents()">
+              <i class="fa-solid fa-plus"></i> Muat 100 Lagi
+            </button>
+            <button class="action-btn btn-secondary" onclick="window.loadAllProfilAgents()">
+              Tampilkan Semua (${filtered.length.toLocaleString('id-ID')})
+            </button>
+          ` : `
+            <span class="badge badge-success" style="padding:6px 12px;">Semua data telah ditampilkan</span>
+          `}
+        </div>
+      `;
+    }
+
+    const clearBtn = document.getElementById('profil-search-clear-btn');
+    if (clearBtn) {
+      clearBtn.style.display = state.profilSearch ? 'inline-flex' : 'none';
+    }
+  }
+
   function renderProfilAgenView(container) {
     if (!state.data || !state.data.tren_agen) {
       container.innerHTML = `<div class="empty-state"><p>Data profil agen tidak tersedia.</p></div>`;
@@ -817,27 +890,27 @@
         <div class="card-header">
           <div class="card-title">
             <i class="fa-solid fa-filter" style="color:var(--primary);"></i>
-            Filter & Pencarian Profil Agen
+            Filter &amp; Pencarian Profil Agen
           </div>
           <button class="action-btn btn-secondary" onclick="window.resetProfilFilters()" style="padding:4px 10px; font-size:12px;">
             <i class="fa-solid fa-arrow-rotate-left"></i> Reset Filter
           </button>
         </div>
         <div class="card-body">
-          <div class="detail-filter-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+          <div class="detail-filter-grid">
             <!-- Filter SCO -->
-            <div class="filter-group">
-              <label class="filter-label">Petugas SCO</label>
-              <select class="form-select" onchange="window.setProfilSales(this.value)">
+            <div>
+              <label class="filter-label"><i class="fa-solid fa-user-tie"></i> Petugas SCO</label>
+              <select class="form-select" id="profil-sales-select" onchange="window.setProfilSales(this.value)">
                 <option value="ALL" ${state.profilSales === 'ALL' ? 'selected' : ''}>Semua Petugas SCO (${totalRealScoAgents} Toko)</option>
-                ${cleanScoList.map(s => `<option value="${s}" ${s === state.profilSales ? 'selected' : ''}>${s}</option>`).join('')}
+                ${cleanScoList.map(s => `<option value="${escapeAttr(s)}" ${s === state.profilSales ? 'selected' : ''}>${escapeHtml(s)}</option>`).join('')}
               </select>
             </div>
 
             <!-- Sort By -->
-            <div class="filter-group">
-              <label class="filter-label">Urutkan Berdasarkan</label>
-              <select class="form-select" onchange="window.setProfilSort(this.value)">
+            <div>
+              <label class="filter-label"><i class="fa-solid fa-arrow-down-wide-short"></i> Urutkan Berdasarkan</label>
+              <select class="form-select" id="profil-sort-select" onchange="window.setProfilSort(this.value)">
                 <option value="diff_asc" ${state.profilSort === 'diff_asc' ? 'selected' : ''}>📉 Growth Terendah / Penurunan (Default)</option>
                 <option value="diff_desc" ${state.profilSort === 'diff_desc' ? 'selected' : ''}>🔥 Growth Tertinggi / Kenaikan</option>
                 <option value="curr_desc" ${state.profilSort === 'curr_desc' ? 'selected' : ''}>💰 Okt 2026 Tertinggi</option>
@@ -848,17 +921,28 @@
             </div>
 
             <!-- Search Input -->
-            <div class="filter-group">
-              <label class="filter-label">Cari Nama / ID Toko</label>
-              <div class="search-input-wrap">
-                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <div>
+              <label class="filter-label"><i class="fa-solid fa-magnifying-glass"></i> Cari Nama / ID Toko</label>
+              <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
                 <input
                   type="text"
-                  class="search-input"
+                  class="form-input"
+                  id="profil-search-input"
                   placeholder="Ketik nama toko atau ID agen..."
-                  value="${escapeHtml(state.profilSearch)}"
+                  value="${escapeAttr(state.profilSearch)}"
                   oninput="window.setProfilSearch(this.value)"
+                  autocomplete="off"
                 />
+                <button
+                  type="button"
+                  id="profil-search-clear-btn"
+                  onclick="window.clearProfilSearch()"
+                  style="display: ${state.profilSearch ? 'inline-flex' : 'none'}; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px; font-size: 13px;"
+                  title="Hapus pencarian"
+                >
+                  <i class="fa-solid fa-circle-xmark"></i>
+                </button>
               </div>
             </div>
           </div>
@@ -866,16 +950,16 @@
           <!-- QUICK FILTER TREN BUTTONS -->
           <div class="quick-filter-bar">
             <span style="font-size:12px; font-weight:700; color:var(--text-muted); margin-right:4px;">Filter Cepat:</span>
-            <button class="quick-filter-btn ${state.profilTrendFilter === 'ALL' ? 'active' : ''}" onclick="window.setProfilTrendFilter('ALL')">
+            <button id="profil-qf-all" data-filter="ALL" class="quick-filter-btn profil-qf-btn ${state.profilTrendFilter === 'ALL' ? 'active' : ''}" onclick="window.setProfilTrendFilter('ALL')">
               Semua Tren (${totalAgents})
             </button>
-            <button class="quick-filter-btn ${state.profilTrendFilter === 'UP' ? 'active' : ''}" onclick="window.setProfilTrendFilter('UP')">
+            <button id="profil-qf-up" data-filter="UP" class="quick-filter-btn profil-qf-btn ${state.profilTrendFilter === 'UP' ? 'active' : ''}" onclick="window.setProfilTrendFilter('UP')">
               <i class="fa-solid fa-arrow-trend-up" style="color:var(--success);"></i> Tren Naik MoM (${countUp})
             </button>
-            <button class="quick-filter-btn ${state.profilTrendFilter === 'DOWN' ? 'active' : ''}" onclick="window.setProfilTrendFilter('DOWN')">
+            <button id="profil-qf-down" data-filter="DOWN" class="quick-filter-btn profil-qf-btn ${state.profilTrendFilter === 'DOWN' ? 'active' : ''}" onclick="window.setProfilTrendFilter('DOWN')">
               <i class="fa-solid fa-arrow-trend-down" style="color:var(--danger);"></i> Tren Turun MoM (${countDown})
             </button>
-            <button class="quick-filter-btn ${state.profilTrendFilter === 'ACTIVE_TOP' ? 'active' : ''}" onclick="window.setProfilTrendFilter('ACTIVE_TOP')">
+            <button id="profil-qf-top" data-filter="ACTIVE_TOP" class="quick-filter-btn profil-qf-btn ${state.profilTrendFilter === 'ACTIVE_TOP' ? 'active' : ''}" onclick="window.setProfilTrendFilter('ACTIVE_TOP')">
               <i class="fa-solid fa-star" style="color:#f59e0b;"></i> Top Aktif (≥ 50 trx/hari)
             </button>
           </div>
@@ -887,9 +971,9 @@
         <div class="card-header">
           <div class="card-title">
             <i class="fa-solid fa-chart-line" style="color:var(--primary);"></i>
-            Histori & Tren Daily Transaksi Agen Real SCO (Januari – Oktober 2026)
+            Histori &amp; Tren Daily Transaksi Agen Real SCO (Januari – Oktober 2026)
           </div>
-          <span class="badge badge-info">
+          <span class="badge badge-info" id="profil-badge-counter">
             Menampilkan ${paged.length.toLocaleString('id-ID')} dari ${filtered.length.toLocaleString('id-ID')} Agen
           </span>
         </div>
@@ -913,14 +997,14 @@
                 <th class="center" style="width:70px;">Aksi</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody id="profil-table-tbody">
               ${renderProfilTableRows(paged)}
             </tbody>
           </table>
         </div>
 
         <!-- LOAD MORE BAR -->
-        <div style="padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; border-top: 1px solid var(--border-color); background: var(--bg-hover);">
+        <div id="profil-loadmore-wrapper" style="padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; border-top: 1px solid var(--border-color); background: var(--bg-hover);">
           <div style="font-size: 13px; color: var(--text-muted);">
             Menampilkan <strong>${paged.length.toLocaleString('id-ID')}</strong> dari total <strong>${filtered.length.toLocaleString('id-ID')}</strong> agen yang sesuai
           </div>
@@ -944,35 +1028,45 @@
   window.setProfilSales = function (val) {
     state.profilSales = val;
     state.profilPageLimit = 100;
-    renderCurrentRoute();
+    updateProfilTableData();
   };
 
   window.setProfilSearch = function (val) {
     state.profilSearch = val;
     state.profilPageLimit = 100;
-    renderCurrentRoute();
+    updateProfilTableData();
+  };
+
+  window.clearProfilSearch = function () {
+    state.profilSearch = '';
+    const inp = document.getElementById('profil-search-input');
+    if (inp) {
+      inp.value = '';
+      inp.focus();
+    }
+    updateProfilTableData();
   };
 
   window.setProfilSort = function (val) {
     state.profilSort = val;
     state.profilPageLimit = 100;
-    renderCurrentRoute();
+    updateProfilTableData();
   };
 
   window.setProfilTrendFilter = function (val) {
     state.profilTrendFilter = val;
     state.profilPageLimit = 100;
-    renderCurrentRoute();
+    updateProfilTableData();
   };
 
   window.loadMoreProfilAgents = function () {
     state.profilPageLimit += 100;
-    renderCurrentRoute();
+    updateProfilTableData();
   };
 
   window.loadAllProfilAgents = function () {
     state.profilPageLimit = 999999;
-    renderCurrentRoute();
+    updateProfilTableData();
   };
 
   window.resetProfilFilters = function () {
@@ -981,7 +1075,7 @@
     state.profilSort = 'diff_asc';
     state.profilTrendFilter = 'ALL';
     state.profilPageLimit = 100;
-    renderCurrentRoute();
+    renderProfilAgenView(document.getElementById('view-container'));
   };
 
   // ── VIEW 2: DETAIL PERFORMA AGEN (TABEL RINGKAS) ──
