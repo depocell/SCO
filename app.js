@@ -1989,7 +1989,7 @@
       allowTaint: true,
       logging: false,
       backgroundColor: bgColor,
-      windowWidth: 1080,
+      windowWidth: 760,
       onclone: (clonedDoc) => {
         clonedDoc.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
         if (isDark) clonedDoc.body.classList.add('dark-theme');
@@ -1997,36 +1997,97 @@
 
         const cloneTarget = clonedDoc.getElementById('view-container') || clonedDoc.querySelector('.app-main');
         if (cloneTarget) {
-          cloneTarget.style.width = '1000px';
-          cloneTarget.style.maxWidth = '1000px';
+          // Kunci lebar potret proporsional (680px) agar pas di layar HP / WhatsApp dan tidak melebar
+          cloneTarget.style.width = '680px';
+          cloneTarget.style.maxWidth = '680px';
           cloneTarget.style.margin = '0 auto';
-          cloneTarget.style.padding = '24px';
+          cloneTarget.style.padding = '20px';
           cloneTarget.style.boxSizing = 'border-box';
           cloneTarget.style.background = bgColor;
 
           // Header Laporan Eksklusif untuk WhatsApp
           const reportHeader = clonedDoc.createElement('div');
-          reportHeader.style.cssText = `margin-bottom: 24px; padding-bottom: 14px; border-bottom: 2px solid ${isDark ? '#334155' : '#e2e8f0'}; display: flex; justify-content: space-between; align-items: flex-end;`;
+          reportHeader.style.cssText = `margin-bottom: 18px; padding-bottom: 12px; border-bottom: 2px solid ${isDark ? '#334155' : '#e2e8f0'}; display: flex; justify-content: space-between; align-items: flex-end;`;
           reportHeader.innerHTML = `
             <div>
-              <div style="font-size: 20px; font-weight: 800; color: ${isDark ? '#f8fafc' : '#0f172a'}; letter-spacing: -0.3px;">
+              <div style="font-size: 19px; font-weight: 800; color: ${isDark ? '#f8fafc' : '#0f172a'}; letter-spacing: -0.3px;">
                 SCO EXECUTIVE REPORT
               </div>
-              <div style="font-size: 13px; color: ${isDark ? '#94a3b8' : '#64748b'}; margin-top: 3px; font-weight: 500;">
+              <div style="font-size: 12px; color: ${isDark ? '#94a3b8' : '#64748b'}; margin-top: 3px; font-weight: 500;">
                 Monitoring Transaksi Harian MoM &amp; Performa Agen
               </div>
             </div>
             <div style="text-align: right;">
-              <span style="font-size: 12px; font-weight: 700; color: ${isDark ? '#38bdf8' : '#0284c7'}; font-family: 'JetBrains Mono', monospace; background: ${isDark ? 'rgba(56, 189, 248, 0.15)' : '#e0f2fe'}; padding: 4px 10px; border-radius: 6px;">
+              <span style="font-size: 11.5px; font-weight: 700; color: ${isDark ? '#38bdf8' : '#0284c7'}; font-family: 'JetBrains Mono', monospace; background: ${isDark ? 'rgba(56, 189, 248, 0.15)' : '#e0f2fe'}; padding: 4px 10px; border-radius: 6px;">
                 Cutoff: ${state.data?.cutoff_date || '-'}
               </span>
             </div>
           `;
           cloneTarget.insertBefore(reportHeader, cloneTarget.firstChild);
 
+          // Format Grid 4 KPI Cards agar rapat dan pas di potret
+          const metricsGrid = cloneTarget.querySelector('.metrics-grid');
+          if (metricsGrid) {
+            metricsGrid.style.display = 'grid';
+            metricsGrid.style.gridTemplateColumns = 'repeat(2, 1fr)';
+            metricsGrid.style.gap = '12px';
+            metricsGrid.style.marginBottom = '14px';
+          }
+          cloneTarget.querySelectorAll('.metric-card').forEach(mc => {
+            mc.style.padding = '14px 16px';
+          });
+
+          // Rapikan spacing card konten
+          cloneTarget.querySelectorAll('.content-card').forEach(c => {
+            c.style.marginBottom = '14px';
+          });
+
+          // Rapikan Chart Canvas Container agar tingginya pas dengan lebar 680px
+          const chartBody = cloneTarget.querySelector('#sco-trend-chart')?.parentElement;
+          if (chartBody) {
+            chartBody.style.height = '260px';
+          }
+
           // Sembunyikan elemen navigasi / tombol aksi interaktif pada foto rekap
           clonedDoc.querySelectorAll('#table-mom-sco th:last-child, #table-mom-sco td:last-child').forEach(el => el.style.display = 'none');
-          clonedDoc.querySelectorAll('button, .action-btn, .sidebar-backdrop').forEach(el => el.style.display = 'none');
+          clonedDoc.querySelectorAll('button, .action-btn, .sidebar-backdrop, .sub-header-bar').forEach(el => el.style.display = 'none');
+
+          // Rapikan tabel #table-mom-sco agar kolom seimbang dan tidak ada ruang kosong melebar
+          const table = clonedDoc.getElementById('table-mom-sco');
+          if (table) {
+            table.style.width = '100%';
+            table.style.fontSize = '12.5px';
+            const ths = table.querySelectorAll('thead th');
+            if (ths.length >= 6) {
+              ths[0].style.width = '36px';   // No
+              ths[0].style.textAlign = 'center';
+              ths[1].style.width = 'auto';   // SCO / Kategori
+              ths[2].style.width = '75px';   // Cabang
+              ths[2].style.textAlign = 'center';
+              ths[3].style.width = '95px';   // Sep
+              ths[3].style.textAlign = 'right';
+              ths[4].style.width = '100px';  // Oct
+              ths[4].style.textAlign = 'right';
+              ths[5].style.width = '85px';   // Growth
+              ths[5].style.textAlign = 'right';
+            }
+            table.querySelectorAll('tbody tr').forEach(tr => {
+              const tds = tr.querySelectorAll('td');
+              if (tds.length >= 6) {
+                tds[0].style.textAlign = 'center';
+                tds[2].style.textAlign = 'center';
+                tds[3].style.textAlign = 'right';
+                tds[4].style.textAlign = 'right';
+                tds[5].style.textAlign = 'right';
+              }
+              tds.forEach(td => {
+                td.style.padding = '9px 12px';
+              });
+            });
+            table.querySelectorAll('thead th').forEach(th => {
+              th.style.padding = '10px 12px';
+            });
+          }
         }
       }
     });
