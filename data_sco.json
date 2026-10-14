@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-14 16:20:41",
+  "generated_at": "2026-10-14 19:39:13",
   "latest_period": "1026",
   "cutoff_date": "13-10-2026",
   "periods_list": [
@@ -39480,7 +39480,7 @@
       "type": "Prima",
       "sco": "NON SCO",
       "location": "6°16'17.1\"S 106°39'55.9\"E",
-      "jadwal": "",
+      "jadwal": "-",
       "limit": 0.0,
       "status": "1",
       "avg_prev": 1.5,
@@ -39517,7 +39517,7 @@
       "AGEN ID": "AR00008",
       "NAMA SCO": "NON SCO",
       "CABANG": "BSD",
-      "JADWAL": "",
+      "JADWAL": "-",
       "LOCATION": "6°16'17.1\"S 106°39'55.9\"E",
       "LIMIT": 0.0,
       "STATUS": "1"
