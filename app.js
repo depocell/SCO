@@ -1979,10 +1979,10 @@
 
       // Filter Search
       if (search) {
-        const name = String(a.nama || '').toLowerCase();
-        const code = String(a.kode || '').toLowerCase();
-        const addr = String(a.alamat || '').toLowerCase();
-        if (!name.includes(search) && !code.includes(search) && !addr.includes(search)) {
+        const name = String(a.name || a.nama || '').toLowerCase();
+        const code = String(a.aid || a.kode || '').toLowerCase();
+        const sco = String(a.sco || '').toLowerCase();
+        if (!name.includes(search) && !code.includes(search) && !sco.includes(search)) {
           return false;
         }
       }
@@ -1997,7 +1997,28 @@
       const aSco = String(a.sco || 'NON SCO').trim();
       const color = getScoColor(aSco);
       scoCounts[aSco] = (scoCounts[aSco] || 0) + 1;
-      totalDaily += Number(a.daily_curr || 0);
+
+      const storeFullName = String(a.name || a.nama || a.aid || 'Toko').trim();
+      const agentId = String(a.aid || a.kode || '').trim();
+      const cleanStoreName = agentId
+        ? storeFullName.replace(new RegExp('^' + agentId + '\\s*[-:]\\s*', 'i'), '').trim()
+        : storeFullName;
+
+      const cabang = String(a.cabang || '').trim();
+      const tipe = String(a.type || a.tipe || 'Outlet').trim();
+
+      const dailyVal = Number(a.avg_curr !== undefined ? a.avg_curr : (a.Oct !== undefined ? a.Oct : (a.daily_curr || 0)));
+      const dailyPrev = Number(a.avg_prev !== undefined ? a.avg_prev : (a.Sep !== undefined ? a.Sep : (a.daily_prev || 0)));
+      const growthDiff = a.diff !== undefined ? Number(a.diff) : (dailyVal - dailyPrev);
+      let growthPct = 0;
+      if (a.growth !== undefined && a.growth !== null && a.growth !== '') {
+        growthPct = Number(a.growth) * 100;
+      } else if (dailyPrev > 0) {
+        growthPct = (growthDiff / dailyPrev) * 100;
+      }
+      const isPos = growthDiff >= 0;
+
+      totalDaily += dailyVal;
 
       const marker = L.circleMarker([coord.lat, coord.lon], {
         radius: 7,
@@ -2010,27 +2031,26 @@
 
       // Tooltip for quick hover
       marker.bindTooltip(`
-        <div style="font-family:var(--font); font-size:12px; line-height:1.3;">
-          <strong style="color:${color};">${escapeHtml(a.nama)}</strong><br>
-          <span style="color:var(--text-muted); font-size:11px;">${fmtNumber(a.daily_curr || 0, 1)} trx/hari &bull; ${escapeHtml(aSco)}</span>
+        <div style="font-family:var(--font); font-size:12px; line-height:1.35; padding:2px;">
+          <strong style="color:${color};">${escapeHtml(cleanStoreName || storeFullName)}</strong><br>
+          <span style="color:var(--text-muted); font-size:11px;">${agentId ? `${agentId} &bull; ` : ''}${fmtNumber(dailyVal, 1)} trx/hari &bull; ${escapeHtml(aSco)}</span>
         </div>
       `, { direction: 'top', offset: [0, -6] });
 
       // Rich Popup on click
       const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${coord.lat.toFixed(6)},${coord.lon.toFixed(6)}`;
       const mapsPinUrl = `https://www.google.com/maps?q=${coord.lat.toFixed(6)},${coord.lon.toFixed(6)}`;
-      const growthDiff = a.growth_diff !== undefined ? Number(a.growth_diff) : ((a.daily_curr || 0) - (a.daily_prev || 0));
-      const growthPct = a.growth_pct !== undefined ? Number(a.growth_pct) : 0;
-      const isPos = growthDiff >= 0;
 
       const popupHtml = `
         <div class="map-popup-card">
           <div class="map-popup-header">
-            <div>
-              <div class="map-popup-title">${escapeHtml(a.nama)}</div>
-              <div style="font-size:11px; color:var(--text-muted); font-family:var(--font-mono);">${escapeHtml(a.kode)} &bull; ${escapeHtml(a.tipe || 'Outlet')}</div>
+            <div style="flex:1; min-width:0;">
+              <div class="map-popup-title">${escapeHtml(cleanStoreName || storeFullName)}</div>
+              <div style="font-size:11px; color:var(--text-muted); font-family:var(--font-mono); margin-top:2px;">
+                ${escapeHtml(agentId || '-')}${cabang ? ` &bull; Cabang ${escapeHtml(cabang)}` : ''} &bull; ${escapeHtml(tipe)}
+              </div>
             </div>
-            <span class="badge" style="background:${color}22; color:${color}; border:1px solid ${color}55; font-weight:700; white-space:nowrap;">
+            <span class="badge" style="background:${color}18; color:${color}; border:1px solid ${color}44; font-weight:700; white-space:nowrap; margin-left:8px;">
               ${escapeHtml(aSco)}
             </span>
           </div>
@@ -2041,7 +2061,7 @@
             </div>
             <div class="map-popup-row">
               <span class="map-popup-label"><i class="fa-solid fa-chart-line"></i> Daily Okt 2026</span>
-              <span class="map-popup-val">${fmtNumber(a.daily_curr || 0, 1)} trx/hari</span>
+              <span class="map-popup-val">${fmtNumber(dailyVal, 1)} trx/hari</span>
             </div>
             <div class="map-popup-row">
               <span class="map-popup-label"><i class="fa-solid fa-arrow-trend-up"></i> Growth Daily</span>
@@ -2049,20 +2069,15 @@
                 ${isPos ? '+' : ''}${fmtNumber(growthDiff, 1)} (${fmtNumber(growthPct, 1)}%)
               </span>
             </div>
-            ${a.alamat ? `
-            <div class="map-popup-row" style="align-items:flex-start; margin-top:2px;">
-              <span class="map-popup-label"><i class="fa-solid fa-location-dot"></i> Alamat</span>
-              <span class="map-popup-val" style="font-weight:400; font-size:11px; text-align:right; max-width:180px; word-break:break-word;">${escapeHtml(a.alamat)}</span>
-            </div>` : ''}
           </div>
           <div class="map-popup-actions">
-            <a href="${mapsUrl}" target="_blank" rel="noopener" class="action-btn btn-primary btn-sm" style="flex:1; justify-content:center; text-decoration:none;">
-              <i class="fa-solid fa-diamond-turn-right"></i> Petunjuk Arah
+            <a href="${mapsUrl}" target="_blank" rel="noopener" class="action-btn btn-primary btn-sm" style="flex:1; justify-content:center; text-decoration:none; color:#ffffff !important; background:var(--primary) !important;">
+              <i class="fa-solid fa-diamond-turn-right" style="color:#ffffff !important;"></i> <span style="color:#ffffff !important; font-weight:600;">Petunjuk Arah</span>
             </a>
-            <a href="${mapsPinUrl}" target="_blank" rel="noopener" class="action-btn btn-secondary btn-sm" title="Buka Pin Google Maps" style="text-decoration:none;">
+            <a href="${mapsPinUrl}" target="_blank" rel="noopener" class="action-btn btn-secondary btn-sm" title="Buka Pin Google Maps" style="text-decoration:none; color:var(--text-main) !important;">
               <i class="fa-solid fa-map-pin"></i>
             </a>
-            <button class="action-btn btn-secondary btn-sm" onclick="window.copyText('${coord.lat.toFixed(6)}, ${coord.lon.toFixed(6)}', 'Koordinat')" title="Salin Koordinat">
+            <button class="action-btn btn-secondary btn-sm" onclick="window.copyText('${coord.lat.toFixed(6)}, ${coord.lon.toFixed(6)}', 'Koordinat')" title="Salin Koordinat" style="color:var(--text-main) !important;">
               <i class="fa-regular fa-copy"></i>
             </button>
           </div>

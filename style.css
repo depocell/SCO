@@ -1443,4 +1443,26 @@ body {
   text-align: center;
 }
 
+.leaflet-container a.action-btn.btn-primary,
+.leaflet-container a.action-btn.btn-primary:visited,
+.leaflet-container a.action-btn.btn-primary:hover,
+.leaflet-container a.action-btn.btn-primary:active {
+  color: #ffffff !important;
+  background: var(--primary) !important;
+  text-decoration: none !important;
+}
+
+.leaflet-container a.action-btn.btn-primary:hover {
+  background: var(--primary-hover) !important;
+}
+
+.leaflet-container a.action-btn.btn-secondary,
+.leaflet-container a.action-btn.btn-secondary:visited,
+.leaflet-container a.action-btn.btn-secondary:hover,
+.leaflet-container a.action-btn.btn-secondary:active {
+  color: var(--text-main) !important;
+  background: var(--bg-subtle) !important;
+  text-decoration: none !important;
+}
+
 
