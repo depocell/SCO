@@ -967,7 +967,7 @@
 
             <!-- Search Input -->
             <div>
-              <label class="filter-label"><i class="fa-solid fa-magnifying-glass"></i> Cari Nama / ID Toko</label>
+              <label class="filter-label">Cari Nama / ID Toko</label>
               <div class="search-box">
                 <i class="fa-solid fa-magnifying-glass"></i>
                 <input
@@ -2178,6 +2178,11 @@
 
   // ── VIEW 5: PENGATURAN (SETTINGS) ──
   function renderSettingsView(container) {
+    const realScoAgents = (state.data?.tren_agen || []).filter(a => {
+      const s = String(a.sco || '').trim().toLowerCase();
+      return s && s !== 'non sco' && s !== 'online' && !s.includes('total');
+    });
+
     container.innerHTML = `
       <!-- THEME SETTINGS -->
       <div class="settings-section">
@@ -2215,8 +2220,8 @@
             <strong>${state.data?.generated_at ? new Date(state.data.generated_at).toLocaleString('id-ID') : '-'}</strong>
           </div>
           <div class="footer-pill">
-            <span>Total Toko & Agen</span>
-            <strong>${state.data?.tren_agen?.length || 0} Agen</strong>
+            <span>Total Toko Binaan SCO</span>
+            <strong>${realScoAgents.length} Toko</strong>
           </div>
           <div class="footer-pill">
             <span>Versi SPA</span>
