@@ -1794,6 +1794,9 @@
     }
 
     const cleanScos = getCleanScoList(state.data.tren_agen);
+    if (state.coverageSales === 'NON SCO' || !cleanScos.includes(state.coverageSales)) {
+      state.coverageSales = 'ALL';
+    }
 
     container.innerHTML = `
       <div class="coverage-page-wrapper">
@@ -1805,7 +1808,6 @@
               <select class="form-select" id="coverage-sco-select" onchange="window.setCoverageSales(this.value)" style="width:100%;">
                 <option value="ALL" ${state.coverageSales === 'ALL' ? 'selected' : ''}>Semua Tim SCO</option>
                 ${cleanScos.map(s => `<option value="${escapeHtml(s)}" ${state.coverageSales === s ? 'selected' : ''}>${escapeHtml(s)}</option>`).join('')}
-                <option value="NON SCO" ${state.coverageSales === 'NON SCO' ? 'selected' : ''}>Non-SCO (Unassigned)</option>
               </select>
             </div>
 
@@ -1953,14 +1955,14 @@
       const coord = parseStoreCoordinates(a.location);
       if (!coord) return false;
 
-      // Filter SCO
+      // Filter SCO: strictly exclude NON SCO, ONLINE, or total summary
       const aSco = String(a.sco || '').trim();
-      if (scoFilter === 'ALL') {
-        const lower = aSco.toLowerCase();
-        // By default 'ALL' displays all real SCOs
-        if (lower === 'non sco' || lower === 'online' || lower.includes('total')) return false;
-      } else {
-        if (aSco !== scoFilter) return false;
+      const lower = aSco.toLowerCase();
+      if (!aSco || lower === 'non sco' || lower === 'online' || lower.includes('total')) {
+        return false;
+      }
+      if (scoFilter !== 'ALL' && aSco !== scoFilter) {
+        return false;
       }
 
       // Filter Jadwal
