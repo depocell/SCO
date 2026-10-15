@@ -23,10 +23,15 @@
     profilSort: 'diff_asc',
     profilTrendFilter: 'ALL',
     profilPageLimit: 100,
+    coverageSales: 'ALL',
+    coverageJadwal: 'ALL',
+    coverageSearch: '',
     theme: localStorage.getItem('sco_theme') || localStorage.getItem('theme_preference') || 'system',
   };
 
   let trendChartInstance = null;
+  let coverageMapInstance = null;
+  let coverageMarkerLayer = null;
 
   // ── UTILITY HELPERS ──
   function fmtNumber(val, decimals = 1) {
@@ -92,6 +97,42 @@
       return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cleanStr)}`;
     }
     return null;
+  }
+
+  function parseStoreCoordinates(str) {
+    if (!str || typeof str !== 'string') return null;
+    const m = str.match(/(\d+)[^\d]+(\d+)[^\d]+([\d.]+)[^\d]*([NSns])\s*(\d+)[^\d]+(\d+)[^\d]+([\d.]+)[^\d]*([EWew])/);
+    if (m) {
+      let lat = parseFloat(m[1]) + parseFloat(m[2]) / 60 + parseFloat(m[3]) / 3600;
+      if (m[4].toUpperCase() === 'S') lat = -lat;
+      let lon = parseFloat(m[5]) + parseFloat(m[6]) / 60 + parseFloat(m[7]) / 3600;
+      if (m[8].toUpperCase() === 'W') lon = -lon;
+      return { lat, lon };
+    }
+    const dec = str.match(/([-+]?\d+\.\d+)[,\s]+([-+]?\d+\.\d+)/);
+    if (dec) {
+      const lat = parseFloat(dec[1]);
+      const lon = parseFloat(dec[2]);
+      if (Math.abs(lat) <= 90 && Math.abs(lon) <= 180) {
+        return { lat, lon };
+      }
+    }
+    return null;
+  }
+
+  const SCO_COLORS = {
+    'Abdul Harris': '#0284c7',       // Sky Blue
+    'Febri Kurniawan': '#10b981',   // Emerald Green
+    'Hupron': '#f59e0b',            // Amber Gold
+    'Khoirul Anan': '#8b5cf6',      // Purple
+    'Mas Komarjaya': '#ec4899',     // Pink / Magenta
+    'NON SCO': '#64748b',           // Slate Gray
+    'ONLINE': '#06b6d4',            // Cyan
+  };
+
+  function getScoColor(scoName) {
+    if (!scoName) return '#94a3b8';
+    return SCO_COLORS[scoName] || '#6366f1';
   }
 
   function escapeHtml(str) {
@@ -255,7 +296,7 @@
   // ── ROUTER ──
   function handleRoute() {
     const hash = window.location.hash || '#ringkasan';
-    const validRoutes = ['#ringkasan', '#profil-agen', '#detail', '#kpi-sco', '#kpi-dso', '#settings'];
+    const validRoutes = ['#ringkasan', '#coverage', '#profil-agen', '#detail', '#kpi-sco', '#kpi-dso', '#settings'];
     state.currentRoute = validRoutes.includes(hash) ? hash : '#ringkasan';
 
     // Update nav links active state
@@ -303,6 +344,9 @@
       case '#ringkasan':
         renderRingkasanView(container);
         break;
+      case '#coverage':
+        renderCoverageView(container);
+        break;
       case '#profil-agen':
         renderProfilAgenView(container);
         break;
@@ -331,6 +375,7 @@
 
     const titles = {
       '#ringkasan': '<i class="fa-solid fa-chart-line" style="color:var(--primary);"></i> Ringkasan Performa',
+      '#coverage': '<i class="fa-solid fa-map-location-dot" style="color:var(--primary);"></i> Area Coverage',
       '#profil-agen': '<i class="fa-solid fa-store" style="color:var(--primary);"></i> Profil Tren Agen',
       '#detail': '<i class="fa-solid fa-users" style="color:var(--primary);"></i> Detail Performa Agen',
       '#kpi-sco': '<i class="fa-solid fa-bullseye" style="color:var(--primary);"></i> KPI & Insentif SCO',
@@ -911,10 +956,10 @@
             <div>
               <label class="filter-label"><i class="fa-solid fa-arrow-down-wide-short"></i> Urutkan Berdasarkan</label>
               <select class="form-select" id="profil-sort-select" onchange="window.setProfilSort(this.value)">
-                <option value="diff_asc" ${state.profilSort === 'diff_asc' ? 'selected' : ''}>📉 Growth Terendah / Penurunan (Default)</option>
-                <option value="diff_desc" ${state.profilSort === 'diff_desc' ? 'selected' : ''}>🔥 Growth Tertinggi / Kenaikan</option>
-                <option value="curr_desc" ${state.profilSort === 'curr_desc' ? 'selected' : ''}>💰 Okt 2026 Tertinggi</option>
-                <option value="curr_asc" ${state.profilSort === 'curr_asc' ? 'selected' : ''}>🪙 Okt 2026 Terendah</option>
+                <option value="diff_asc" ${state.profilSort === 'diff_asc' ? 'selected' : ''}>Growth Terendah / Penurunan (Default)</option>
+                <option value="diff_desc" ${state.profilSort === 'diff_desc' ? 'selected' : ''}>Growth Tertinggi / Kenaikan</option>
+                <option value="curr_desc" ${state.profilSort === 'curr_desc' ? 'selected' : ''}>Okt 2026 Tertinggi</option>
+                <option value="curr_asc" ${state.profilSort === 'curr_asc' ? 'selected' : ''}>Okt 2026 Terendah</option>
                 <option value="jan_desc" ${state.profilSort === 'jan_desc' ? 'selected' : ''}>Jan 2026 Tertinggi</option>
                 <option value="name_asc" ${state.profilSort === 'name_asc' ? 'selected' : ''}>Nama Agen (A - Z)</option>
               </select>
@@ -1344,11 +1389,11 @@
             <div>
               <label class="filter-label"><i class="fa-solid fa-arrow-down-wide-short"></i> Urutan</label>
               <select class="form-select" id="detail-sort-select" onchange="window.setDetailSort(this.value)" style="width: 100%;">
-                <option value="growth_desc" ${state.detailSort === 'growth_desc' ? 'selected' : ''}>🔥 Growth Tertinggi (+)</option>
-                <option value="growth_asc" ${state.detailSort === 'growth_asc' ? 'selected' : ''}>📉 Growth Terendah (-)</option>
-                <option value="curr_desc" ${state.detailSort === 'curr_desc' ? 'selected' : ''}>💰 Daily Ini Tertinggi</option>
-                <option value="curr_asc" ${state.detailSort === 'curr_asc' ? 'selected' : ''}>🪙 Daily Ini Terendah</option>
-                <option value="name_asc" ${state.detailSort === 'name_asc' ? 'selected' : ''}>🔤 Nama Toko (A-Z)</option>
+                <option value="growth_desc" ${state.detailSort === 'growth_desc' ? 'selected' : ''}>Growth Tertinggi (+)</option>
+                <option value="growth_asc" ${state.detailSort === 'growth_asc' ? 'selected' : ''}>Growth Terendah (-)</option>
+                <option value="curr_desc" ${state.detailSort === 'curr_desc' ? 'selected' : ''}>Daily Ini Tertinggi</option>
+                <option value="curr_asc" ${state.detailSort === 'curr_asc' ? 'selected' : ''}>Daily Ini Terendah</option>
+                <option value="name_asc" ${state.detailSort === 'name_asc' ? 'selected' : ''}>Nama Toko (A-Z)</option>
               </select>
             </div>
 
@@ -1741,6 +1786,379 @@
     renderCurrentRoute();
   };
 
+  // ── VIEW: AREA COVERAGE (PETA LOKASI TOKO & PJP) ──
+  function renderCoverageView(container) {
+    if (!state.data || !state.data.tren_agen) {
+      container.innerHTML = `<div class="empty-state"><p>Data agen tidak ditemukan.</p></div>`;
+      return;
+    }
+
+    const cleanScos = getCleanScoList(state.data.tren_agen);
+
+    container.innerHTML = `
+      <div class="coverage-page-wrapper">
+        <!-- FILTER BAR -->
+        <div class="filter-card coverage-filter-card">
+          <div class="filter-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+            <div>
+              <label class="filter-label"><i class="fa-solid fa-user-tie"></i> Petugas SCO</label>
+              <select class="form-select" id="coverage-sco-select" onchange="window.setCoverageSales(this.value)" style="width:100%;">
+                <option value="ALL" ${state.coverageSales === 'ALL' ? 'selected' : ''}>Semua Tim SCO</option>
+                ${cleanScos.map(s => `<option value="${escapeHtml(s)}" ${state.coverageSales === s ? 'selected' : ''}>${escapeHtml(s)}</option>`).join('')}
+                <option value="NON SCO" ${state.coverageSales === 'NON SCO' ? 'selected' : ''}>Non-SCO (Unassigned)</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="filter-label"><i class="fa-regular fa-calendar-check"></i> Jadwal Kunjungan (PJP)</label>
+              <select class="form-select" id="coverage-jadwal-select" onchange="window.setCoverageJadwal(this.value)" style="width:100%;">
+                <option value="ALL" ${state.coverageJadwal === 'ALL' ? 'selected' : ''}>Semua Jadwal Kunjungan</option>
+                <option value="Senin,Kamis" ${state.coverageJadwal === 'Senin,Kamis' ? 'selected' : ''}>Senin, Kamis</option>
+                <option value="Selasa,Jumat" ${state.coverageJadwal === 'Selasa,Jumat' ? 'selected' : ''}>Selasa, Jum'at</option>
+                <option value="Rabu,Sabtu" ${state.coverageJadwal === 'Rabu,Sabtu' ? 'selected' : ''}>Rabu, Sabtu</option>
+                <option value="LAINNYA" ${state.coverageJadwal === 'LAINNYA' ? 'selected' : ''}>Tanpa Jadwal / Lainnya</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="filter-label"><i class="fa-solid fa-magnifying-glass"></i> Cari Toko / Agen</label>
+              <div style="position:relative;">
+                <input type="text" class="form-input" id="coverage-search-input"
+                  placeholder="Ketik nama atau kode toko..."
+                  value="${escapeAttr(state.coverageSearch)}"
+                  oninput="window.setCoverageSearch(this.value)"
+                  style="width:100%; padding-right:32px;">
+                ${state.coverageSearch ? `
+                  <button type="button" onclick="window.clearCoverageSearch()" style="position:absolute; right:8px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:12px;">
+                    <i class="fa-solid fa-xmark"></i>
+                  </button>
+                ` : ''}
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-top:12px; padding-top:10px; border-top:1px solid var(--border-color);">
+            <div id="coverage-active-summary" style="font-size:12.5px; color:var(--text-muted);">
+              Memuat titik lokasi...
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button class="action-btn btn-secondary btn-sm" onclick="window.resetCoverageFilters()">
+                <i class="fa-solid fa-arrow-rotate-left"></i> Reset Filter
+              </button>
+              <button class="action-btn btn-primary btn-sm" onclick="window.fitCoverageBounds()">
+                <i class="fa-solid fa-expand"></i> Fokuskan Peta
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- MAP CONTAINER CARD -->
+        <div class="coverage-map-card">
+          <!-- TOP TOOLBAR OVERLAY -->
+          <div class="coverage-map-toolbar">
+            <div class="coverage-toolbar-left">
+              <div id="coverage-map-stats" class="coverage-pill-badge">
+                <i class="fa-solid fa-location-dot" style="color:var(--primary);"></i>
+                <span id="coverage-stats-text">Memetakan Toko...</span>
+              </div>
+            </div>
+            <div class="coverage-toolbar-right">
+              <button class="action-btn btn-secondary btn-sm" onclick="window.fitCoverageBounds()" title="Fokuskan Semua Titik">
+                <i class="fa-solid fa-expand"></i> Fokus
+              </button>
+            </div>
+          </div>
+
+          <!-- LEAFLET CANVAS -->
+          <div id="coverage-map" class="coverage-map-container"></div>
+
+          <!-- DYNAMIC BOTTOM LEGEND -->
+          <div id="coverage-map-legend" class="coverage-legend"></div>
+        </div>
+      </div>
+    `;
+
+    // Initialize or re-render map
+    setTimeout(() => {
+      initCoverageMap();
+    }, 50);
+  }
+
+  function initCoverageMap() {
+    const mapEl = document.getElementById('coverage-map');
+    if (!mapEl) return;
+
+    if (typeof L === 'undefined') {
+      mapEl.innerHTML = `
+        <div class="empty-state" style="padding:40px 20px;">
+          <i class="fa-solid fa-triangle-exclamation" style="color:var(--danger); font-size:32px;"></i>
+          <p style="margin-top:12px; color:var(--danger); font-weight:700;">Library Leaflet.js belum siap.</p>
+          <p style="font-size:12px; color:var(--text-muted);">Silakan periksa koneksi internet atau muat ulang halaman.</p>
+          <button class="action-btn btn-secondary" onclick="window.location.reload()" style="margin-top:12px;">Muat Ulang</button>
+        </div>`;
+      return;
+    }
+
+    if (coverageMapInstance) {
+      try {
+        coverageMapInstance.remove();
+      } catch (e) {
+        console.warn('Gagal me-remove peta lama:', e);
+      }
+      coverageMapInstance = null;
+      coverageMarkerLayer = null;
+    }
+
+    // Center Jabodetabek / Banten area
+    const map = L.map('coverage-map', {
+      zoomControl: true,
+      scrollWheelZoom: true,
+      fadeAnimation: true
+    }).setView([-6.28, 106.7], 11);
+
+    coverageMapInstance = map;
+
+    // Tile Layer: OpenStreetMap
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap'
+    }).addTo(map);
+
+    coverageMarkerLayer = L.layerGroup().addTo(map);
+
+    // Invalidate size in case of container sizing delays
+    setTimeout(() => {
+      if (coverageMapInstance) coverageMapInstance.invalidateSize();
+    }, 150);
+
+    // Draw markers
+    updateCoverageMarkers();
+  }
+
+  function updateCoverageMarkers() {
+    if (!coverageMapInstance || !coverageMarkerLayer || !state.data || !state.data.tren_agen) return;
+
+    coverageMarkerLayer.clearLayers();
+
+    const all = state.data.tren_agen;
+    const scoFilter = state.coverageSales;
+    const jadwalFilter = state.coverageJadwal;
+    const search = (state.coverageSearch || '').trim().toLowerCase();
+
+    const bounds = L.latLngBounds();
+    let totalDaily = 0;
+    const scoCounts = {};
+
+    const filtered = all.filter(a => {
+      const coord = parseStoreCoordinates(a.location);
+      if (!coord) return false;
+
+      // Filter SCO
+      const aSco = String(a.sco || '').trim();
+      if (scoFilter === 'ALL') {
+        const lower = aSco.toLowerCase();
+        // By default 'ALL' displays all real SCOs
+        if (lower === 'non sco' || lower === 'online' || lower.includes('total')) return false;
+      } else {
+        if (aSco !== scoFilter) return false;
+      }
+
+      // Filter Jadwal
+      if (jadwalFilter !== 'ALL') {
+        const rawJadwal = (a.jadwal || '').trim().replace(/['’]/g, '').toLowerCase();
+        if (jadwalFilter === 'Senin,Kamis') {
+          if (!rawJadwal.includes('senin') || !rawJadwal.includes('kamis')) return false;
+        } else if (jadwalFilter === 'Selasa,Jumat') {
+          if (!rawJadwal.includes('selasa') || (!rawJadwal.includes('jum') && !rawJadwal.includes('jumat'))) return false;
+        } else if (jadwalFilter === 'Rabu,Sabtu') {
+          if (!rawJadwal.includes('rabu') || !rawJadwal.includes('sabtu')) return false;
+        } else if (jadwalFilter === 'LAINNYA') {
+          if (rawJadwal.includes('senin') || rawJadwal.includes('selasa') || rawJadwal.includes('rabu')) return false;
+        }
+      }
+
+      // Filter Search
+      if (search) {
+        const name = String(a.nama || '').toLowerCase();
+        const code = String(a.kode || '').toLowerCase();
+        const addr = String(a.alamat || '').toLowerCase();
+        if (!name.includes(search) && !code.includes(search) && !addr.includes(search)) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+
+    filtered.forEach(a => {
+      const coord = parseStoreCoordinates(a.location);
+      if (!coord) return;
+
+      const aSco = String(a.sco || 'NON SCO').trim();
+      const color = getScoColor(aSco);
+      scoCounts[aSco] = (scoCounts[aSco] || 0) + 1;
+      totalDaily += Number(a.daily_curr || 0);
+
+      const marker = L.circleMarker([coord.lat, coord.lon], {
+        radius: 7,
+        fillColor: color,
+        color: '#ffffff',
+        weight: 1.5,
+        opacity: 0.95,
+        fillOpacity: 0.85
+      });
+
+      // Tooltip for quick hover
+      marker.bindTooltip(`
+        <div style="font-family:var(--font); font-size:12px; line-height:1.3;">
+          <strong style="color:${color};">${escapeHtml(a.nama)}</strong><br>
+          <span style="color:var(--text-muted); font-size:11px;">${fmtNumber(a.daily_curr || 0, 1)} trx/hari &bull; ${escapeHtml(aSco)}</span>
+        </div>
+      `, { direction: 'top', offset: [0, -6] });
+
+      // Rich Popup on click
+      const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${coord.lat.toFixed(6)},${coord.lon.toFixed(6)}`;
+      const mapsPinUrl = `https://www.google.com/maps?q=${coord.lat.toFixed(6)},${coord.lon.toFixed(6)}`;
+      const growthDiff = a.growth_diff !== undefined ? Number(a.growth_diff) : ((a.daily_curr || 0) - (a.daily_prev || 0));
+      const growthPct = a.growth_pct !== undefined ? Number(a.growth_pct) : 0;
+      const isPos = growthDiff >= 0;
+
+      const popupHtml = `
+        <div class="map-popup-card">
+          <div class="map-popup-header">
+            <div>
+              <div class="map-popup-title">${escapeHtml(a.nama)}</div>
+              <div style="font-size:11px; color:var(--text-muted); font-family:var(--font-mono);">${escapeHtml(a.kode)} &bull; ${escapeHtml(a.tipe || 'Outlet')}</div>
+            </div>
+            <span class="badge" style="background:${color}22; color:${color}; border:1px solid ${color}55; font-weight:700; white-space:nowrap;">
+              ${escapeHtml(aSco)}
+            </span>
+          </div>
+          <div class="map-popup-body">
+            <div class="map-popup-row">
+              <span class="map-popup-label"><i class="fa-regular fa-calendar-check"></i> Jadwal PJP</span>
+              <span class="map-popup-val" style="color:var(--primary);">${escapeHtml(a.jadwal || '-')}</span>
+            </div>
+            <div class="map-popup-row">
+              <span class="map-popup-label"><i class="fa-solid fa-chart-line"></i> Daily Okt 2026</span>
+              <span class="map-popup-val">${fmtNumber(a.daily_curr || 0, 1)} trx/hari</span>
+            </div>
+            <div class="map-popup-row">
+              <span class="map-popup-label"><i class="fa-solid fa-arrow-trend-up"></i> Growth Daily</span>
+              <span class="map-popup-val" style="color:${isPos ? 'var(--success)' : 'var(--danger)'};">
+                ${isPos ? '+' : ''}${fmtNumber(growthDiff, 1)} (${fmtNumber(growthPct, 1)}%)
+              </span>
+            </div>
+            ${a.alamat ? `
+            <div class="map-popup-row" style="align-items:flex-start; margin-top:2px;">
+              <span class="map-popup-label"><i class="fa-solid fa-location-dot"></i> Alamat</span>
+              <span class="map-popup-val" style="font-weight:400; font-size:11px; text-align:right; max-width:180px; word-break:break-word;">${escapeHtml(a.alamat)}</span>
+            </div>` : ''}
+          </div>
+          <div class="map-popup-actions">
+            <a href="${mapsUrl}" target="_blank" rel="noopener" class="action-btn btn-primary btn-sm" style="flex:1; justify-content:center; text-decoration:none;">
+              <i class="fa-solid fa-diamond-turn-right"></i> Petunjuk Arah
+            </a>
+            <a href="${mapsPinUrl}" target="_blank" rel="noopener" class="action-btn btn-secondary btn-sm" title="Buka Pin Google Maps" style="text-decoration:none;">
+              <i class="fa-solid fa-map-pin"></i>
+            </a>
+            <button class="action-btn btn-secondary btn-sm" onclick="window.copyText('${coord.lat.toFixed(6)}, ${coord.lon.toFixed(6)}', 'Koordinat')" title="Salin Koordinat">
+              <i class="fa-regular fa-copy"></i>
+            </button>
+          </div>
+        </div>
+      `;
+
+      marker.bindPopup(popupHtml);
+      marker.addTo(coverageMarkerLayer);
+      bounds.extend([coord.lat, coord.lon]);
+    });
+
+    // Update Top & Card Stats
+    const statsText = document.getElementById('coverage-stats-text');
+    if (statsText) {
+      statsText.innerHTML = `<strong>${filtered.length}</strong> Titik Toko &bull; Total ${fmtNumber(totalDaily, 0)} trx/hari`;
+    }
+
+    const summaryEl = document.getElementById('coverage-active-summary');
+    if (summaryEl) {
+      const scoLabel = scoFilter === 'ALL' ? 'Semua Tim SCO' : scoFilter;
+      const jadwalLabel = jadwalFilter === 'ALL' ? 'Semua Jadwal' : jadwalFilter;
+      summaryEl.innerHTML = `Filter Aktif: <strong>${escapeHtml(scoLabel)}</strong> &bull; <strong>${escapeHtml(jadwalLabel)}</strong> &bull; Total <strong>${filtered.length}</strong> Toko terpetakan`;
+    }
+
+    // Update Dynamic Legend
+    const legendEl = document.getElementById('coverage-map-legend');
+    if (legendEl) {
+      const scoEntries = Object.entries(scoCounts);
+      if (scoEntries.length === 0) {
+        legendEl.innerHTML = `<span style="color:var(--text-muted); font-size:11.5px;">Tidak ada titik toko yang cocok dengan filter.</span>`;
+      } else {
+        legendEl.innerHTML = scoEntries.map(([scoName, count]) => {
+          const c = getScoColor(scoName);
+          return `
+            <div class="coverage-legend-item" title="${escapeHtml(scoName)}: ${count} Toko">
+              <span class="coverage-legend-dot" style="background:${c};"></span>
+              <span>${escapeHtml(scoName)}: <strong>${count}</strong></span>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    // Auto-fit bounds if markers exist
+    if (bounds.isValid()) {
+      coverageMapInstance.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
+    }
+  }
+
+  window.setCoverageSales = function (val) {
+    state.coverageSales = val;
+    updateCoverageMarkers();
+  };
+
+  window.setCoverageJadwal = function (val) {
+    state.coverageJadwal = val;
+    updateCoverageMarkers();
+  };
+
+  window.setCoverageSearch = function (val) {
+    state.coverageSearch = val;
+    updateCoverageMarkers();
+  };
+
+  window.clearCoverageSearch = function () {
+    state.coverageSearch = '';
+    const input = document.getElementById('coverage-search-input');
+    if (input) input.value = '';
+    updateCoverageMarkers();
+  };
+
+  window.fitCoverageBounds = function () {
+    if (coverageMapInstance && coverageMarkerLayer) {
+      const bounds = L.latLngBounds();
+      coverageMarkerLayer.eachLayer(layer => {
+        if (layer.getLatLng) bounds.extend(layer.getLatLng());
+      });
+      if (bounds.isValid()) {
+        coverageMapInstance.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
+      }
+    }
+  };
+
+  window.resetCoverageFilters = function () {
+    state.coverageSales = 'ALL';
+    state.coverageJadwal = 'ALL';
+    state.coverageSearch = '';
+    const selSco = document.getElementById('coverage-sco-select');
+    if (selSco) selSco.value = 'ALL';
+    const selJadwal = document.getElementById('coverage-jadwal-select');
+    if (selJadwal) selJadwal.value = 'ALL';
+    const inpSearch = document.getElementById('coverage-search-input');
+    if (inpSearch) inpSearch.value = '';
+    updateCoverageMarkers();
+  };
+
   // ── VIEW 5: PENGATURAN (SETTINGS) ──
   function renderSettingsView(container) {
     container.innerHTML = `
@@ -1865,6 +2283,10 @@
             <a href="#ringkasan" class="nav-link">
               <i class="fa-solid fa-chart-line"></i>
               <span>Ringkasan Performa</span>
+            </a>
+            <a href="#coverage" class="nav-link">
+              <i class="fa-solid fa-map-location-dot"></i>
+              <span>Area Coverage</span>
             </a>
             <a href="#profil-agen" class="nav-link">
               <i class="fa-solid fa-store"></i>

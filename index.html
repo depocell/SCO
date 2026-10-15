@@ -32,8 +32,18 @@
     }
   </script>
 
+  <!-- Leaflet Map CSS & JS for Area Coverage (Local with CDN fallback) -->
+  <link rel="stylesheet" href="leaflet.css">
+  <script src="leaflet.js"></script>
+  <script>
+    if (typeof L === 'undefined') {
+      document.write('<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">');
+      document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"><\/script>');
+    }
+  </script>
+
   <!-- SCO Suite Unified Stylesheet -->
-  <link rel="stylesheet" href="style.css?v=2.4">
+  <link rel="stylesheet" href="style.css?v=2.6">
 
   <script>
     // Embedded Mode Check
@@ -61,7 +71,7 @@
   </style>
 
   <!-- SCO Suite Controller -->
-  <script src="app.js?v=3.4"></script>
+  <script src="app.js?v=3.6"></script>
 </body>
 
 </html>

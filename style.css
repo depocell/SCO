@@ -1237,3 +1237,210 @@ body {
   box-shadow: 0 2px 6px var(--primary-glow);
 }
 
+/* ── AREA COVERAGE MAP VIEW ── */
+.coverage-page-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.coverage-filter-card {
+  padding: 14px 18px;
+}
+
+.coverage-map-card {
+  position: relative;
+  border-radius: var(--radius-md, 12px);
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.coverage-map-container {
+  width: 100%;
+  height: calc(100vh - 275px);
+  min-height: 520px;
+  z-index: 1;
+}
+
+@media (max-width: 768px) {
+  .coverage-map-container {
+    height: calc(100vh - 290px);
+    min-height: 420px;
+  }
+}
+
+.coverage-map-toolbar {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  right: 14px;
+  z-index: 1000;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.coverage-map-toolbar > * {
+  pointer-events: auto;
+}
+
+.coverage-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.coverage-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.coverage-pill-badge {
+  background: var(--bg-surface);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 700;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.coverage-legend {
+  position: absolute;
+  bottom: 22px;
+  left: 14px;
+  z-index: 1000;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm, 8px);
+  padding: 10px 14px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  font-size: 11.5px;
+  max-width: calc(100% - 28px);
+}
+
+.coverage-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+.coverage-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1.5px solid #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  flex-shrink: 0;
+}
+
+/* Leaflet Dark Theme & UI Enhancements */
+[data-theme="dark"] .leaflet-tile-pane {
+  filter: brightness(0.7) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.75);
+}
+
+.leaflet-popup-content-wrapper {
+  background: var(--bg-surface) !important;
+  color: var(--text-main) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25) !important;
+  padding: 0 !important;
+  overflow: hidden;
+}
+
+.leaflet-popup-content {
+  margin: 0 !important;
+  line-height: 1.4 !important;
+}
+
+.leaflet-popup-tip {
+  background: var(--bg-surface) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+.leaflet-container {
+  font-family: var(--font) !important;
+}
+
+.map-popup-card {
+  padding: 14px 16px;
+  min-width: 250px;
+  max-width: 320px;
+}
+
+.map-popup-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 8px;
+}
+
+.map-popup-title {
+  font-weight: 700;
+  font-size: 13.5px;
+  color: var(--text-main);
+  line-height: 1.35;
+}
+
+.map-popup-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  margin-bottom: 12px;
+}
+
+.map-popup-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.map-popup-label {
+  color: var(--text-muted);
+  font-size: 11.5px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.map-popup-val {
+  font-weight: 600;
+  color: var(--text-main);
+  text-align: right;
+}
+
+.map-popup-actions {
+  display: flex;
+  gap: 8px;
+  border-top: 1px solid var(--border-color);
+  padding-top: 10px;
+}
+
+.map-popup-actions .action-btn {
+  flex: 1;
+  justify-content: center;
+  text-align: center;
+}
+
+
