@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-15 13:35:14",
+  "generated_at": "2026-10-15 14:35:50",
   "latest_period": "1026",
   "cutoff_date": "14-10-2026",
   "periods_list": [
@@ -134723,12 +134723,12 @@
       "ach_daily_trx": 2.8,
       "pct_daily_trx": 1.9,
       "tgt_voucher": 20000.0,
-      "ach_voucher": 2456.0,
-      "pct_voucher": 12.3,
+      "ach_voucher": 2776.0,
+      "pct_voucher": 13.9,
       "tgt_perdana": 200.0,
       "ach_perdana": 333.0,
       "pct_perdana": 166.5,
-      "score": 38.4,
+      "score": 38.8,
       "multiplier": 0.0,
       "insentif": 0.0
     },
@@ -134742,12 +134742,12 @@
       "ach_daily_trx": 9.6,
       "pct_daily_trx": 6.4,
       "tgt_voucher": 20000.0,
-      "ach_voucher": 2411.0,
-      "pct_voucher": 12.1,
+      "ach_voucher": 2959.0,
+      "pct_voucher": 14.8,
       "tgt_perdana": 200.0,
       "ach_perdana": 298.0,
       "pct_perdana": 149.0,
-      "score": 36.2,
+      "score": 37.0,
       "multiplier": 0.0,
       "insentif": 0.0
     },
